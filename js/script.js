@@ -33,3 +33,75 @@ if (newsletterForm) {
 // Footer year
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+// Articoli page — filtro per categoria dell'archivio
+const filterButtons = document.querySelectorAll('.filter-btn');
+const archiveItems = document.querySelectorAll('.archive-item');
+
+if (filterButtons.length && archiveItems.length) {
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      const filter = btn.dataset.filter;
+      archiveItems.forEach(item => {
+        const show = filter === 'tutti' || item.dataset.category === filter;
+        item.classList.toggle('is-hidden', !show);
+      });
+    });
+  });
+}
+
+// Articles carousel (up to 6 articles, 3 visible at a time,
+// scrolls one article at a time with a smooth transition)
+const viewport = document.querySelector('.articles-viewport');
+const track = document.getElementById('articlesTrack');
+const prevBtn = document.getElementById('articlesPrev');
+const nextBtn = document.getElementById('articlesNext');
+
+if (viewport && track && prevBtn && nextBtn) {
+  const cards = Array.from(track.children);
+  let index = 0;
+
+  function cardsPerPage() {
+    const w = window.innerWidth;
+    if (w <= 640) return 1;
+    if (w <= 860) return 2;
+    return 3;
+  }
+
+  function cardStep() {
+    const first = cards[0];
+    const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 0;
+    return first.getBoundingClientRect().width + gap;
+  }
+
+  function maxIndex() {
+    return Math.max(0, cards.length - cardsPerPage());
+  }
+
+  function update() {
+    const clampedMax = maxIndex();
+    if (index > clampedMax) index = clampedMax;
+    track.style.transform = `translateX(-${index * cardStep()}px)`;
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index >= clampedMax;
+  }
+
+  prevBtn.addEventListener('click', () => {
+    index = Math.max(0, index - 1);
+    update();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    index = Math.min(maxIndex(), index + 1);
+    update();
+  });
+
+  window.addEventListener('resize', () => {
+    update();
+  });
+
+  update();
+}
