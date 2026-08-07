@@ -1,11 +1,3 @@
-// ==========================================================
-// content.js — legge content/articoli.json e content/portfolio.json
-// e costruisce dinamicamente le sezioni del sito. Questo è ciò che
-// rende il pannello di amministrazione (Decap CMS) utile: un
-// articolo o una voce di portfolio pubblicati da lì compaiono qui
-// automaticamente, senza toccare l'HTML.
-// ==========================================================
-
 const CATEGORY_LABELS = {
   recensioni: 'Recensioni',
   cinema: 'Cinema',
@@ -30,13 +22,13 @@ function capitalize(str) {
 }
 
 async function fetchArticles() {
-  const res = await fetch('content/articoli.json');
+  const res = await fetch('content/articoli.json', { cache: 'no-store' });
   const data = await res.json();
   return (data.articles || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 async function fetchPortfolio() {
-  const res = await fetch('content/portfolio.json');
+  const res = await fetch('content/portfolio.json', { cache: 'no-store' });
   const data = await res.json();
   return data.items || [];
 }
