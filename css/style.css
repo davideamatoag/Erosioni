@@ -955,3 +955,175 @@ input:focus-visible {
   .articles-row-3 { grid-template-columns: 1fr; gap: 28px; }
   .archive-thumb { width: 60px; height: 60px; flex-basis: 60px; }
 }
+
+/* ==========================================================
+   PAGINA SINGOLO ARTICOLO — sobria, larghezza di lettura contenuta
+   ========================================================== */
+.article-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.article-page-header { padding: 64px 0 0; }
+
+.article-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  margin: 0 0 14px;
+}
+
+.article-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0.02em;
+  line-height: 1.08;
+  margin: 0 0 16px;
+  color: var(--slate);
+}
+
+.article-page-meta {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--slate-light);
+  margin: 0 0 36px;
+}
+
+.article-hero-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 44px;
+}
+
+.article-body { padding-bottom: 8px; }
+
+.article-body p {
+  font-family: var(--font-ui);
+  font-size: 1.06rem;
+  line-height: 1.85;
+  color: var(--slate);
+  margin: 0 0 26px;
+}
+
+.article-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 44px 0 18px;
+}
+
+.article-body blockquote {
+  margin: 36px 0;
+  padding-left: 24px;
+  border-left: 4px solid var(--red);
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--slate-light);
+}
+
+.article-footer-note {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--slate-light);
+  margin: 8px 0 0;
+}
+
+/* ---------------- COMMENTI ---------------- */
+.comment-form-section {
+  margin-top: 72px;
+  padding-top: 48px;
+  border-top: 3px solid var(--slate);
+}
+
+.comment-form-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0 0 28px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+.comment-form label {
+  display: block;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--slate);
+  margin-bottom: 8px;
+}
+
+.comment-form input,
+.comment-form textarea {
+  width: 100%;
+  border: 2px solid var(--slate);
+  background: transparent;
+  padding: 12px 14px;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--slate);
+  resize: vertical;
+}
+.comment-form input:focus,
+.comment-form textarea:focus { outline: 3px solid var(--red); outline-offset: 1px; }
+
+.comment-form button {
+  align-self: flex-start;
+  border: 2px solid var(--slate);
+  background: var(--slate);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.82rem;
+  padding: 13px 30px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.comment-form button:hover { background: var(--red); border-color: var(--red); }
+
+.comment-note {
+  color: var(--red);
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+/* ---------------- ULTIMI ARTICOLI (fine pagina) ---------------- */
+.latest-articles-panel {
+  margin-top: 64px;
+  margin-bottom: 80px;
+  border: 2px solid var(--slate);
+  padding: 28px;
+}
+
+.latest-articles-panel h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+
+.latest-articles-panel .sidebar-note { margin: 0 0 18px; }
+
+@media (max-width: 560px) {
+  .form-row { grid-template-columns: 1fr; }
+}
