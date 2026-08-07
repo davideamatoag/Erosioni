@@ -1,3 +1,11 @@
+// ==========================================================
+// content.js — legge content/articoli.json e content/portfolio.json
+// e costruisce dinamicamente le sezioni del sito. Questo è ciò che
+// rende il pannello di amministrazione (Decap CMS) utile: un
+// articolo o una voce di portfolio pubblicati da lì compaiono qui
+// automaticamente, senza toccare l'HTML.
+// ==========================================================
+
 const CATEGORY_LABELS = {
   recensioni: 'Recensioni',
   cinema: 'Cinema',
@@ -142,14 +150,17 @@ async function renderPortfolioPage() {
   const grid = document.getElementById('portfolioMasonry');
   if (!grid) return;
   const items = await fetchPortfolio();
-  grid.innerHTML = items.map(item => `
-    <a class="masonry-item" href="${item.link ? item.link : '#'}" ${item.link ? 'target="_blank" rel="noopener"' : ''}>
-      <img class="masonry-media" src="${item.image}" alt="${item.title}">
+  grid.innerHTML = items.map(item => {
+    const href = item.link && item.link.trim() ? item.link.trim() : item.image;
+    return `
+    <a class="masonry-item" href="${href}" target="_blank" rel="noopener">
+      <img class="masonry-media" src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
       <div class="masonry-caption">
         <h3>${item.title}</h3>
         <span class="masonry-tag">${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}</span>
       </div>
-    </a>`).join('');
+    </a>`;
+  }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
