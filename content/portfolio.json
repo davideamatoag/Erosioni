@@ -1,67 +1,13 @@
 {
   "items": [
-    {
-      "title": "Festa Pandarei",
-      "category": "eventi",
-      "medium": "video",
-      "image": "images/uploads/_dsc4070-modifica.jpg",
-      "link": ""
-    },
-    {
-      "title": "Circolo Tennis Agrigento",
-      "category": "lavori",
-      "medium": "video",
-      "image": "images/pf-lavori-1.jpg",
-      "link": ""
-    },
-    {
-      "title": "Ragusa Ibla",
-      "category": "viaggi",
-      "medium": "foto",
-      "image": "images/pf-viaggi-1.jpg",
-      "link": ""
-    },
-    {
-      "title": "Torneo Marco Chianetta",
-      "category": "eventi",
-      "medium": "foto",
-      "image": "images/pf-eventi-2.jpg",
-      "link": ""
-    },
-    {
-      "title": "Servizio commerciale",
-      "category": "lavori",
-      "medium": "foto",
-      "image": "images/pf-lavori-2.jpg",
-      "link": ""
-    },
-    {
-      "title": "Madonie",
-      "category": "viaggi",
-      "medium": "foto",
-      "image": "images/pf-viaggi-2.jpg",
-      "link": ""
-    },
-    {
-      "title": "Reportage di matrimonio",
-      "category": "eventi",
-      "medium": "video",
-      "image": "images/pf-eventi-3.jpg",
-      "link": ""
-    },
-    {
-      "title": "Video promozionale",
-      "category": "lavori",
-      "medium": "video",
-      "image": "images/pf-lavori-3.jpg",
-      "link": ""
-    },
-    {
-      "title": "Sicilia occidentale",
-      "category": "viaggi",
-      "medium": "foto",
-      "image": "images/pf-viaggi-3.jpg",
-      "link": ""
-    }
+    { "title": "Festa Pandarei", "category": "eventi", "medium": "video", "image": "images/pf-eventi-1.jpg", "link": "" },
+    { "title": "Circolo Tennis Agrigento", "category": "lavori", "medium": "video", "image": "images/pf-lavori-1.jpg", "link": "" },
+    { "title": "Ragusa Ibla", "category": "viaggi", "medium": "foto", "image": "images/pf-viaggi-1.jpg", "link": "" },
+    { "title": "Torneo Marco Chianetta", "category": "eventi", "medium": "foto", "image": "images/pf-eventi-2.jpg", "link": "" },
+    { "title": "Servizio commerciale", "category": "lavori", "medium": "foto", "image": "images/pf-lavori-2.jpg", "link": "" },
+    { "title": "Madonie", "category": "viaggi", "medium": "foto", "image": "images/pf-viaggi-2.jpg", "link": "" },
+    { "title": "Reportage di matrimonio", "category": "eventi", "medium": "video", "image": "images/pf-eventi-3.jpg", "link": "" },
+    { "title": "Video promozionale", "category": "lavori", "medium": "video", "image": "images/pf-lavori-3.jpg", "link": "" },
+    { "title": "Sicilia occidentale", "category": "viaggi", "medium": "foto", "image": "images/pf-viaggi-3.jpg", "link": "" }
   ]
 }
