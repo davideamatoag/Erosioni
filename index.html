@@ -1,69 +1,88 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>  
-<meta charset="UTF-8"> 
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Erosioni — Blog di fotografia, filosofia e politica</title>
 <meta name="description" content="Erosioni: blog di fotografia, filosofia e politica di Davide Amato. Articoli, portfolio foto/video, viaggi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="site-header">
-  <div class="container header-inner">
-    <a href="#top" class="brand">Erosioni</a>
+  <div class="header-inner">
+    <a href="#top" class="brand">Blog di fotografia, filosofia e politica</a>
     <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <nav class="main-nav" id="mainNav">
-      <a href="#articoli">Articoli</a>
-      <a href="#portfolio">Portfolio</a>
-      <a href="#bio">Bio</a>
-      <a href="#contatti">Contatti</a>
+      <a href="articoli.html">Articoli</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="bio.html">Bio</a>
+      <a href="contatti.html">Contatti</a>
     </nav>
   </div>
 </header>
 
 <!-- HERO -->
-<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.15) 0%, rgba(44,62,80,0.55) 100%), url('images/hero.jpg');">
-  <div class="container">
+<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('images/hero.jpg');">
+  <div class="hero-inner">
     <h1 class="hero-title">Erosioni</h1>
-    <p class="hero-sub">Blog di fotografia, filosofia e politica</p>
   </div>
 </section>
 
 <!-- ULTIMI ARTICOLI -->
-<section class="section" id="articoli">
+<section class="section section--large" id="articoli">
   <div class="container">
-    <h2 class="section-title"><span class="dot"></span>Ultimi articoli</h2>
+    <div class="section-title-row">
+      <h2 class="section-title"><span class="dot"></span>Ultimi articoli</h2>
+      <div class="carousel-controls">
+        <button class="carousel-arrow" id="articlesPrev" aria-label="Articoli precedenti">&#8249;</button>
+        <button class="carousel-arrow" id="articlesNext" aria-label="Articoli successivi">&#8250;</button>
+      </div>
+    </div>
 
-    <div class="article-grid">
-      <article class="article-card">
-        <div class="article-thumb" style="background-image:url('images/article-viaggio.jpg')">
-          <span class="tag">Viaggio</span>
-        </div>
-        <p class="article-meta">2 AGO 2026 / VIAGGIO</p>
-        <h3 class="article-title">Una splendida giornata in montagna</h3>
-      </article>
+    <div class="articles-viewport">
+      <div class="article-grid" id="articlesTrack">
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-viaggio.jpg')"></div>
+          <p class="article-meta">2 AGO 2026 / VIAGGIO</p>
+          <h3 class="article-title">Una splendida giornata in montagna</h3>
+        </article>
 
-      <article class="article-card">
-        <div class="article-thumb" style="background-image:url('images/article-recensione.jpg')">
-          <span class="tag">Recensioni</span>
-        </div>
-        <p class="article-meta">24 GIU 2026 / RECENSIONI</p>
-        <h3 class="article-title">Eurosuicidio: l'ontologia dell'essere sociale di Lukács e la nuova critica al capitalismo</h3>
-      </article>
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-recensione.jpg')"></div>
+          <p class="article-meta">24 GIU 2026 / RECENSIONI</p>
+          <h3 class="article-title">Eurosuicidio: l'ontologia dell'essere sociale di Lukács e la nuova critica al capitalismo</h3>
+        </article>
 
-      <article class="article-card">
-        <div class="article-thumb" style="background-image:url('images/article-film.jpg')">
-          <span class="tag">Film</span>
-        </div>
-        <p class="article-meta">4 LUG 2026 / RECENSIONI</p>
-        <h3 class="article-title">Recensione di un film molto serio</h3>
-      </article>
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-film.jpg')"></div>
+          <p class="article-meta">4 LUG 2026 / RECENSIONI</p>
+          <h3 class="article-title">Recensione di un film molto serio</h3>
+        </article>
+
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-politica.jpg')"></div>
+          <p class="article-meta">10 MAG 2026 / POLITICA</p>
+          <h3 class="article-title">Come la crisi climatica ridefinisce il concetto di natura</h3>
+        </article>
+
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-ritratti.jpg')"></div>
+          <p class="article-meta">2 FEB 2026 / VIAGGIO</p>
+          <h3 class="article-title">Ritratti dal mare: una serie fotografica</h3>
+        </article>
+
+        <article class="article-card">
+          <div class="article-thumb" style="background-image:url('images/article-recensione2.jpg')"></div>
+          <p class="article-meta">18 DIC 2025 / RECENSIONI</p>
+          <h3 class="article-title">La recensione che non avrei voluto scrivere</h3>
+        </article>
+      </div>
     </div>
   </div>
 </section>
@@ -73,14 +92,14 @@
   <div class="container">
     <h2 class="section-title">Scatti recenti</h2>
     <div class="shots-grid">
-      <img src="images/scatto-01.jpg" alt="Scatto recente 1" class="shot shot--tall">
+      <img src="images/scatto-01.jpg" alt="Scatto recente 1" class="shot">
       <img src="images/scatto-02.jpg" alt="Scatto recente 2" class="shot">
       <img src="images/scatto-03.jpg" alt="Scatto recente 3" class="shot">
       <img src="images/scatto-04.jpg" alt="Scatto recente 4" class="shot">
       <img src="images/scatto-05.jpg" alt="Scatto recente 5" class="shot">
       <img src="images/scatto-06.jpg" alt="Scatto recente 6" class="shot">
       <img src="images/scatto-07.jpg" alt="Scatto recente 7" class="shot">
-      <img src="images/scatto-08.jpg" alt="Scatto recente 8" class="shot shot--tall">
+      <img src="images/scatto-08.jpg" alt="Scatto recente 8" class="shot">
     </div>
   </div>
 </section>
@@ -98,7 +117,7 @@
 </section>
 
 <!-- DAL PORTFOLIO -->
-<section class="section" id="portfolio">
+<section class="section section--compact" id="portfolio">
   <div class="container">
     <h2 class="section-title">Dal portfolio</h2>
     <div class="portfolio-list">
