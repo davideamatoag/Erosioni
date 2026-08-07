@@ -1,15 +1,15 @@
 backend:
   name: github
-  repo: davideamatoag/Erosioni   
+  repo: davideamatoag/Erosioni   # CAMBIA se il repository ha un nome diverso
   branch: main
-  base_url: https://erosioni-cms-auth.davideamato1936.workers.dev/
+  base_url: https://IL-TUO-OAUTH-WORKER.workers.dev   # vedi istruzioni nel README: da sostituire dopo aver creato il proxy OAuth
   auth_endpoint: auth
 
 # Dove finiscono le foto/video caricati dal pannello, e come vengono
 # richiamati nel codice del sito (percorso relativo, come tutte le
 # altre immagini del sito).
 media_folder: "images/uploads"
-public_folder: "images/uploads"
+public_folder: "/Erosioni/images/uploads"   # CAMBIA "Erosioni" se il repository ha un nome diverso
 
 publish_mode: simple
 
