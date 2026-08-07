@@ -91,8 +91,7 @@ window.initArticlesCarousel = function initArticlesCarousel() {
   function cardsPerPage() {
     const w = window.innerWidth;
     if (w <= 640) return 1;
-    if (w <= 860) return 2;
-    return 3;
+    return 2;
   }
 
   function cardStep() {
