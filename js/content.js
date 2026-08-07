@@ -61,6 +61,22 @@ function archiveItemHtml(a) {
     </a>`;
 }
 
+// ---------------- HOMEPAGE: foto hero (modificabile dal pannello) ----------------
+async function renderHeroImage() {
+  const heroEl = document.querySelector('.hero');
+  if (!heroEl) return;
+  try {
+    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    const data = await res.json();
+    if (data.hero_image) {
+      heroEl.style.backgroundImage =
+        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${data.hero_image}')`;
+    }
+  } catch (e) {
+    // in caso di errore resta l'immagine gi\u00e0 impostata nell'HTML
+  }
+}
+
 // ---------------- HOMEPAGE: carosello "Ultimi articoli" ----------------
 async function renderHomeCarousel() {
   const track = document.getElementById('articlesTrack');
@@ -68,6 +84,7 @@ async function renderHomeCarousel() {
   const articles = await fetchArticles();
   track.innerHTML = articles.slice(0, 6).map(articleCardHtml).join('');
   window.initArticlesCarousel && window.initArticlesCarousel();
+  window.initScrollReveal && window.initScrollReveal();
 }
 
 // ---------------- PAGINA ARTICOLI: in evidenza + successivi + archivio ----------------
@@ -93,6 +110,7 @@ async function renderArticoliPage() {
     archiveList.innerHTML = articles.map(archiveItemHtml).join('');
     window.initArchiveFilters && window.initArchiveFilters();
   }
+  window.initScrollReveal && window.initScrollReveal();
 }
 
 // ---------------- PAGINA SINGOLO ARTICOLO ----------------
@@ -161,9 +179,11 @@ async function renderPortfolioPage() {
       </div>
     </a>`;
   }).join('');
+  window.initScrollReveal && window.initScrollReveal();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  renderHeroImage();
   renderHomeCarousel();
   renderArticoliPage();
   renderArticlePage();
