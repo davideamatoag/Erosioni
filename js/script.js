@@ -34,11 +34,30 @@ if (newsletterForm) {
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-// Articoli page — filtro per categoria dell'archivio
-const filterButtons = document.querySelectorAll('.filter-btn');
-const archiveItems = document.querySelectorAll('.archive-item');
+// Pagina articolo — form commento (placeholder, nessun invio reale)
+const commentForm = document.getElementById('commentForm');
+const commentNote = document.getElementById('commentNote');
 
-if (filterButtons.length && archiveItems.length) {
+if (commentForm) {
+  commentForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // TODO: collegare a un vero servizio di commenti (es. Giscus, Disqus,
+    // o un backend proprio) quando deciderai come gestirli.
+    commentForm.reset();
+    if (commentNote) commentNote.hidden = false;
+  });
+}
+
+// ---------------------------------------------------------------
+// Filtro per categoria dell'archivio (pagina articoli.html).
+// Esposta su window perché content.js la richiama DOPO aver
+// popolato l'elenco con i dati letti da content/articoli.json.
+// ---------------------------------------------------------------
+window.initArchiveFilters = function initArchiveFilters() {
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const archiveItems = document.querySelectorAll('.archive-item');
+  if (!filterButtons.length || !archiveItems.length) return;
+
   filterButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       filterButtons.forEach(b => b.classList.remove('is-active'));
@@ -51,16 +70,21 @@ if (filterButtons.length && archiveItems.length) {
       });
     });
   });
-}
+};
 
-// Articles carousel (up to 6 articles, 3 visible at a time,
-// scrolls one article at a time with a smooth transition)
-const viewport = document.querySelector('.articles-viewport');
-const track = document.getElementById('articlesTrack');
-const prevBtn = document.getElementById('articlesPrev');
-const nextBtn = document.getElementById('articlesNext');
+// ---------------------------------------------------------------
+// Carosello articoli (homepage). Esposta su window perché
+// content.js la richiama DOPO aver popolato #articlesTrack con i
+// dati letti da content/articoli.json.
+// ---------------------------------------------------------------
+window.initArticlesCarousel = function initArticlesCarousel() {
+  const viewport = document.querySelector('.articles-viewport');
+  const track = document.getElementById('articlesTrack');
+  const prevBtn = document.getElementById('articlesPrev');
+  const nextBtn = document.getElementById('articlesNext');
 
-if (viewport && track && prevBtn && nextBtn) {
+  if (!(viewport && track && prevBtn && nextBtn && track.children.length)) return;
+
   const cards = Array.from(track.children);
   let index = 0;
 
@@ -99,9 +123,7 @@ if (viewport && track && prevBtn && nextBtn) {
     update();
   });
 
-  window.addEventListener('resize', () => {
-    update();
-  });
+  window.addEventListener('resize', update);
 
   update();
-}
+};
