@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Articoli — Erosioni</title>
+<meta name="description" content="Tutti gli articoli di Erosioni, in ordine cronologico e filtrabili per categoria.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="brand">Blog di fotografia, filosofia e politica</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="main-nav" id="mainNav">
+      <a href="articoli.html">Articoli</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="bio.html">Bio</a>
+      <a href="contatti.html">Contatti</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+  <div class="container">
+    <p class="page-eyebrow">Erosioni</p>
+    <h1 class="page-title">Articoli</h1>
+    <p class="page-intro">L'ultimo articolo in evidenza, poi tutti gli altri in ordine cronologico — filtrabili per categoria.</p>
+  </div>
+</section>
+
+<!-- CONTENUTO -->
+<section class="section">
+  <div class="container">
+
+    <!-- ULTIMO ARTICOLO PUBBLICATO -->
+    <a class="featured-article" id="featuredArticle" href="#"></a>
+
+    <!-- I TRE SUCCESSIVI -->
+    <div class="articles-row-3" id="articlesRow3"></div>
+
+    <hr class="section-divider">
+
+    <!-- TUTTI GLI ARTICOLI -->
+    <div class="articoli-layout">
+      <div>
+        <h2 class="archive-heading">Tutti gli articoli</h2>
+
+        <div class="filter-bar">
+          <button class="filter-btn is-active" data-filter="tutti">Tutti</button>
+          <button class="filter-btn" data-filter="recensioni">Recensioni</button>
+          <button class="filter-btn" data-filter="cinema">Cinema</button>
+          <button class="filter-btn" data-filter="politica">Politica</button>
+          <button class="filter-btn" data-filter="riflessioni">Riflessioni</button>
+        </div>
+
+        <div class="archive-list" id="archiveList"></div>
+      </div>
+
+      <!-- SIDEBAR COMMENTI -->
+      <aside class="comments-sidebar">
+        <h2>Ultimi commenti</h2>
+        <p class="sidebar-note">I commenti compariranno qui non appena pubblicherai le pagine dei singoli articoli.</p>
+
+        <div class="comment-item">
+          <p class="comment-author">Marco</p>
+          <p class="comment-on">Su: Eurosuicidio</p>
+          <p class="comment-text">Analisi molto interessante, mi ha fatto rivedere alcune posizioni su Lukács.</p>
+        </div>
+        <div class="comment-item">
+          <p class="comment-author">Giulia</p>
+          <p class="comment-on">Su: Una splendida giornata in montagna</p>
+          <p class="comment-text">Foto bellissime, dove sono state scattate esattamente?</p>
+        </div>
+        <div class="comment-item">
+          <p class="comment-author">Alessio</p>
+          <p class="comment-on">Su: Recensione di un film molto serio</p>
+          <p class="comment-text">Concordo con quasi tutto, tranne il finale del terzo paragrafo.</p>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('images/footer-bg.jpg');">
+  <div class="container">
+    <p class="footer-brand">Erosioni</p>
+    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+<script src="js/content.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
