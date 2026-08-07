@@ -1,0 +1,70 @@
+backend:
+  name: github
+  repo: davideamatoag/Erosioni   # CAMBIA se il repository ha un nome diverso
+  branch: main
+  base_url: https://IL-TUO-OAUTH-WORKER.workers.dev   # vedi istruzioni nel README: da sostituire dopo aver creato il proxy OAuth
+  auth_endpoint: auth
+
+# Dove finiscono le foto/video caricati dal pannello, e come vengono
+# richiamati nel codice del sito (percorso relativo, come tutte le
+# altre immagini del sito).
+media_folder: "images/uploads"
+public_folder: "images/uploads"
+
+publish_mode: simple
+
+collections:
+  - name: "articoli"
+    label: "Articoli"
+    files:
+      - file: "content/articoli.json"
+        label: "Elenco articoli"
+        name: "articoli"
+        fields:
+          - label: "Articoli"
+            name: "articles"
+            widget: "list"
+            summary: "{{title}} — {{date}}"
+            fields:
+              - { label: "Slug (usato nell'indirizzo, es. montagna, senza spazi o accenti)", name: "slug", widget: "string" }
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Recensioni", value: "recensioni" }
+                  - { label: "Cinema", value: "cinema" }
+                  - { label: "Politica", value: "politica" }
+                  - { label: "Riflessioni", value: "riflessioni" }
+              - { label: "Data", name: "date", widget: "date", date_format: "YYYY-MM-DD", picker_utc: true }
+              - { label: "Immagine di copertina", name: "image", widget: "image" }
+              - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "quote"] }
+
+  - name: "portfolio"
+    label: "Portfolio"
+    files:
+      - file: "content/portfolio.json"
+        label: "Voci portfolio"
+        name: "portfolio"
+        fields:
+          - label: "Voci"
+            name: "items"
+            widget: "list"
+            summary: "{{title}} — {{category}}"
+            fields:
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Eventi", value: "eventi" }
+                  - { label: "Lavori", value: "lavori" }
+                  - { label: "Viaggi", value: "viaggi" }
+              - label: "Tipo"
+                name: "medium"
+                widget: "select"
+                options:
+                  - { label: "Foto", value: "foto" }
+                  - { label: "Video", value: "video" }
+              - { label: "Immagine (usata anche come copertina per i video)", name: "image", widget: "image" }
+              - { label: "Link (facoltativo — es. URL YouTube/Vimeo per un video)", name: "link", widget: "string", required: false }
