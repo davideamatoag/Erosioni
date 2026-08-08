@@ -43,6 +43,21 @@
   </div>
 </section>
 
+<!-- TENDINA DETTAGLIO PORTFOLIO -->
+<div class="portfolio-modal" id="portfolioModal" hidden>
+  <div class="portfolio-modal-backdrop" data-modal-close></div>
+  <div class="portfolio-modal-panel" role="dialog" aria-modal="true" aria-labelledby="portfolioModalTitle">
+    <button type="button" class="portfolio-modal-close" id="portfolioModalClose" aria-label="Chiudi">&times;</button>
+    <div class="portfolio-modal-media" id="portfolioModalMedia"></div>
+    <div class="portfolio-modal-info">
+      <span class="masonry-tag" id="portfolioModalTag"></span>
+      <h2 id="portfolioModalTitle"></h2>
+      <p id="portfolioModalDesc"></p>
+      <a id="portfolioModalExternal" class="btn-outline" href="#" target="_blank" rel="noopener">Apri originale</a>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('images/footer-bg.jpg');">
   <div class="container">
@@ -52,6 +67,7 @@
 </footer>
 
 <script src="js/content.js"></script>
+<script src="js/effects.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>

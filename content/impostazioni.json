@@ -1,3 +1,5 @@
 {
-  "hero_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786198205/75720024_yny7tm.jpg"
+  "hero_image": "images/hero.jpg",
+  "newsletter_image": "images/newsletter-bg.jpg",
+  "footer_image": "images/footer-bg.jpg"
 }

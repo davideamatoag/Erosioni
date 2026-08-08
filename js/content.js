@@ -29,6 +29,21 @@ function capitalize(str) {
   return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
 
+// Se l'immagine viene da Cloudinary, inserisce automaticamente formato e
+// qualit\u00e0 "auto" e un limite di larghezza \u2014 cos\u00ec anche una foto pesante
+// caricata dal telefono arriva al visitatore gi\u00e0 ottimizzata, senza dover
+// comprimere nulla a mano prima di caricarla. Le immagini che non vengono
+// da Cloudinary (es. quelle segnaposto nel repository) restano invariate.
+function optimizeImage(url, width) {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
+  const marker = '/upload/';
+  const i = url.indexOf(marker) + marker.length;
+  const already = /\/upload\/[a-z0-9_,]*\b(f_auto|q_auto)\b/.test(url);
+  if (already) return url;
+  const transform = `f_auto,q_auto,w_${width || 1600}/`;
+  return url.slice(0, i) + transform + url.slice(i);
+}
+
 async function fetchArticles() {
   const res = await fetch('content/articoli.json', { cache: 'no-store' });
   const data = await res.json();
@@ -44,7 +59,7 @@ async function fetchPortfolio() {
 function articleCardHtml(a) {
   return `
     <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${a.image}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 900)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -53,7 +68,7 @@ function articleCardHtml(a) {
 function archiveItemHtml(a) {
   return `
     <a class="archive-item" data-category="${a.category}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="archive-thumb" style="background-image:url('${a.image}')"></div>
+      <div class="archive-thumb" style="background-image:url('${optimizeImage(a.image, 200)}')"></div>
       <div class="archive-body">
         <p class="archive-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
         <h3 class="archive-title">${a.title}</h3>
@@ -61,19 +76,31 @@ function archiveItemHtml(a) {
     </a>`;
 }
 
-// ---------------- HOMEPAGE: foto hero (modificabile dal pannello) ----------------
-async function renderHeroImage() {
+// ---------------- HOMEPAGE: foto di sfondo (modificabili dal pannello) ----------------
+async function renderSiteImages() {
   const heroEl = document.querySelector('.hero');
-  if (!heroEl) return;
+  const newsletterEl = document.querySelector('.newsletter');
+  const footerEl = document.querySelector('.site-footer');
+  if (!heroEl && !newsletterEl && !footerEl) return;
+
   try {
     const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
     const data = await res.json();
-    if (data.hero_image) {
+
+    if (heroEl && data.hero_image) {
       heroEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${data.hero_image}')`;
+        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${optimizeImage(data.hero_image, 1920)}')`;
+    }
+    if (newsletterEl && data.newsletter_image) {
+      newsletterEl.style.backgroundImage =
+        `linear-gradient(180deg, rgba(44,62,80,0.35) 0%, rgba(44,62,80,0.75) 100%), url('${optimizeImage(data.newsletter_image, 1920)}')`;
+    }
+    if (footerEl && data.footer_image) {
+      footerEl.style.backgroundImage =
+        `linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('${optimizeImage(data.footer_image, 1600)}')`;
     }
   } catch (e) {
-    // in caso di errore resta l'immagine gi\u00e0 impostata nell'HTML
+    // in caso di errore restano le immagini gi\u00e0 impostate nell'HTML
   }
 }
 
@@ -98,7 +125,7 @@ async function renderArticoliPage() {
 
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${latest.image}')"></div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1200)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
@@ -116,6 +143,8 @@ async function renderArticoliPage() {
 // ---------------- PAGINA SINGOLO ARTICOLO ----------------
 function renderInline(text) {
   return text
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
+      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" alt="${alt}">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -123,10 +152,15 @@ function renderInline(text) {
 
 function renderMarkdown(md) {
   // Piccolo motore markdown minimale: paragrafi, ## sottotitoli, > citazioni,
-  // più **grassetto**, *corsivo* e [link](url) dentro ai paragrafi.
+  // ![immagini](url) (a blocco intero o dentro al testo), pi\u00f9 **grassetto**,
+  // *corsivo* e [link](url).
   const blocks = md.split(/\n\s*\n/);
   return blocks.map(block => {
     const trimmed = block.trim();
+    const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (soloImmagine) {
+      return `<img class="article-inline-img" src="${optimizeImage(soloImmagine[2].trim(), 1000)}" alt="${soloImmagine[1]}">`;
+    }
     if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
     if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
     return `<p>${renderInline(trimmed).replace(/\n/g, '<br>')}</p>`;
@@ -152,7 +186,7 @@ async function renderArticlePage() {
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleMeta').textContent = formatDateIt(article.date);
   const heroImg = document.getElementById('articleHeroImg');
-  heroImg.src = article.image;
+  heroImg.src = optimizeImage(article.image, 1600);
   heroImg.alt = article.title;
   bodyEl.innerHTML = renderMarkdown(article.body || '');
 
@@ -164,26 +198,90 @@ async function renderArticlePage() {
 }
 
 // ---------------- PAGINA PORTFOLIO: mosaico ----------------
+function getVideoEmbedUrl(link) {
+  if (!link) return null;
+  const yt = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const vimeo = link.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return null;
+}
+
+function openPortfolioModal(item) {
+  const modal = document.getElementById('portfolioModal');
+  if (!modal) return;
+
+  const mediaEl = document.getElementById('portfolioModalMedia');
+  const embedUrl = item.medium === 'video' ? getVideoEmbedUrl(item.link) : null;
+
+  mediaEl.innerHTML = embedUrl
+    ? `<iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
+    : `<img src="${optimizeImage(item.image, 1400)}" alt="${item.title}">`;
+
+  document.getElementById('portfolioModalTag').textContent =
+    `${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}`;
+  document.getElementById('portfolioModalTitle').textContent = item.title;
+
+  const descEl = document.getElementById('portfolioModalDesc');
+  const hasDesc = item.description && item.description.trim();
+  descEl.textContent = hasDesc ? item.description.trim() : '';
+  descEl.hidden = !hasDesc;
+
+  const externalEl = document.getElementById('portfolioModalExternal');
+  const externalHref = item.link && item.link.trim() ? item.link.trim() : item.image;
+  externalEl.href = externalHref;
+  externalEl.textContent = item.medium === 'video' && embedUrl ? 'Apri su YouTube/Vimeo'
+    : item.medium === 'video' ? 'Guarda il video'
+    : 'Apri la foto originale';
+
+  modal.hidden = false;
+  document.body.classList.add('modal-open');
+}
+
+function closePortfolioModal() {
+  const modal = document.getElementById('portfolioModal');
+  if (!modal) return;
+  modal.hidden = true;
+  document.getElementById('portfolioModalMedia').innerHTML = '';
+  document.body.classList.remove('modal-open');
+}
+
+function initPortfolioModal() {
+  const modal = document.getElementById('portfolioModal');
+  if (!modal || modal.dataset.wired) return;
+  modal.dataset.wired = 'true';
+
+  modal.querySelectorAll('[data-modal-close]').forEach(el => el.addEventListener('click', closePortfolioModal));
+  document.getElementById('portfolioModalClose').addEventListener('click', closePortfolioModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closePortfolioModal();
+  });
+}
+
 async function renderPortfolioPage() {
   const grid = document.getElementById('portfolioMasonry');
   if (!grid) return;
   const items = await fetchPortfolio();
-  grid.innerHTML = items.map(item => {
-    const href = item.link && item.link.trim() ? item.link.trim() : item.image;
-    return `
-    <a class="masonry-item" href="${href}" target="_blank" rel="noopener">
-      <img class="masonry-media" src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
+
+  grid.innerHTML = items.map((item, idx) => `
+    <button type="button" class="masonry-item" data-idx="${idx}">
+      <img class="masonry-media" src="${optimizeImage(item.image, 900)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
       <div class="masonry-caption">
         <h3>${item.title}</h3>
         <span class="masonry-tag">${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}</span>
       </div>
-    </a>`;
-  }).join('');
+    </button>`).join('');
+
+  grid.querySelectorAll('.masonry-item').forEach(el => {
+    el.addEventListener('click', () => openPortfolioModal(items[Number(el.dataset.idx)]));
+  });
+
+  initPortfolioModal();
   window.initScrollReveal && window.initScrollReveal();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderHeroImage();
+  renderSiteImages();
   renderHomeCarousel();
   renderArticoliPage();
   renderArticlePage();
