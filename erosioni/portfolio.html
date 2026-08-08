@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — Erosioni</title>
+<meta name="description" content="Portfolio fotografico e video di Davide Amato: eventi, lavori e viaggi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="brand">Blog di fotografia, filosofia e politica</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="main-nav" id="mainNav">
+      <a href="articoli.html">Articoli</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="bio.html">Bio</a>
+      <a href="contatti.html">Contatti</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<section class="page-header">
+  <div class="container">
+    <p class="page-eyebrow">Erosioni</p>
+    <h1 class="page-title">Portfolio</h1>
+    <p class="page-intro">Eventi, lavori e viaggi — una selezione di foto e video.</p>
+  </div>
+</section>
+
+<!-- MOSAICO PORTFOLIO -->
+<section class="section">
+  <div class="container">
+    <div class="portfolio-masonry" id="portfolioMasonry"></div>
+  </div>
+</section>
+
+<!-- TENDINA DETTAGLIO PORTFOLIO -->
+<div class="portfolio-modal" id="portfolioModal" hidden>
+  <div class="portfolio-modal-backdrop" data-modal-close></div>
+  <div class="portfolio-modal-panel" role="dialog" aria-modal="true" aria-labelledby="portfolioModalTitle">
+    <button type="button" class="portfolio-modal-close" id="portfolioModalClose" aria-label="Chiudi">&times;</button>
+    <div class="portfolio-modal-media" id="portfolioModalMedia"></div>
+    <div class="portfolio-modal-info">
+      <span class="masonry-tag" id="portfolioModalTag"></span>
+      <h2 id="portfolioModalTitle"></h2>
+      <p id="portfolioModalDesc"></p>
+      <a id="portfolioModalExternal" class="btn-outline" href="#" target="_blank" rel="noopener">Apri originale</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('images/footer-bg.jpg');">
+  <div class="container">
+    <p class="footer-brand">Erosioni</p>
+    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+<script src="js/content.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

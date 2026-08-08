@@ -1,0 +1,52 @@
+{
+  "articles": [
+    {
+      "slug": "montagna",
+      "title": "Una splendida giornata in montagna",
+      "category": "riflessioni",
+      "date": "2026-08-02",
+      "image": "images/article-viaggio.jpg",
+      "body": "[Paragrafo segnaposto] È partito presto, quando la luce era ancora bassa e fredda sulle creste. Il sentiero saliva lento tra le rocce, e ogni passo sembrava allontanare qualcosa del rumore lasciato a valle.\n\n[Paragrafo segnaposto] C'è un momento, in montagna, in cui il paesaggio smette di essere sfondo e diventa interlocutore. È lì che la fotografia trova il suo senso: non documentare, ma restare in ascolto.\n\n## Sottotitolo segnaposto\n\n[Paragrafo segnaposto] Le foto di questa serie provano a restituire quella sospensione — la luce del primo mattino, il silenzio prima del vento, il momento in cui il sentiero si apre sulla valle.\n\n> [Citazione segnaposto — una frase, un pensiero, una riga di appunti presa durante la salita.]\n\n[Paragrafo segnaposto] Sostituisci questi paragrafi con il racconto vero della giornata: dove sei stato, cosa hai visto, cosa hai scelto di fotografare e perché."
+    },
+    {
+      "slug": "film",
+      "title": "Recensione di un film molto serio",
+      "category": "cinema",
+      "date": "2026-07-04",
+      "image": "images/article-film.jpg",
+      "body": "[Paragrafo segnaposto] Ci sono film che si guardano e film che si attraversano. Questo appartiene, con qualche riserva, alla seconda categoria — anche se non sempre sa cosa fare della propria serietà.\n\n[Paragrafo segnaposto] La regia costruisce inquadrature che indugiano, forse troppo, sulla staticità dei personaggi.\n\n## La forma\n\n[Paragrafo segnaposto] Il montaggio alterna ritmi lenti a improvvise accelerazioni, in un modo che funziona nella seconda parte più che nella prima.\n\n## Il contenuto\n\n[Paragrafo segnaposto] Sostituisci questa sezione con la tua analisi vera: cosa racconta il film, cosa funziona, cosa no, e perché vale (o non vale) la pena vederlo."
+    },
+    {
+      "slug": "lukacs",
+      "title": "Eurosuicidio: l'ontologia dell'essere sociale di Lukács e la nuova critica al capitalismo",
+      "category": "recensioni",
+      "date": "2026-06-24",
+      "image": "images/article-recensione.jpg",
+      "body": "[Paragrafo segnaposto] Riprendere Lukács oggi significa fare i conti con un'ontologia che si vuole storica e non normativa: l'essere sociale non come dover-essere, ma come processo di continua autoproduzione.\n\n[Paragrafo segnaposto] La categoria del lavoro come modello di ogni prassi sociale resta il punto più fecondo — e più discusso — dell'intera costruzione teorica.\n\n## Sottotitolo segnaposto\n\n[Paragrafo segnaposto] Applicata al presente, questa cornice permette di leggere le crisi del capitalismo contemporaneo non come anomalie, ma come esiti coerenti di una logica strutturale.\n\n> [Citazione segnaposto da Lukács o da un commentatore, da verificare e attribuire correttamente prima della pubblicazione.]\n\n[Paragrafo segnaposto] Sostituisci questi paragrafi con la tua argomentazione completa, comprese le fonti e i riferimenti bibliografici precisi."
+    },
+    {
+      "slug": "clima",
+      "title": "Come la crisi climatica ridefinisce il concetto di natura",
+      "category": "politica",
+      "date": "2026-05-10",
+      "image": "images/article-politica.jpg",
+      "body": "[Paragrafo segnaposto] Per gran parte della modernità, la natura è stata pensata come sfondo stabile su cui si svolge la storia umana. La crisi climatica mette in crisi anche questa premessa.\n\n[Paragrafo segnaposto] Se il clima stesso diventa storico — modificabile, instabile, prodotto anche dall'azione umana — allora la distinzione tra natura e storia richiede di essere ripensata.\n\n## Sottotitolo segnaposto\n\n[Paragrafo segnaposto] Le implicazioni politiche di questo spostamento sono ampie: cambia il modo di pensare la responsabilità, la giustizia tra generazioni, il rapporto tra Stati e tra classi sociali.\n\n[Paragrafo segnaposto] Sostituisci questi paragrafi con la tua riflessione completa, con riferimenti puntuali a dati, autori o eventi specifici."
+    },
+    {
+      "slug": "ritratti",
+      "title": "Ritratti dal mare: una serie fotografica",
+      "category": "riflessioni",
+      "date": "2026-02-02",
+      "image": "images/article-ritratti.jpg",
+      "body": "[Paragrafo segnaposto] Questa serie nasce da un'idea semplice: fotografare le persone nel punto esatto in cui la terra incontra il mare, in quella luce che non dura mai abbastanza a lungo.\n\n[Paragrafo segnaposto] Ogni ritratto è stato scattato aspettando, senza forzare la posa — cercando un momento che sembrasse già accaduto prima ancora di essere fotografato.\n\n## Sottotitolo segnaposto\n\n[Paragrafo segnaposto] Sostituisci questi paragrafi con il racconto reale della serie: dove è stata scattata, chi sono le persone ritratte (con il loro consenso), e cosa cercavi in questo progetto."
+    },
+    {
+      "slug": "recensione2",
+      "title": "La recensione che non avrei voluto scrivere",
+      "category": "recensioni",
+      "date": "2025-12-18",
+      "image": "images/article-recensione2.jpg",
+      "body": "[Paragrafo segnaposto] Ci sono recensioni che si scrivono con piacere e altre che si scrivono per dovere. Questa appartiene, purtroppo, alla seconda categoria.\n\n[Paragrafo segnaposto] Non perché l'opera manchi di ambizione — anzi — ma perché quell'ambizione resta, quasi sempre, promessa e non compiuta.\n\n## Sottotitolo segnaposto\n\n[Paragrafo segnaposto] Sostituisci questi paragrafi con la tua recensione vera, spiegando con chiarezza cosa ti aspettavi e cosa hai trovato invece."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+backend:
+  name: github
+  repo: davideamatoag/Erosioni   # CAMBIA se il repository ha un nome diverso
+  branch: main
+  base_url: https://erosioni-cms-auth.davideamato1936.workers.dev
+  auth_endpoint: auth
+
+# Dove finiscono le foto caricate SENZA passare da Cloudinary (usato solo
+# come libreria di riserva — con Cloudinary attivo qui sotto, il pannello
+# user\u00e0 quello per tutte le nuove immagini).
+media_folder: "images/uploads"
+public_folder: "/Erosioni/images/uploads"   # CAMBIA "Erosioni" se il repository ha un nome diverso
+
+# Libreria media su Cloudinary: qui finiscono foto (e volendo video) caricati
+# dal pannello, invece che nel repository GitHub. Vedi il README per come
+# ottenere questi due valori (non sono segreti, si possono lasciare qui).
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: "plscorbg"
+    api_key: "434229193441551"
+
+publish_mode: simple
+
+collections:
+  - name: "impostazioni"
+    label: "Impostazioni sito"
+    files:
+      - file: "content/impostazioni.json"
+        label: "Homepage"
+        name: "impostazioni"
+        fields:
+          - { label: "Foto principale (hero) della homepage", name: "hero_image", widget: "image" }
+          - { label: "Foto di sfondo della sezione newsletter", name: "newsletter_image", widget: "image" }
+          - { label: "Foto di sfondo del footer (fondo pagina)", name: "footer_image", widget: "image" }
+
+  - name: "articoli"
+    label: "Articoli"
+    files:
+      - file: "content/articoli.json"
+        label: "Elenco articoli"
+        name: "articoli"
+        fields:
+          - label: "Articoli"
+            name: "articles"
+            widget: "list"
+            summary: "{{title}} — {{date}}"
+            fields:
+              - { label: "Slug (usato nell'indirizzo, es. montagna, senza spazi o accenti)", name: "slug", widget: "string" }
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Recensioni", value: "recensioni" }
+                  - { label: "Cinema", value: "cinema" }
+                  - { label: "Politica", value: "politica" }
+                  - { label: "Riflessioni", value: "riflessioni" }
+              - { label: "Data", name: "date", widget: "date", date_format: "YYYY-MM-DD", picker_utc: true }
+              - { label: "Immagine di copertina", name: "image", widget: "image" }
+              - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "quote"] }
+
+  - name: "portfolio"
+    label: "Portfolio"
+    files:
+      - file: "content/portfolio.json"
+        label: "Voci portfolio"
+        name: "portfolio"
+        fields:
+          - label: "Voci"
+            name: "items"
+            widget: "list"
+            summary: "{{title}} — {{category}}"
+            fields:
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Eventi", value: "eventi" }
+                  - { label: "Lavori", value: "lavori" }
+                  - { label: "Viaggi", value: "viaggi" }
+              - label: "Tipo"
+                name: "medium"
+                widget: "select"
+                options:
+                  - { label: "Foto", value: "foto" }
+                  - { label: "Video", value: "video" }
+              - { label: "Immagine (usata anche come copertina per i video)", name: "image", widget: "image" }
+              - { label: "Link (facoltativo — es. URL YouTube/Vimeo per un video)", name: "link", widget: "string", required: false }
+              - { label: "Descrizione del progetto (facoltativa)", name: "description", widget: "text", required: false }
