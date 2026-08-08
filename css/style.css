@@ -220,6 +220,8 @@ input:focus-visible {
 
 .articles-viewport {
   overflow: hidden;
+  padding: 28px 0;
+  margin: -28px 0;
 }
 
 .article-grid {
@@ -1378,23 +1380,23 @@ body.modal-open { overflow: hidden; }
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.35, 1);
 }
 .frame-edge--top {
-  top: 0; left: 0; height: 3px; width: 100%;
+  top: 6px; left: 6px; right: 6px; height: 2px; width: auto;
   transform: scaleX(0);
   transform-origin: left;
 }
 .frame-edge--right {
-  top: 0; right: 0; width: 3px; height: 100%;
+  top: 6px; right: 6px; bottom: 6px; width: 2px; height: auto;
   transform: scaleY(0);
   transform-origin: top;
   transition-delay: 0s;
 }
 .frame-edge--left {
-  top: 0; left: 0; width: 3px; height: 100%;
+  top: 6px; left: 6px; bottom: 6px; width: 2px; height: auto;
   transform: scaleY(0);
   transform-origin: top;
 }
 .frame-edge--bottom {
-  bottom: 0; left: 0; height: 3px; width: 100%;
+  bottom: 6px; left: 6px; right: 6px; height: 2px; width: auto;
   transform: scaleX(0);
   transform-origin: left;
   transition-delay: 0s;
