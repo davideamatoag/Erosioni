@@ -186,10 +186,21 @@ async function renderArticlePage() {
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleMeta').textContent = formatDateIt(article.date);
   const heroImg = document.getElementById('articleHeroImg');
+  const fullUrl = optimizeImage(article.image, 2000);
+  const tinyUrl = optimizeImage(article.image, 40);
+
   heroImg.classList.remove('is-loaded');
-  heroImg.onload = () => heroImg.classList.add('is-loaded');
-  heroImg.src = optimizeImage(article.image, 2600);
+  heroImg.classList.add('is-tiny');
   heroImg.alt = article.title;
+  heroImg.onload = () => heroImg.classList.add('is-loaded');
+  heroImg.src = tinyUrl; // pesa pochissimo: compare quasi subito, sfocata
+
+  const preload = new Image();
+  preload.onload = () => {
+    heroImg.src = fullUrl; // gi\u00e0 in cache grazie al preload: nessuna nuova attesa
+    heroImg.classList.remove('is-tiny'); // la sfocatura sparisce con una dissolvenza
+  };
+  preload.src = fullUrl;
   bodyEl.innerHTML = renderMarkdown(article.body || '');
 
   // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
@@ -245,14 +256,14 @@ function openPortfolioModal(item) {
     : item.medium === 'video' ? 'Guarda il video'
     : 'Apri la foto originale';
 
-  modal.hidden = false;
+  modal.classList.add('is-open');
   document.body.classList.add('modal-open');
 }
 
 function closePortfolioModal() {
   const modal = document.getElementById('portfolioModal');
   if (!modal) return;
-  modal.hidden = true;
+  modal.classList.remove('is-open');
   document.getElementById('portfolioModalMedia').innerHTML = '';
   document.body.classList.remove('modal-open');
 }
@@ -265,7 +276,7 @@ function initPortfolioModal() {
   modal.querySelectorAll('[data-modal-close]').forEach(el => el.addEventListener('click', closePortfolioModal));
   document.getElementById('portfolioModalClose').addEventListener('click', closePortfolioModal);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.hidden) closePortfolioModal();
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closePortfolioModal();
   });
 }
 

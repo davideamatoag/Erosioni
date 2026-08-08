@@ -1014,9 +1014,11 @@ input:focus-visible {
   height: auto;
   margin: 0 auto 56px;
   opacity: 0;
-  transition: opacity 1.3s ease;
+  filter: blur(0px);
+  transition: opacity 1.3s ease, filter 0.6s ease;
 }
 .article-hero-img.is-loaded { opacity: 1; }
+.article-hero-img.is-tiny { filter: blur(22px); }
 
 @media (max-width: 900px) {
   .article-hero-img { width: calc(100% - 80px); }
@@ -1180,8 +1182,8 @@ input:focus-visible {
    ========================================================== */
 .reveal-init {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(32px);
+  transition: opacity 1.3s ease, transform 1.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal-init.is-visible {
   opacity: 1;
@@ -1231,10 +1233,13 @@ body.modal-open { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 200;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
+}
+.portfolio-modal.is-open {
+  display: flex;
 }
 
 .portfolio-modal-backdrop {
@@ -1318,4 +1323,41 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 760px) {
   .portfolio-modal-panel { grid-template-columns: 1fr; }
   .portfolio-modal-media { min-height: 220px; }
+}
+
+/* ==========================================================
+   HOMEPAGE — evidenziamento pi\u00f9 gradevole sulle voci in evidenza
+   ========================================================== */
+.article-thumb,
+.portfolio-media,
+.travel-media,
+.featured-thumb {
+  background-size: cover;
+  transition: background-size 0.5s ease;
+}
+
+.article-card:hover .article-thumb,
+.featured-article:hover .featured-thumb,
+.travel-item:hover .travel-media {
+  background-size: 114%;
+}
+
+.portfolio-item { transition: transform 0.3s ease; }
+.portfolio-item:hover { transform: translateY(-6px); }
+.portfolio-item:hover .portfolio-media { background-size: 114%; }
+
+.article-card:hover .article-title,
+.travel-item:hover h3,
+.portfolio-item:hover .portfolio-copy h3 {
+  color: var(--red);
+}
+.article-title, .travel-item h3, .portfolio-copy h3 {
+  transition: color 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-thumb, .portfolio-media, .travel-media, .featured-thumb,
+  .portfolio-item, .article-title, .travel-item h3, .portfolio-copy h3 {
+    transition: none;
+  }
 }
