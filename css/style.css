@@ -1339,22 +1339,15 @@ body.modal-open { overflow: hidden; }
    ========================================================== */
 .portfolio-media,
 .travel-media,
-.featured-thumb {
+.featured-thumb,
+.article-thumb {
   background-size: cover;
-  transition: background-size 0.5s ease;
+  position: relative;
+  overflow: hidden;
 }
-
-.featured-article:hover .featured-thumb,
-.travel-item:hover .travel-media {
-  background-size: 114%;
-}
-
-.article-thumb { background-size: cover; transition: background-size 0.6s ease; }
-.article-card:hover .article-thumb { background-size: 104%; }
 
 .portfolio-item { transition: transform 0.3s ease; }
 .portfolio-item:hover { transform: translateY(-6px); }
-.portfolio-item:hover .portfolio-media { background-size: 114%; }
 
 .travel-item:hover h3,
 .portfolio-item:hover .portfolio-copy h3 {
@@ -1362,6 +1355,31 @@ body.modal-open { overflow: hidden; }
 }
 .travel-item h3, .portfolio-copy h3 {
   transition: color 0.25s ease;
+}
+
+/* Cornice che si disegna dall'angolo in alto a sinistra e si richiude
+   in basso a destra al passaggio del mouse */
+.corner-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.corner-frame path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 3px;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.article-card:hover .article-thumb .corner-frame path,
+.featured-article:hover .featured-thumb .corner-frame path,
+.portfolio-item:hover .portfolio-media .corner-frame path,
+.travel-item:hover .travel-media .corner-frame path {
+  stroke-dashoffset: 0;
 }
 
 /* Sottolineatura elegante che si apre sotto il titolo delle card articolo */
@@ -1385,8 +1403,8 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .article-thumb, .portfolio-media, .travel-media, .featured-thumb,
-  .portfolio-item, .travel-item h3, .portfolio-copy h3, .article-title::after {
+  .portfolio-item, .travel-item h3, .portfolio-copy h3,
+  .article-title::after, .corner-frame path {
     transition: none;
   }
 }

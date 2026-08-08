@@ -60,10 +60,16 @@ async function fetchPortfolio() {
   return data.items || [];
 }
 
+const CORNER_FRAME_SVG = `
+    <svg class="corner-frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M1,1 L99,1 L99,99" pathLength="100" vector-effect="non-scaling-stroke"></path>
+      <path d="M1,1 L1,99 L99,99" pathLength="100" vector-effect="non-scaling-stroke"></path>
+    </svg>`;
+
 function articleCardHtml(a) {
   return `
     <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')">${CORNER_FRAME_SVG}</div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -145,7 +151,7 @@ async function renderArticoliPage() {
 
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')">${CORNER_FRAME_SVG}</div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
