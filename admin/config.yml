@@ -2,18 +2,30 @@ backend:
   name: github
   repo: davideamatoag/Erosioni
   branch: main
-  base_url: https://erosioni-cms-auth.davideamato1936.workers.dev/
+  base_url: https://erosioni-cms-auth.davideamato1936.workers.dev
   auth_endpoint: auth
 
-# Dove finiscono le foto/video caricati dal pannello, e come vengono
-# richiamati nel codice del sito (percorso relativo, come tutte le
-# altre immagini del sito).
 media_folder: "images/uploads"
-public_folder: "/Erosioni/images/uploads"   # CAMBIA "Erosioni" se il repository ha un nome diverso
+public_folder: "/Erosioni/images/uploads"   
+
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: "plscorbg"   
+    api_key: "434229193441551"          # CAMBIA con la API Key del tuo account Cloudinary
 
 publish_mode: simple
 
 collections:
+  - name: "impostazioni"
+    label: "Impostazioni sito"
+    files:
+      - file: "content/impostazioni.json"
+        label: "Homepage"
+        name: "impostazioni"
+        fields:
+          - { label: "Foto principale (hero) della homepage", name: "hero_image", widget: "image" }
+
   - name: "articoli"
     label: "Articoli"
     files:
