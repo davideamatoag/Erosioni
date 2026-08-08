@@ -40,7 +40,7 @@ function optimizeImage(url, width) {
   const i = url.indexOf(marker) + marker.length;
   const already = /\/upload\/[a-z0-9_,]*\b(f_auto|q_auto)\b/.test(url);
   if (already) return url;
-  const transform = `f_auto,q_auto,w_${width || 1600}/`;
+  const transform = `f_auto,q_auto:good,w_${width || 1600}/`;
   return url.slice(0, i) + transform + url.slice(i);
 }
 
@@ -59,7 +59,7 @@ async function fetchPortfolio() {
 function articleCardHtml(a) {
   return `
     <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 900)}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -89,15 +89,15 @@ async function renderSiteImages() {
 
     if (heroEl && data.hero_image) {
       heroEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${optimizeImage(data.hero_image, 1920)}')`;
+        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${optimizeImage(data.hero_image, 2600)}')`;
     }
     if (newsletterEl && data.newsletter_image) {
       newsletterEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.35) 0%, rgba(44,62,80,0.75) 100%), url('${optimizeImage(data.newsletter_image, 1920)}')`;
+        `linear-gradient(180deg, rgba(44,62,80,0.35) 0%, rgba(44,62,80,0.75) 100%), url('${optimizeImage(data.newsletter_image, 2600)}')`;
     }
     if (footerEl && data.footer_image) {
       footerEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('${optimizeImage(data.footer_image, 1600)}')`;
+        `linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('${optimizeImage(data.footer_image, 2200)}')`;
     }
   } catch (e) {
     // in caso di errore restano le immagini gi\u00e0 impostate nell'HTML
@@ -125,7 +125,7 @@ async function renderArticoliPage() {
 
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1200)}')"></div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
@@ -186,9 +186,20 @@ async function renderArticlePage() {
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleMeta').textContent = formatDateIt(article.date);
   const heroImg = document.getElementById('articleHeroImg');
-  heroImg.src = optimizeImage(article.image, 1600);
+  heroImg.classList.remove('is-loaded');
+  heroImg.onload = () => heroImg.classList.add('is-loaded');
+  heroImg.src = optimizeImage(article.image, 2600);
   heroImg.alt = article.title;
   bodyEl.innerHTML = renderMarkdown(article.body || '');
+
+  // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
+  bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
+    if (img.complete) {
+      img.classList.add('is-loaded');
+    } else {
+      img.onload = () => img.classList.add('is-loaded');
+    }
+  });
 
   const latestPanel = document.getElementById('latestArticlesList');
   if (latestPanel) {
@@ -216,7 +227,7 @@ function openPortfolioModal(item) {
 
   mediaEl.innerHTML = embedUrl
     ? `<iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
-    : `<img src="${optimizeImage(item.image, 1400)}" alt="${item.title}">`;
+    : `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">`;
 
   document.getElementById('portfolioModalTag').textContent =
     `${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}`;
@@ -265,7 +276,7 @@ async function renderPortfolioPage() {
 
   grid.innerHTML = items.map((item, idx) => `
     <button type="button" class="masonry-item" data-idx="${idx}">
-      <img class="masonry-media" src="${optimizeImage(item.image, 900)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
+      <img class="masonry-media" src="${optimizeImage(item.image, 1100)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
       <div class="masonry-caption">
         <h3>${item.title}</h3>
         <span class="masonry-tag">${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}</span>

@@ -1011,10 +1011,12 @@ input:focus-visible {
 .article-hero-img {
   display: block;
   width: calc(100% - 12cm);
+  height: auto;
   margin: 0 auto 56px;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.3s ease;
 }
+.article-hero-img.is-loaded { opacity: 1; }
 
 @media (max-width: 900px) {
   .article-hero-img { width: calc(100% - 80px); }
@@ -1046,7 +1048,10 @@ input:focus-visible {
   width: 100%;
   height: auto;
   margin: 36px 0;
+  opacity: 0;
+  transition: opacity 1.3s ease;
 }
+.article-inline-img.is-loaded { opacity: 1; }
 
 .article-body blockquote {
   margin: 36px 0;
