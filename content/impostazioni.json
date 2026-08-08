@@ -1,5 +1,5 @@
 {
-  "hero_image": "images/hero.jpg",
-  "newsletter_image": "images/newsletter-bg.jpg",
-  "footer_image": "images/footer-bg.jpg"
+  "hero_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786198205/75720024_yny7tm.jpg",
+  "newsletter_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786217249/_DSC8257-Modifica_dbfg79.jpg",
+  "footer_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786196963/_DSC8540-Modifica_sovt7e.jpg"
 }
