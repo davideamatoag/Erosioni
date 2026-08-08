@@ -44,6 +44,10 @@ function optimizeImage(url, width) {
   return url.slice(0, i) + transform + url.slice(i);
 }
 
+function hasImage(url) {
+  return !!(url && url.trim());
+}
+
 async function fetchArticles() {
   const res = await fetch('content/articoli.json', { cache: 'no-store' });
   const data = await res.json();
@@ -186,21 +190,27 @@ async function renderArticlePage() {
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleMeta').textContent = formatDateIt(article.date);
   const heroImg = document.getElementById('articleHeroImg');
-  const fullUrl = optimizeImage(article.image, 2000);
-  const tinyUrl = optimizeImage(article.image, 40);
 
-  heroImg.classList.remove('is-loaded');
-  heroImg.classList.add('is-tiny');
-  heroImg.alt = article.title;
-  heroImg.onload = () => heroImg.classList.add('is-loaded');
-  heroImg.src = tinyUrl; // pesa pochissimo: compare quasi subito, sfocata
+  if (!hasImage(article.image)) {
+    heroImg.style.display = 'none';
+  } else {
+    heroImg.style.display = '';
+    const fullUrl = optimizeImage(article.image, 2000);
+    const tinyUrl = optimizeImage(article.image, 40);
 
-  const preload = new Image();
-  preload.onload = () => {
-    heroImg.src = fullUrl; // gi\u00e0 in cache grazie al preload: nessuna nuova attesa
-    heroImg.classList.remove('is-tiny'); // la sfocatura sparisce con una dissolvenza
-  };
-  preload.src = fullUrl;
+    heroImg.classList.remove('is-loaded');
+    heroImg.classList.add('is-tiny');
+    heroImg.alt = article.title;
+    heroImg.onload = () => heroImg.classList.add('is-loaded');
+    heroImg.src = tinyUrl; // pesa pochissimo: compare quasi subito, sfocata
+
+    const preload = new Image();
+    preload.onload = () => {
+      heroImg.src = fullUrl; // già in cache grazie al preload: nessuna nuova attesa
+      heroImg.classList.remove('is-tiny'); // la sfocatura sparisce con una dissolvenza
+    };
+    preload.src = fullUrl;
+  }
   bodyEl.innerHTML = renderMarkdown(article.body || '');
 
   // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
@@ -238,7 +248,9 @@ function openPortfolioModal(item) {
 
   mediaEl.innerHTML = embedUrl
     ? `<iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
-    : `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">`;
+    : hasImage(item.image)
+      ? `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">`
+      : `<div class="masonry-media--empty" style="width:100%;height:100%;"></div>`;
 
   document.getElementById('portfolioModalTag').textContent =
     `${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}`;
@@ -287,7 +299,9 @@ async function renderPortfolioPage() {
 
   grid.innerHTML = items.map((item, idx) => `
     <button type="button" class="masonry-item" data-idx="${idx}">
-      <img class="masonry-media" src="${optimizeImage(item.image, 1100)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">
+      ${hasImage(item.image)
+        ? `<img class="masonry-media" src="${optimizeImage(item.image, 1100)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">`
+        : `<div class="masonry-media masonry-media--empty"></div>`}
       <div class="masonry-caption">
         <h3>${item.title}</h3>
         <span class="masonry-tag">${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}</span>

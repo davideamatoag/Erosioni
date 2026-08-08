@@ -1,5 +1,15 @@
 # Erosioni
 
+> ⚠️ **IMPORTANTE — leggi prima di caricare qualunque aggiornamento**
+> La cartella `content/` (`articoli.json`, `portfolio.json`, `impostazioni.json`)
+> contiene le TUE scelte reali fatte dal pannello — foto, testi, ordine degli
+> articoli. Ogni zip che ricevi da Claude include una versione di partenza di
+> questi file: **se carichi l'intera cartella sovrascrivendo anche `content/`,
+> perdi le modifiche fatte dal pannello**. Da ora in poi, quando aggiorni il
+> sito con un nuovo zip: **escludi la cartella `content/` dal caricamento**,
+> a meno che non ti venga detto esplicitamente il contrario per una modifica
+> specifica.
+
 Sito statico (HTML/CSS/JS) per il blog "Erosioni" — fotografia, filosofia e politica.
 Ricalca fedelmente il layout del mockup PDF: header, hero, ultimi articoli, scatti recenti,
 newsletter, dal portfolio, viaggi, contatti.

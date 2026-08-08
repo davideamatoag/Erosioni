@@ -1192,12 +1192,10 @@ input:focus-visible {
 .reveal-skip { transition: none !important; }
 
 /* Sollevamento leggero al passaggio del mouse sulle schede principali */
-.article-card,
 .featured-article,
 .masonry-item {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.article-card:hover,
 .featured-article:hover,
 .masonry-item:hover {
   transform: translateY(-8px);
@@ -1328,7 +1326,6 @@ body.modal-open { overflow: hidden; }
 /* ==========================================================
    HOMEPAGE — evidenziamento pi\u00f9 gradevole sulle voci in evidenza
    ========================================================== */
-.article-thumb,
 .portfolio-media,
 .travel-media,
 .featured-thumb {
@@ -1336,28 +1333,56 @@ body.modal-open { overflow: hidden; }
   transition: background-size 0.5s ease;
 }
 
-.article-card:hover .article-thumb,
 .featured-article:hover .featured-thumb,
 .travel-item:hover .travel-media {
   background-size: 114%;
 }
 
+.article-thumb { background-size: cover; transition: background-size 0.6s ease; }
+.article-card:hover .article-thumb { background-size: 104%; }
+
 .portfolio-item { transition: transform 0.3s ease; }
 .portfolio-item:hover { transform: translateY(-6px); }
 .portfolio-item:hover .portfolio-media { background-size: 114%; }
 
-.article-card:hover .article-title,
 .travel-item:hover h3,
 .portfolio-item:hover .portfolio-copy h3 {
   color: var(--red);
 }
-.article-title, .travel-item h3, .portfolio-copy h3 {
+.travel-item h3, .portfolio-copy h3 {
   transition: color 0.25s ease;
+}
+
+/* Sottolineatura elegante che si apre sotto il titolo delle card articolo */
+.article-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+.article-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--red);
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.article-card:hover .article-title::after {
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .article-thumb, .portfolio-media, .travel-media, .featured-thumb,
-  .portfolio-item, .article-title, .travel-item h3, .portfolio-copy h3 {
+  .portfolio-item, .travel-item h3, .portfolio-copy h3, .article-title::after {
     transition: none;
   }
+}
+
+/* Cornice vuota per le voci di portfolio senza foto/copertina caricata */
+.masonry-media--empty {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
 }
