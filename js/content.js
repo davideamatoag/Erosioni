@@ -91,9 +91,25 @@ async function renderSiteImages() {
     const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
     const data = await res.json();
 
-    if (heroEl && data.hero_image) {
-      heroEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${optimizeImage(data.hero_image, 2600)}')`;
+    if (heroEl) {
+      if (data.hero_image) {
+        const heroUrl = optimizeImage(data.hero_image, 2600);
+        const revealTimeout = setTimeout(() => heroEl.classList.add('is-loaded'), 5000);
+        const preload = new Image();
+        preload.onload = () => {
+          clearTimeout(revealTimeout);
+          heroEl.style.backgroundImage =
+            `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${heroUrl}')`;
+          heroEl.classList.add('is-loaded');
+        };
+        preload.onerror = () => {
+          clearTimeout(revealTimeout);
+          heroEl.classList.add('is-loaded');
+        };
+        preload.src = heroUrl;
+      } else {
+        heroEl.classList.add('is-loaded'); // nessuna foto impostata: mostra subito
+      }
     }
     if (newsletterEl && data.newsletter_image) {
       newsletterEl.style.backgroundImage =
@@ -104,7 +120,7 @@ async function renderSiteImages() {
         `linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('${optimizeImage(data.footer_image, 2200)}')`;
     }
   } catch (e) {
-    // in caso di errore restano le immagini gi\u00e0 impostate nell'HTML
+    if (heroEl) heroEl.classList.add('is-loaded');
   }
 }
 
@@ -190,24 +206,35 @@ async function renderArticlePage() {
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleMeta').textContent = formatDateIt(article.date);
   const heroImg = document.getElementById('articleHeroImg');
+  const heroFrame = document.getElementById('articleHeroFrame');
+  const revealEls = document.querySelectorAll('.article-reveal');
+  revealEls.forEach((el) => el.classList.remove('is-loaded'));
+
+  function revealNow() {
+    revealEls.forEach((el) => el.classList.add('is-loaded'));
+  }
 
   if (!hasImage(article.image)) {
-    heroImg.style.display = 'none';
+    heroFrame.style.display = 'none';
+    revealNow(); // niente foto da aspettare: mostra subito il testo
   } else {
-    heroImg.style.display = '';
+    heroFrame.style.display = '';
     const fullUrl = optimizeImage(article.image, 2000);
-    const tinyUrl = optimizeImage(article.image, 40);
-
-    heroImg.classList.remove('is-loaded');
-    heroImg.classList.add('is-tiny');
     heroImg.alt = article.title;
-    heroImg.onload = () => heroImg.classList.add('is-loaded');
-    heroImg.src = tinyUrl; // pesa pochissimo: compare quasi subito, sfocata
 
+    const revealTimeout = setTimeout(revealNow, 5000); // rete di sicurezza
+
+    // Precarica la foto per intero: testo e foto compaiono insieme SOLO
+    // quando \u00e8 completamente arrivata, non prima.
     const preload = new Image();
     preload.onload = () => {
-      heroImg.src = fullUrl; // già in cache grazie al preload: nessuna nuova attesa
-      heroImg.classList.remove('is-tiny'); // la sfocatura sparisce con una dissolvenza
+      clearTimeout(revealTimeout);
+      heroImg.src = fullUrl;
+      revealNow();
+    };
+    preload.onerror = () => {
+      clearTimeout(revealTimeout);
+      revealNow(); // la foto non c'\u00e8/non carica: mostra comunque il testo
     };
     preload.src = fullUrl;
   }
