@@ -30,7 +30,7 @@ document.addEventListener('click', (e) => {
   document.body.classList.add('page-fade-out');
   setTimeout(() => {
     window.location.href = link.href;
-  }, 220);
+  }, 480);
 });
 
 // Mobile nav toggle

@@ -32,7 +32,7 @@ body {
   font-weight: 400;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  transition: opacity 0.22s ease;
+  transition: opacity 0.5s ease;
 }
 body.page-fade-out { opacity: 0; }
 
@@ -102,17 +102,20 @@ input:focus-visible {
   transform-origin: left center;
 }
 
+.brand-text--scrolled,
+.brand-logo {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 .brand-text--scrolled {
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
   opacity: 0;
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 .brand.is-scrolled .brand-text--default { opacity: 0; }
 .brand.is-scrolled .brand-text--scrolled { opacity: 1; }
@@ -270,7 +273,8 @@ input:focus-visible {
   z-index: 5;
   width: 32px;
   height: 32px;
-  border: 2px solid var(--slate);
+  border-radius: 50%;
+  border: 1.5px solid var(--slate);
   background: var(--cream);
   color: var(--slate);
   font-size: 1.1rem;
@@ -281,8 +285,8 @@ input:focus-visible {
   justify-content: center;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.carousel-side-arrow--prev { left: -40px; }
-.carousel-side-arrow--next { right: -40px; }
+.carousel-side-arrow--prev { left: -50px; }
+.carousel-side-arrow--next { right: -50px; }
 .carousel-side-arrow:hover:not(:disabled) { background: var(--slate); color: var(--cream); }
 .carousel-side-arrow:disabled { opacity: 0.3; cursor: default; }
 
@@ -541,9 +545,9 @@ input:focus-visible {
   .shots-grid { grid-template-rows: repeat(3, 110px); }
   .brand { font-size: 0.98rem; }
   .article-card { flex: 0 0 calc((100% - 40px) / 2); }
-  .carousel-side-arrow { width: 28px; height: 28px; font-size: 1rem; }
-  .carousel-side-arrow--prev { left: -34px; }
-  .carousel-side-arrow--next { right: -34px; }
+  .carousel-side-arrow { width: 26px; height: 26px; font-size: 0.95rem; border-radius: 50%; border-width: 1.5px; }
+  .carousel-side-arrow--prev { left: -40px; }
+  .carousel-side-arrow--next { right: -40px; }
 }
 
 @media (max-width: 640px) {
@@ -1476,7 +1480,7 @@ body.modal-open { overflow: hidden; }
   height: 2px;
   width: 0%;
   background: var(--red);
-  transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .article-card:hover .article-title::after {
   width: 100%;
