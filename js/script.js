@@ -1,3 +1,29 @@
+// Dissolvenza veloce prima di caricare un'altra pagina del sito, per
+// evitare stacchi bruschi quando si clicca un link (menu, articoli, ecc.)
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a');
+  if (!link) return;
+  if (link.target === '_blank' || link.hasAttribute('download')) return;
+
+  const href = link.getAttribute('href');
+  if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+  let destination;
+  try {
+    destination = new URL(link.href, window.location.href);
+  } catch (err) {
+    return;
+  }
+  if (destination.origin !== window.location.origin) return; // link esterno
+  if (destination.href.split('#')[0] === window.location.href.split('#')[0]) return; // stessa pagina
+
+  e.preventDefault();
+  document.body.classList.add('page-fade-out');
+  setTimeout(() => {
+    window.location.href = link.href;
+  }, 220);
+});
+
 // Mobile nav toggle
 const navToggle = document.getElementById('navToggle');
 const mainNav = document.getElementById('mainNav');
@@ -82,6 +108,7 @@ window.initArticlesCarousel = function initArticlesCarousel() {
   const track = document.getElementById('articlesTrack');
   const prevBtn = document.getElementById('articlesPrev');
   const nextBtn = document.getElementById('articlesNext');
+  const dots = Array.from(document.querySelectorAll('.carousel-dot'));
 
   if (!(viewport && track && prevBtn && nextBtn && track.children.length)) return;
 
@@ -91,7 +118,8 @@ window.initArticlesCarousel = function initArticlesCarousel() {
   function cardsPerPage() {
     const w = window.innerWidth;
     if (w <= 640) return 1;
-    return 2;
+    if (w <= 860) return 2;
+    return 3;
   }
 
   function cardStep() {
@@ -104,12 +132,21 @@ window.initArticlesCarousel = function initArticlesCarousel() {
     return Math.max(0, cards.length - cardsPerPage());
   }
 
+  function updateDots() {
+    if (!dots.length) return;
+    const visibleEnd = index + cardsPerPage() - 1;
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('is-active', i >= index && i <= visibleEnd);
+    });
+  }
+
   function update() {
     const clampedMax = maxIndex();
     if (index > clampedMax) index = clampedMax;
     track.style.transform = `translateX(-${index * cardStep()}px)`;
     prevBtn.disabled = index === 0;
     nextBtn.disabled = index >= clampedMax;
+    updateDots();
   }
 
   prevBtn.addEventListener('click', () => {

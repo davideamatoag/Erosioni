@@ -32,7 +32,9 @@ body {
   font-weight: 400;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: opacity 0.22s ease;
 }
+body.page-fade-out { opacity: 0; }
 
 img { max-width: 100%; display: block; }
 
@@ -233,17 +235,38 @@ input:focus-visible {
 }
 .section-title-row .section-title { margin-bottom: 0; }
 
-.carousel-controls {
+.carousel-dots {
   display: flex;
   gap: 10px;
+  align-items: center;
   flex-shrink: 0;
 }
+.carousel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--slate);
+  opacity: 0.25;
+  transition: opacity 0.35s ease, background 0.35s ease;
+}
+.carousel-dot.is-active {
+  background: var(--red);
+  opacity: 1;
+}
 
-.carousel-arrow {
-  width: 44px;
-  height: 44px;
+.articles-carousel-wrap {
+  position: relative;
+}
+
+.carousel-side-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 46px;
+  height: 46px;
   border: 2px solid var(--slate);
-  background: transparent;
+  background: var(--cream);
   color: var(--slate);
   font-size: 1.4rem;
   line-height: 1;
@@ -253,8 +276,10 @@ input:focus-visible {
   justify-content: center;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.carousel-arrow:hover:not(:disabled) { background: var(--slate); color: var(--cream); }
-.carousel-arrow:disabled { opacity: 0.3; cursor: default; }
+.carousel-side-arrow--prev { left: 8px; }
+.carousel-side-arrow--next { right: 8px; }
+.carousel-side-arrow:hover:not(:disabled) { background: var(--slate); color: var(--cream); }
+.carousel-side-arrow:disabled { opacity: 0.3; cursor: default; }
 
 .articles-viewport {
   overflow: hidden;
@@ -264,14 +289,14 @@ input:focus-visible {
 
 .article-grid {
   display: flex;
-  gap: 56px;
+  gap: 40px;
   transition: transform 1.15s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
-/* Due schede per riga: pi\u00f9 grandi, pi\u00f9 in evidenza */
+/* Tre schede per riga */
 .article-card {
-  flex: 0 0 calc((100% - 56px) / 2);
+  flex: 0 0 calc((100% - 2 * 40px) / 3);
   min-width: 0;
 }
 
@@ -280,23 +305,23 @@ input:focus-visible {
   aspect-ratio: 3 / 2;
   background-size: cover;
   background-position: center;
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
 
 .article-meta {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--red);
-  margin: 0 0 14px;
+  margin: 0 0 12px;
 }
 
 .article-title {
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 1.85rem;
-  line-height: 1.25;
+  font-size: 1.55rem;
+  line-height: 1.28;
   margin: 0;
 }
 
@@ -510,6 +535,8 @@ input:focus-visible {
   .travel-grid { grid-template-columns: 1fr; }
   .shots-grid { grid-template-rows: repeat(3, 110px); }
   .brand { font-size: 0.98rem; }
+  .article-card { flex: 0 0 calc((100% - 40px) / 2); }
+  .carousel-side-arrow { width: 38px; height: 38px; font-size: 1.2rem; }
 }
 
 @media (max-width: 640px) {
@@ -1406,60 +1433,26 @@ body.modal-open { overflow: hidden; }
   transition: color 0.25s ease;
 }
 
-/* Cornice che cresce dall'angolo in alto a sinistra e si richiude in
-   basso a destra, SOLO al passaggio del mouse. Quattro barre: due
-   partono insieme dall'angolo in alto a sinistra (una verso destra,
-   una verso il basso), poi ciascuna "gira l'angolo" continuando lungo
-   il lato successivo, fino a incontrarsi in basso a destra. */
-.frame-edge {
+/* Velo di colore rosso che si dissolve sopra la foto al passaggio del
+   mouse, e svanisce quando il cursore esce \u2014 effetto pulito, non troppo
+   veloce. */
+.article-thumb::before,
+.featured-thumb::before,
+.portfolio-media::before,
+.travel-media::before {
+  content: "";
   position: absolute;
+  inset: 0;
   background: var(--red);
+  opacity: 0;
+  transition: opacity 0.5s ease;
   pointer-events: none;
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.35, 1);
 }
-.frame-edge--top {
-  top: 6px; left: 6px; right: 6px; height: 2px; width: auto;
-  transform: scaleX(0);
-  transform-origin: left;
-}
-.frame-edge--right {
-  top: 6px; right: 6px; bottom: 6px; width: 2px; height: auto;
-  transform: scaleY(0);
-  transform-origin: top;
-  transition-delay: 0s;
-}
-.frame-edge--left {
-  top: 6px; left: 6px; bottom: 6px; width: 2px; height: auto;
-  transform: scaleY(0);
-  transform-origin: top;
-}
-.frame-edge--bottom {
-  bottom: 6px; left: 6px; right: 6px; height: 2px; width: auto;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition-delay: 0s;
-}
-
-.article-card:hover .frame-edge--top,
-.article-card:hover .frame-edge--left,
-.featured-article:hover .frame-edge--top,
-.featured-article:hover .frame-edge--left,
-.portfolio-item:hover .frame-edge--top,
-.portfolio-item:hover .frame-edge--left,
-.travel-item:hover .frame-edge--top,
-.travel-item:hover .frame-edge--left {
-  transform: scale(1);
-}
-.article-card:hover .frame-edge--right,
-.article-card:hover .frame-edge--bottom,
-.featured-article:hover .frame-edge--right,
-.featured-article:hover .frame-edge--bottom,
-.portfolio-item:hover .frame-edge--right,
-.portfolio-item:hover .frame-edge--bottom,
-.travel-item:hover .frame-edge--right,
-.travel-item:hover .frame-edge--bottom {
-  transform: scale(1);
-  transition-delay: 0.3s;
+.article-card:hover .article-thumb::before,
+.featured-article:hover .featured-thumb::before,
+.portfolio-item:hover .portfolio-media::before,
+.travel-item:hover .travel-media::before {
+  opacity: 0.32;
 }
 
 /* Sottolineatura elegante che si apre sotto il titolo delle card articolo */
@@ -1484,7 +1477,8 @@ body.modal-open { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .article-card, .featured-article, .portfolio-item, .travel-item,
-  .travel-item h3, .portfolio-copy h3, .article-title::after, .frame-edge {
+  .travel-item h3, .portfolio-copy h3, .article-title::after,
+  .article-thumb::before, .featured-thumb::before, .portfolio-media::before, .travel-media::before {
     transition: none;
   }
 }

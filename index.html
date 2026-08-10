@@ -47,14 +47,15 @@
   <div class="container">
     <div class="section-title-row">
       <h2 class="section-title"><span class="dot"></span>Ultimi articoli</h2>
-      <div class="carousel-controls">
-        <button class="carousel-arrow" id="articlesPrev" aria-label="Articoli precedenti">&#8249;</button>
-        <button class="carousel-arrow" id="articlesNext" aria-label="Articoli successivi">&#8250;</button>
-      </div>
+      <div class="carousel-dots" id="articlesDots"></div>
     </div>
 
-    <div class="articles-viewport">
-      <div class="article-grid" id="articlesTrack"></div>
+    <div class="articles-carousel-wrap">
+      <button class="carousel-side-arrow carousel-side-arrow--prev" id="articlesPrev" aria-label="Articoli precedenti">&#8249;</button>
+      <div class="articles-viewport">
+        <div class="article-grid" id="articlesTrack"></div>
+      </div>
+      <button class="carousel-side-arrow carousel-side-arrow--next" id="articlesNext" aria-label="Articoli successivi">&#8250;</button>
     </div>
   </div>
 </section>
@@ -94,20 +95,14 @@
     <h2 class="section-title">Dal portfolio</h2>
     <div class="portfolio-list">
       <div class="portfolio-item">
-        <div class="portfolio-media"><span class="frame-edge frame-edge--top"></span>
-          <span class="frame-edge frame-edge--right"></span>
-          <span class="frame-edge frame-edge--left"></span>
-          <span class="frame-edge frame-edge--bottom"></span></div>
+        <div class="portfolio-media"></div>
         <div class="portfolio-copy">
           <h3>Pandarei</h3>
           <p>Recentemente ho lavorato alla festa organizzata dai ragazzi di Pandarei. Il video è ben riuscito e ho sperimentato con nuovi effetti e nuove tecniche di ripresa.</p>
         </div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-media"><span class="frame-edge frame-edge--top"></span>
-          <span class="frame-edge frame-edge--right"></span>
-          <span class="frame-edge frame-edge--left"></span>
-          <span class="frame-edge frame-edge--bottom"></span></div>
+        <div class="portfolio-media"></div>
         <div class="portfolio-copy">
           <h3>Circolo Tennis</h3>
           <p>Ho avuto il piacere di realizzare un video per il circolo del tennis di Agrigento, in occasione di un torneo organizzato in memoria di Marco Chianetta.</p>
@@ -123,19 +118,13 @@
     <h2 class="section-title">Viaggi</h2>
     <div class="travel-grid">
       <div class="travel-item">
-        <div class="travel-media"><span class="frame-edge frame-edge--top"></span>
-          <span class="frame-edge frame-edge--right"></span>
-          <span class="frame-edge frame-edge--left"></span>
-          <span class="frame-edge frame-edge--bottom"></span></div>
+        <div class="travel-media"></div>
         <h3>Ragusa Ibla</h3>
         <p class="travel-year">2024</p>
         <p class="travel-desc">Paesaggi splendidi in un'estate calda.</p>
       </div>
       <div class="travel-item">
-        <div class="travel-media"><span class="frame-edge frame-edge--top"></span>
-          <span class="frame-edge frame-edge--right"></span>
-          <span class="frame-edge frame-edge--left"></span>
-          <span class="frame-edge frame-edge--bottom"></span></div>
+        <div class="travel-media"></div>
         <h3>Madonie</h3>
         <p class="travel-year">2023</p>
         <p class="travel-desc">Un viaggio con Panna sulle vette siciliane.</p>

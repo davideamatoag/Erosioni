@@ -60,16 +60,10 @@ async function fetchPortfolio() {
   return data.items || [];
 }
 
-const FRAME_EDGES_HTML = `
-    <span class="frame-edge frame-edge--top"></span>
-    <span class="frame-edge frame-edge--right"></span>
-    <span class="frame-edge frame-edge--left"></span>
-    <span class="frame-edge frame-edge--bottom"></span>`;
-
 function articleCardHtml(a) {
   return `
     <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')">${FRAME_EDGES_HTML}</div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -134,8 +128,13 @@ async function renderSiteImages() {
 async function renderHomeCarousel() {
   const track = document.getElementById('articlesTrack');
   if (!track) return;
+  const dotsEl = document.getElementById('articlesDots');
   const articles = await fetchArticles();
-  track.innerHTML = articles.slice(0, 6).map(articleCardHtml).join('');
+  const shown = articles.slice(0, 6);
+  track.innerHTML = shown.map(articleCardHtml).join('');
+  if (dotsEl) {
+    dotsEl.innerHTML = shown.map((_, i) => `<span class="carousel-dot" data-dot-index="${i}"></span>`).join('');
+  }
   window.initArticlesCarousel && window.initArticlesCarousel();
   window.initScrollReveal && window.initScrollReveal();
 }
@@ -151,7 +150,7 @@ async function renderArticoliPage() {
 
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')">${FRAME_EDGES_HTML}</div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
