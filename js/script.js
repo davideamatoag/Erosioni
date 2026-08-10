@@ -152,19 +152,20 @@ window.initArticlesCarousel = function initArticlesCarousel() {
   function update() {
     const clampedMax = maxIndex();
     if (index > clampedMax) index = clampedMax;
+    if (index < 0) index = 0;
     track.style.transform = `translateX(-${index * cardStep()}px)`;
-    prevBtn.disabled = index === 0;
-    nextBtn.disabled = index >= clampedMax;
     updateDots();
   }
 
   prevBtn.addEventListener('click', () => {
-    index = Math.max(0, index - 1);
+    const clampedMax = maxIndex();
+    index = index <= 0 ? clampedMax : index - 1;
     update();
   });
 
   nextBtn.addEventListener('click', () => {
-    index = Math.min(maxIndex(), index + 1);
+    const clampedMax = maxIndex();
+    index = index >= clampedMax ? 0 : index + 1;
     update();
   });
 
