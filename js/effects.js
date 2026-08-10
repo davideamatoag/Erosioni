@@ -52,21 +52,6 @@
   document.addEventListener('DOMContentLoaded', () => {
     window.initScrollReveal();
 
-    // Leggero parallasse sulla foto hero della homepage.
-    const hero = document.querySelector('.hero');
-    if (hero && !reduceMotion) {
-      let ticking = false;
-      window.addEventListener('scroll', () => {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-          const shift = Math.min(window.scrollY * 0.18, 120);
-          hero.style.backgroundPositionY = `calc(50% + ${shift}px)`;
-          ticking = false;
-        });
-      }, { passive: true });
-    }
-
     // Cambio del testo nell'header quando il sipario bianco copre il
     // titolo "Erosioni" nella hero (solo homepage).
     const heroBrand = document.getElementById('heroBrand');
