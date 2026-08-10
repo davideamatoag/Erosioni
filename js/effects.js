@@ -66,5 +66,26 @@
         });
       }, { passive: true });
     }
+
+    // Cambio del testo nell'header quando il sipario bianco copre il
+    // titolo "Erosioni" nella hero (solo homepage).
+    const heroBrand = document.getElementById('heroBrand');
+    const heroTitle = document.getElementById('heroTitle');
+    const curtain = document.getElementById('curtainContent');
+    if (heroBrand && heroTitle && curtain) {
+      let brandTicking = false;
+      const updateBrand = () => {
+        const titleBottom = heroTitle.getBoundingClientRect().bottom;
+        const curtainTop = curtain.getBoundingClientRect().top;
+        heroBrand.classList.toggle('is-scrolled', curtainTop <= titleBottom);
+        brandTicking = false;
+      };
+      window.addEventListener('scroll', () => {
+        if (brandTicking) return;
+        brandTicking = true;
+        requestAnimationFrame(updateBrand);
+      }, { passive: true });
+      updateBrand();
+    }
   });
 })();

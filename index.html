@@ -15,7 +15,10 @@
 <!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
-    <a href="#top" class="brand">Blog di fotografia, filosofia e politica</a>
+    <a href="#top" class="brand" id="heroBrand">
+      <span class="brand-text brand-text--default">Blog di fotografia, filosofia e politica</span>
+      <span class="brand-text brand-text--scrolled">Erosioni</span>
+    </a>
     <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -28,12 +31,16 @@
   </div>
 </header>
 
-<!-- HERO -->
+<!-- HERO (fissa sullo sfondo) -->
 <section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('images/hero.jpg');">
   <div class="hero-inner">
-    <h1 class="hero-title">Erosioni</h1>
+    <h1 class="hero-title" id="heroTitle">Erosioni</h1>
   </div>
 </section>
+<div class="hero-spacer"></div>
+
+<!-- Tutto il resto della pagina scorre sopra la hero, come un sipario -->
+<div class="curtain-content" id="curtainContent">
 
 <!-- ULTIMI ARTICOLI -->
 <section class="section section--large" id="articoli">
@@ -155,6 +162,8 @@
     <p class="footer-copy">&copy; <span id="year"></span> Davide Amato. Tutti i diritti riservati.</p>
   </div>
 </footer>
+
+</div><!-- /.curtain-content -->
 
 <script src="js/content.js"></script>
 <script src="js/effects.js"></script>
