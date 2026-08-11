@@ -1,9 +1,9 @@
 // Dissolvenza in ingresso (per le pagine che la usano: vedi CSS
 // body.page-enter). Il doppio requestAnimationFrame garantisce che il
-// browser disegni prima lo stato opacity:0, cos\u00ec la transizione si vede.
+// browser disegni prima lo stato opacity:0, così la transizione si vede.
 if (document.body.classList.contains('page-enter')) {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => document.body.classList.add('is-entered'));
+    requestAnimationFrame(() => document.body.classList.remove('page-enter'));
   });
 }
 

@@ -36,10 +36,10 @@ body {
 }
 body.page-fade-out { opacity: 0; }
 
-/* Dissolvenza in ingresso per le pagine senza un proprio effetto di
-   caricamento dedicato (Articoli, Portfolio, Bio, Contatti) */
+/* Dissolvenza in ingresso: la pagina parte invisibile (classe gi\u00e0 nel
+   markup), il JS la rimuove non appena pu\u00f2 disegnare, facendola apparire
+   con una dissolvenza invece che di colpo. */
 body.page-enter { opacity: 0; }
-body.page-enter.is-entered { opacity: 1; }
 
 img { max-width: 100%; display: block; }
 
@@ -173,7 +173,7 @@ input:focus-visible {
   align-items: flex-start;
   padding-top: 128px;
   opacity: 0;
-  transition: opacity 1.1s ease;
+  transition: opacity 1.1s ease, filter 0.15s linear;
 }
 .hero.is-loaded { opacity: 1; }
 

@@ -30,8 +30,8 @@ function capitalize(str) {
 }
 
 // Se l'immagine viene da Cloudinary, inserisce automaticamente formato e
-// qualit\u00e0 "auto" e un limite di larghezza \u2014 cos\u00ec anche una foto pesante
-// caricata dal telefono arriva al visitatore gi\u00e0 ottimizzata, senza dover
+// qualità "auto" e un limite di larghezza — così anche una foto pesante
+// caricata dal telefono arriva al visitatore già ottimizzata, senza dover
 // comprimere nulla a mano prima di caricarla. Le immagini che non vengono
 // da Cloudinary (es. quelle segnaposto nel repository) restano invariate.
 function optimizeImage(url, width) {
@@ -177,7 +177,7 @@ function renderInline(text) {
 
 function renderMarkdown(md) {
   // Piccolo motore markdown minimale: paragrafi, ## sottotitoli, > citazioni,
-  // ![immagini](url) (a blocco intero o dentro al testo), pi\u00f9 **grassetto**,
+  // ![immagini](url) (a blocco intero o dentro al testo), più **grassetto**,
   // *corsivo* e [link](url).
   const blocks = md.split(/\n\s*\n/);
   return blocks.map(block => {
@@ -230,7 +230,7 @@ async function renderArticlePage() {
     const revealTimeout = setTimeout(revealNow, 5000); // rete di sicurezza
 
     // Precarica la foto per intero: testo e foto compaiono insieme SOLO
-    // quando \u00e8 completamente arrivata, non prima.
+    // quando è completamente arrivata, non prima.
     const preload = new Image();
     preload.onload = () => {
       clearTimeout(revealTimeout);
@@ -239,7 +239,7 @@ async function renderArticlePage() {
     };
     preload.onerror = () => {
       clearTimeout(revealTimeout);
-      revealNow(); // la foto non c'\u00e8/non carica: mostra comunque il testo
+      revealNow(); // la foto non c'è/non carica: mostra comunque il testo
     };
     preload.src = fullUrl;
   }
