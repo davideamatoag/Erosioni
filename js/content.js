@@ -192,6 +192,40 @@ function renderMarkdown(md) {
   }).join('\n');
 }
 
+function stripMarkdown(md) {
+  return (md || '')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#+\s*/gm, '')
+    .replace(/^>\s*/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function computeExcerpt(md, maxLen) {
+  const plain = stripMarkdown(md);
+  const firstBlock = (md || '').split(/\n\s*\n/)[0] || '';
+  const source = stripMarkdown(firstBlock) || plain;
+  if (source.length <= maxLen) return source;
+  return source.slice(0, maxLen).replace(/\s+\S*$/, '') + '\u2026';
+}
+
+function computeReadingTime(md) {
+  const words = stripMarkdown(md).split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+function relatedCardHtml(a) {
+  return `
+    <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 700)}')"></div>
+      <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
+      <h3 class="article-title">${a.title}</h3>
+    </a>`;
+}
+
 async function renderArticlePage() {
   const bodyEl = document.getElementById('articleBody');
   if (!bodyEl) return;
@@ -207,9 +241,12 @@ async function renderArticlePage() {
   }
 
   document.title = `${article.title} — Erosioni`;
-  document.getElementById('articleEyebrow').textContent = categoryLabel(article.category).toUpperCase();
   document.getElementById('articleTitle').textContent = article.title;
-  document.getElementById('articleMeta').textContent = formatDateIt(article.date);
+  document.getElementById('articleExcerpt').textContent = computeExcerpt(article.body, 170);
+  document.getElementById('articleMetaDate').textContent = formatDateIt(article.date);
+  document.getElementById('articleMetaCategory').textContent = categoryLabel(article.category);
+  document.getElementById('articleMetaReadTime').textContent = `${computeReadingTime(article.body)} min`;
+
   const heroImg = document.getElementById('articleHeroImg');
   const heroFrame = document.getElementById('articleHeroFrame');
   const revealEls = document.querySelectorAll('.article-reveal');
@@ -254,10 +291,45 @@ async function renderArticlePage() {
     }
   });
 
+  // Autore (nome e bio dalle impostazioni del sito)
+  try {
+    const settingsRes = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    const settings = await settingsRes.json();
+    const nameEl = document.getElementById('authorName');
+    const bioEl = document.getElementById('authorBio');
+    if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
+    if (bioEl) bioEl.textContent = settings.author_bio || '';
+  } catch (e) {
+    // restano i valori di default gi\u00e0 nell'HTML
+  }
+
+  // Condivisione
+  const pageUrl = window.location.href;
+  const shareTwitter = document.getElementById('shareTwitter');
+  const shareFacebook = document.getElementById('shareFacebook');
+  const shareCopy = document.getElementById('shareCopy');
+  const shareNote = document.getElementById('shareNote');
+  if (shareTwitter) shareTwitter.addEventListener('click', () => {
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
+  });
+  if (shareFacebook) shareFacebook.addEventListener('click', () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, '_blank', 'noopener');
+  });
+  if (shareCopy) shareCopy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      if (shareNote) {
+        shareNote.hidden = false;
+        setTimeout(() => { shareNote.hidden = true; }, 2500);
+      }
+    } catch (e) { /* clipboard non disponibile: nessun problema bloccante */ }
+  });
+
+  // Articoli correlati
   const latestPanel = document.getElementById('latestArticlesList');
   if (latestPanel) {
-    const others = articles.filter(a => a.slug !== article.slug).slice(0, 4);
-    latestPanel.innerHTML = others.map(archiveItemHtml).join('');
+    const others = articles.filter(a => a.slug !== article.slug).slice(0, 3);
+    latestPanel.innerHTML = others.map(relatedCardHtml).join('');
   }
 }
 

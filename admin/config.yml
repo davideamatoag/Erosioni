@@ -33,6 +33,8 @@ collections:
           - { label: "Foto principale (hero) della homepage", name: "hero_image", widget: "image" }
           - { label: "Foto di sfondo della sezione newsletter", name: "newsletter_image", widget: "image" }
           - { label: "Foto di sfondo del footer (fondo pagina)", name: "footer_image", widget: "image" }
+          - { label: "Nome autore (mostrato negli articoli)", name: "author_name", widget: "string" }
+          - { label: "Breve bio dell'autore (mostrata negli articoli)", name: "author_bio", widget: "text" }
 
   - name: "articoli"
     label: "Articoli"

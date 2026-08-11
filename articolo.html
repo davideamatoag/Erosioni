@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260810c">
+<link rel="stylesheet" href="css/style.css?v=20260811a">
 </head>
 <body class="page-enter">
 
@@ -29,24 +29,78 @@
 </header>
 
 <!-- INTESTAZIONE ARTICOLO -->
-<section class="article-page-header article-reveal">
-  <div class="article-container">
-    <p class="article-eyebrow" id="articleEyebrow">&nbsp;</p>
-    <h1 class="article-page-title" id="articleTitle">&nbsp;</h1>
-    <p class="article-page-meta" id="articleMeta">&nbsp;</p>
+<section class="article-top article-reveal">
+  <div class="container">
+    <a href="articoli.html" class="article-back">&larr; Torna agli articoli</a>
+    <div class="article-top-grid">
+      <div class="article-top-main">
+        <h1 class="article-page-title" id="articleTitle">&nbsp;</h1>
+        <p class="article-excerpt" id="articleExcerpt"></p>
+      </div>
+      <div class="article-top-meta">
+        <div class="meta-block">
+          <span class="meta-label">Data</span>
+          <span class="meta-value" id="articleMetaDate"></span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Categoria</span>
+          <span class="meta-value" id="articleMetaCategory"></span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Tempo di lettura</span>
+          <span class="meta-value" id="articleMetaReadTime"></span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<hr class="article-top-divider">
 
 <div class="article-hero-frame article-reveal" id="articleHeroFrame">
   <img class="article-hero-img" id="articleHeroImg" src="" alt="">
 </div>
 
 <!-- CORPO ARTICOLO -->
-<section>
-  <div class="article-container">
+<section class="section">
+  <div class="container article-body-grid">
     <div class="article-body" id="articleBody"></div>
 
-    <!-- COMMENTI -->
+    <aside class="article-sidebar">
+      <div class="sidebar-block">
+        <p class="sidebar-label">Autore</p>
+        <p class="author-name" id="authorName">Davide Amato</p>
+        <p class="author-bio" id="authorBio"></p>
+      </div>
+      <div class="sidebar-block">
+        <p class="sidebar-label">Condividi</p>
+        <div class="share-icons">
+          <button type="button" class="share-icon" id="shareTwitter" aria-label="Condividi su X">𝕏</button>
+          <button type="button" class="share-icon" id="shareFacebook" aria-label="Condividi su Facebook">f</button>
+          <button type="button" class="share-icon" id="shareCopy" aria-label="Copia link">&#128279;</button>
+        </div>
+        <p class="share-note" id="shareNote" hidden>Link copiato!</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<hr class="article-top-divider">
+
+<!-- ARTICOLI CORRELATI -->
+<section class="section">
+  <div class="container">
+    <div class="related-heading-row">
+      <h2 class="related-heading">Articoli correlati</h2>
+      <a href="articoli.html" class="see-all-link">Vedi tutti &rarr;</a>
+    </div>
+    <div class="related-grid" id="latestArticlesList"></div>
+  </div>
+</section>
+
+<!-- COMMENTI -->
+<section class="section" style="padding-top: 0;">
+  <div class="container">
     <div class="comment-form-section">
       <h2>Lascia un commento</h2>
       <form class="comment-form" id="commentForm">
@@ -68,13 +122,6 @@
         <p class="comment-note" id="commentNote" hidden>Grazie per il tuo commento! Verrà pubblicato a breve.</p>
       </form>
     </div>
-
-    <!-- ULTIMI ARTICOLI -->
-    <div class="latest-articles-panel">
-      <h2>Ultimi articoli</h2>
-      <p class="sidebar-note">Continua a leggere:</p>
-      <div class="archive-list" id="latestArticlesList"></div>
-    </div>
   </div>
 </section>
 
@@ -86,8 +133,8 @@
   </div>
 </footer>
 
-<script src="js/content.js?v=20260810c"></script>
-<script src="js/effects.js?v=20260810c"></script>
-<script src="js/script.js?v=20260810c"></script>
+<script src="js/content.js?v=20260811a"></script>
+<script src="js/effects.js?v=20260811a"></script>
+<script src="js/script.js?v=20260811a"></script>
 </body>
 </html>

@@ -75,7 +75,7 @@
         if (hero) {
           const vh = window.innerHeight;
           const coverage = Math.min(1, Math.max(0, (vh - curtainTop) / vh));
-          const blur = coverage > 0.5 ? ((coverage - 0.5) / 0.5) * MAX_BLUR_PX : 0;
+          const blur = coverage > 0.3 ? ((coverage - 0.3) / 0.7) * MAX_BLUR_PX : 0;
           hero.style.filter = blur > 0 ? `blur(${blur.toFixed(1)}px)` : '';
         }
 
