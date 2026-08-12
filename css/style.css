@@ -1,17 +1,17 @@
 /* ==========================================================
    EROSIONI — stylesheet
-   Palette: Floral White #fff8f0 / Warm Peach #ffcf99
+   Palette: White Smoke #F7F4F3 / Sage Green #87A878
             Deep Slate #2c3e50 / Deep Red #cc2936
    Type: Bebas Neue (display) + Roboto Condensed (body)
    ========================================================== */
 
 :root {
-  --cream: #fff8f0;
-  --peach: #ffcf99;
+  --cream: #F7F4F3;
+  --peach: #87A878;
   --slate: #2c3e50;
   --slate-light: #4b637d;
   --red: #cc2936;
-  --peach-dark: #e6aa6e;
+  --peach-dark: #6F9461;
 
   --font-display: "Bebas Neue", "Roboto Condensed", sans-serif;
   --font-body: "Roboto Condensed", Arial, sans-serif;
@@ -393,7 +393,7 @@ input:focus-visible {
   font-family: var(--font-body);
   font-size: 0.95rem;
 }
-.newsletter-form input::placeholder { color: rgba(255,248,240,0.7); }
+.newsletter-form input::placeholder { color: rgba(247,244,243,0.7); }
 
 .newsletter-form button {
   border: 2px solid var(--red);
