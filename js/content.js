@@ -492,14 +492,13 @@ async function renderScattiGrid() {
   // Otto riquadri del mosaico (stesse aree gi\u00e0 definite in CSS), con la
   // forma che ciascuno richiede: verticale, orizzontale o libera.
   const cells = [
-    { key: 'a', need: 'square' },
-    { key: 'b', need: 'square' },
-    { key: 'c', need: 'square' },
-    { key: 'd', need: 'vertical' },
-    { key: 'e', need: 'vertical' },
-    { key: 'f', need: 'horizontal' },
-    { key: 'g', need: 'square' },
-    { key: 'h', need: 'horizontal' },
+    { key: 'a', need: 'square' },      // 2x2 — quasi quadrato, flessibile
+    { key: 'b', need: 'horizontal' },  // 3x2 — proporzione vicina a una foto orizzontale (~3:2)
+    { key: 'c', need: 'vertical' },    // 1x2 — proporzione vicina a una foto verticale da telefono
+    { key: 'd', need: 'horizontal' },  // 2x1 — panoramico, moderatamente largo
+    { key: 'e', need: 'horizontal' },  // 2x1 — panoramico, moderatamente largo
+    { key: 'f', need: 'square' },      // 1x1 — quadrato, flessibile
+    { key: 'g', need: 'square' },      // 1x1 — quadrato, flessibile
   ];
 
   let urls = [];
@@ -510,7 +509,7 @@ async function renderScattiGrid() {
   } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
 
   if (!urls.length) {
-    grid.innerHTML = cells.map((c) => `<div class="shot shot--${c.key}"></div>`).join('');
+    grid.innerHTML = cells.map((c) => `<button type="button" class="shot shot--${c.key}" disabled></button>`).join('');
     return;
   }
 
@@ -551,9 +550,43 @@ async function renderScattiGrid() {
   grid.innerHTML = cells.map((c) => {
     const url = pick(order[c.need]);
     return url
-      ? `<div class="shot shot--${c.key}" style="background-image:url('${optimizeImage(url, 700)}')"></div>`
-      : `<div class="shot shot--${c.key}"></div>`;
+      ? `<button type="button" class="shot shot--${c.key}" style="background-image:url('${optimizeImage(url, 700)}')" data-full="${optimizeImage(url, 2200)}" aria-label="Apri lo scatto a grandezza originale"></button>`
+      : `<button type="button" class="shot shot--${c.key}" disabled></button>`;
   }).join('');
 
+  grid.querySelectorAll('.shot[data-full]').forEach((btn) => {
+    btn.addEventListener('click', () => openShotModal(btn.dataset.full));
+  });
+  initShotModal();
+
   window.initScrollReveal && window.initScrollReveal();
+}
+
+// ---------------- TENDINA per vedere uno scatto a grandezza originale ----------------
+function openShotModal(url) {
+  const modal = document.getElementById('shotModal');
+  if (!modal) return;
+  document.getElementById('shotModalImg').src = url;
+  modal.classList.add('is-open');
+  document.body.classList.add('modal-open');
+}
+
+function closeShotModal() {
+  const modal = document.getElementById('shotModal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  document.getElementById('shotModalImg').src = '';
+  document.body.classList.remove('modal-open');
+}
+
+function initShotModal() {
+  const modal = document.getElementById('shotModal');
+  if (!modal || modal.dataset.wired) return;
+  modal.dataset.wired = 'true';
+
+  modal.querySelectorAll('[data-shot-modal-close]').forEach((el) => el.addEventListener('click', closeShotModal));
+  document.getElementById('shotModalClose').addEventListener('click', closeShotModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeShotModal();
+  });
 }
