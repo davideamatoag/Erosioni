@@ -62,6 +62,20 @@ collections:
               - { label: "Immagine di copertina", name: "image", widget: "image" }
               - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "quote"] }
 
+  - name: "scatti"
+    label: "I miei scatti"
+    files:
+      - file: "content/scatti.json"
+        label: "Elenco scatti"
+        name: "scatti"
+        fields:
+          - label: "Foto"
+            name: "shots"
+            widget: "list"
+            summary: "{{image}}"
+            fields:
+              - { label: "Immagine", name: "image", widget: "image" }
+
   - name: "portfolio"
     label: "Portfolio"
     files:

@@ -174,6 +174,7 @@ Vai su `https://davideamatoag.github.io/Erosioni/admin/`, clicca "Login with Git
 autorizza l'app. Da lì potrai:
 
 - **Impostazioni sito**: la foto principale (hero) della homepage — cambiala dal pannello, senza toccare GitHub.
+- **I miei scatti**: carica quante foto vuoi (nessun limite nel pannello). Il sito le organizza da solo in un mosaico "bento" nella homepage, riconoscendo automaticamente se ogni foto è verticale o orizzontale e mettendola nel riquadro giusto. Una volta al giorno la combinazione cambia da sola, scegliendo a caso tra tutte quelle caricate — cambia in automatico, non serve fare nulla.
 - **Articoli**: aggiungere/modificare voci nell'elenco — titolo, categoria, data,
   immagine di copertina, testo (con un editor che supporta **grassetto**,
   *corsivo*, link, sottotitoli e citazioni).

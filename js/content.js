@@ -130,7 +130,22 @@ async function renderHomeCarousel() {
   if (!track) return;
   const dotsEl = document.getElementById('articlesDots');
   const articles = await fetchArticles();
-  const shown = articles.slice(0, 6);
+  if (!articles.length) return;
+
+  const [latest, ...rest] = articles;
+
+  const featuredEl = document.getElementById('homeFeatured');
+  if (featuredEl && latest) {
+    featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
+    document.getElementById('homeFeatured').querySelector('.home-featured-media').style.backgroundImage =
+      `url('${optimizeImage(latest.image, 1400)}')`;
+    document.getElementById('homeFeaturedMeta').textContent =
+      `${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}`;
+    document.getElementById('homeFeaturedTitle').textContent = latest.title;
+    document.getElementById('homeFeaturedExcerpt').textContent = computeExcerpt(latest.body, 150);
+  }
+
+  const shown = rest.slice(0, 6);
   track.innerHTML = shown.map(articleCardHtml).join('');
   if (dotsEl) {
     dotsEl.innerHTML = shown.map((_, i) => `<span class="carousel-dot" data-dot-index="${i}"></span>`).join('');
@@ -426,4 +441,119 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
+  renderScattiGrid();
 });
+
+// ---------------- HOMEPAGE: "I miei scatti" — mosaico bento, ----------------
+// una selezione casuale ma stabile per tutta la giornata, con le foto
+// verticali nei riquadri verticali e quelle orizzontali in quelli larghi.
+
+function seededRandom(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function todaySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function seededShuffle(arr, seed) {
+  const rand = seededRandom(seed);
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function detectOrientation(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const r = img.naturalWidth / (img.naturalHeight || 1);
+      resolve(r < 0.92 ? 'vertical' : r > 1.08 ? 'horizontal' : 'square');
+    };
+    img.onerror = () => resolve('square');
+    img.src = url;
+  });
+}
+
+async function renderScattiGrid() {
+  const grid = document.getElementById('scattiGrid');
+  if (!grid) return;
+
+  // Otto riquadri del mosaico (stesse aree gi\u00e0 definite in CSS), con la
+  // forma che ciascuno richiede: verticale, orizzontale o libera.
+  const cells = [
+    { key: 'a', need: 'square' },
+    { key: 'b', need: 'square' },
+    { key: 'c', need: 'square' },
+    { key: 'd', need: 'vertical' },
+    { key: 'e', need: 'vertical' },
+    { key: 'f', need: 'horizontal' },
+    { key: 'g', need: 'square' },
+    { key: 'h', need: 'horizontal' },
+  ];
+
+  let urls = [];
+  try {
+    const res = await fetch('content/scatti.json', { cache: 'no-store' });
+    const data = await res.json();
+    urls = (data.shots || []).map((s) => s.image).filter(hasImage);
+  } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
+
+  if (!urls.length) {
+    grid.innerHTML = cells.map((c) => `<div class="shot shot--${c.key}"></div>`).join('');
+    return;
+  }
+
+  const seed = todaySeed();
+  const withOrientation = await Promise.all(urls.map(async (url) => ({
+    url, orientation: await detectOrientation(url),
+  })));
+
+  const pools = { vertical: [], horizontal: [], square: [] };
+  withOrientation.forEach((s) => pools[s.orientation].push(s.url));
+
+  const shuffledPools = {
+    vertical: seededShuffle(pools.vertical, seed + 1),
+    horizontal: seededShuffle(pools.horizontal, seed + 2),
+    square: seededShuffle(pools.square, seed + 3),
+  };
+  const allShuffled = seededShuffle(urls, seed);
+
+  const used = new Set();
+  function pick(order) {
+    for (const key of order) {
+      for (const url of shuffledPools[key]) {
+        if (!used.has(url)) { used.add(url); return url; }
+      }
+    }
+    for (const url of allShuffled) {
+      if (!used.has(url)) { used.add(url); return url; }
+    }
+    return allShuffled[Math.floor(Math.random() * allShuffled.length)] || '';
+  }
+
+  const order = {
+    vertical: ['vertical', 'square', 'horizontal'],
+    horizontal: ['horizontal', 'square', 'vertical'],
+    square: ['square', 'vertical', 'horizontal'],
+  };
+
+  grid.innerHTML = cells.map((c) => {
+    const url = pick(order[c.need]);
+    return url
+      ? `<div class="shot shot--${c.key}" style="background-image:url('${optimizeImage(url, 700)}')"></div>`
+      : `<div class="shot shot--${c.key}"></div>`;
+  }).join('');
+
+  window.initScrollReveal && window.initScrollReveal();
+}

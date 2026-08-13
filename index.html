@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260810c">
+<link rel="stylesheet" href="css/style.css?v=20260812a">
 </head>
 <body class="page-enter">
 
@@ -50,6 +50,16 @@
       <div class="carousel-dots" id="articlesDots"></div>
     </div>
 
+    <a class="home-featured" id="homeFeatured" href="#">
+      <div class="home-featured-media"></div>
+      <div class="home-featured-info">
+        <p class="article-meta" id="homeFeaturedMeta"></p>
+        <h3 class="home-featured-title" id="homeFeaturedTitle"></h3>
+        <p class="home-featured-excerpt" id="homeFeaturedExcerpt"></p>
+        <span class="home-featured-cta">Leggi l'articolo &rarr;</span>
+      </div>
+    </a>
+
     <div class="articles-carousel-wrap">
       <button class="carousel-side-arrow carousel-side-arrow--prev" id="articlesPrev" aria-label="Articoli precedenti">&#8249;</button>
       <div class="articles-viewport">
@@ -63,17 +73,8 @@
 <!-- SCATTI RECENTI -->
 <section class="section section--tight" id="scatti">
   <div class="container">
-    <h2 class="section-title">Scatti recenti</h2>
-    <div class="shots-grid">
-      <div class="shot" aria-label="Scatto recente 1"></div>
-      <div class="shot" aria-label="Scatto recente 2"></div>
-      <div class="shot" aria-label="Scatto recente 3"></div>
-      <div class="shot" aria-label="Scatto recente 4"></div>
-      <div class="shot" aria-label="Scatto recente 5"></div>
-      <div class="shot" aria-label="Scatto recente 6"></div>
-      <div class="shot" aria-label="Scatto recente 7"></div>
-      <div class="shot" aria-label="Scatto recente 8"></div>
-    </div>
+    <h2 class="section-title">I miei scatti</h2>
+    <div class="shots-grid" id="scattiGrid"></div>
   </div>
 </section>
 
@@ -154,8 +155,8 @@
 
 </div><!-- /.curtain-content -->
 
-<script src="js/content.js?v=20260810c"></script>
-<script src="js/effects.js?v=20260810c"></script>
-<script src="js/script.js?v=20260810c"></script>
+<script src="js/content.js?v=20260812a"></script>
+<script src="js/effects.js?v=20260812a"></script>
+<script src="js/script.js?v=20260812a"></script>
 </body>
 </html>
