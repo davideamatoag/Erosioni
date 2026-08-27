@@ -1,10 +1,10 @@
 // ==========================================================
 // effects.js — gli effetti che danno al sito il suo carattere
-// "geologico": polvere in sospensione nella hero, titolo che
-// emerge come inciso nella pietra, comparsa graduale degli
-// elementi mentre si scava nella pagina (scroll reveal con
-// ritardo sfalsato), parallasse lenta sulle immagini, header
-// che si opacizza allo scroll.
+// "geologico": polvere in sospensione nella hero e nel footer,
+// titolo che emerge come inciso nella pietra, comparsa graduale
+// degli elementi mentre si scava nella pagina (scroll reveal
+// con ritardo sfalsato), parallasse lenta sulle immagini,
+// header che si opacizza allo scroll.
 // Rispetta le preferenze di accessibilità (prefers-reduced-motion).
 // ==========================================================
 
@@ -85,7 +85,7 @@
     updateParallax();
   };
 
-  // ---------------- Hero: titolo inciso + polvere in sospensione ----------------
+  // ---------------- Hero: titolo inciso nella pietra ----------------
   function splitHeroTitle() {
     const title = document.getElementById('heroTitle');
     if (!title || title.dataset.split) return;
@@ -103,12 +103,12 @@
     });
   }
 
-  // Campo di particelle: polvere/sabbia che fluttua lentamente e
-  // reagisce appena al passaggio del mouse, come smossa dall'aria.
-  function initHeroParticles() {
-    const canvas = document.getElementById('heroCanvas');
-    const hero = document.querySelector('.hero');
-    if (!canvas || !hero || reduceMotion) return;
+  // ---------------- Campo di particelle (hero e footer) ----------------
+  // Polvere/sabbia che fluttua lentamente e reagisce appena al
+  // passaggio del mouse, come smossa dall'aria. La stessa "atmosfera"
+  // avvolge la cima (hero) e il fondo roccioso (footer) della pagina.
+  function createParticleField(canvas, host) {
+    if (!canvas || !host || reduceMotion) return null;
 
     const ctx = canvas.getContext('2d');
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -124,8 +124,8 @@
     ];
 
     function resize() {
-      W = hero.clientWidth;
-      H = hero.clientHeight;
+      W = host.clientWidth;
+      H = host.clientHeight;
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -173,30 +173,61 @@
       rafId = requestAnimationFrame(frame);
     }
 
-    // Ferma il disegno quando la hero è coperta dal contenuto (sipario):
-    // inutile animare ciò che non si vede.
-    const curtain = document.getElementById('curtainContent');
-    function toggleByVisibility() {
-      const covered = curtain && curtain.getBoundingClientRect().top <= 0;
-      if (covered && rafId) {
+    function start() { if (!rafId) rafId = requestAnimationFrame(frame); }
+    function stop() {
+      if (rafId) {
         cancelAnimationFrame(rafId);
         rafId = null;
-      } else if (!covered && !rafId) {
-        rafId = requestAnimationFrame(frame);
       }
     }
 
     resize();
-    frame();
+    start();
 
     window.addEventListener('resize', resize);
-    hero.addEventListener('pointermove', (e) => {
-      const rect = hero.getBoundingClientRect();
+    host.addEventListener('pointermove', (e) => {
+      const rect = host.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
     });
-    hero.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+    host.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+    return { start, stop };
+  }
+
+  // Hero: ferma il disegno quando la hero è coperta dal contenuto
+  // (sipario) — inutile animare ciò che non si vede.
+  function initHeroParticles() {
+    const canvas = document.getElementById('heroCanvas');
+    const hero = document.querySelector('.hero');
+    const field = createParticleField(canvas, hero);
+    if (!field) return;
+
+    const curtain = document.getElementById('curtainContent');
+    function toggleByVisibility() {
+      const covered = curtain && curtain.getBoundingClientRect().top <= 0;
+      if (covered) field.stop();
+      else field.start();
+    }
     window.addEventListener('scroll', toggleByVisibility, { passive: true });
+    toggleByVisibility();
+  }
+
+  // Footer ("fondo roccioso"): la stessa polvere della cima.
+  // Si anima solo mentre il footer è visibile sullo schermo.
+  function initFooterParticles() {
+    const canvas = document.getElementById('footerCanvas');
+    const footer = document.querySelector('.site-footer');
+    const field = createParticleField(canvas, footer);
+    if (!field) return;
+
+    const visObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) field.start();
+        else field.stop();
+      });
+    }, { threshold: 0.02 });
+    visObserver.observe(footer);
   }
 
   // ---------------- Avvio ----------------
@@ -204,6 +235,7 @@
     window.initScrollReveal();
     splitHeroTitle();
     initHeroParticles();
+    initFooterParticles();
 
     // Header "fissile": trasparente in cima, blurato appena si scorre
     const header = document.getElementById('siteHeader');

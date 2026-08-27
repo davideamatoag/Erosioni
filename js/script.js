@@ -10,6 +10,7 @@ if (document.body.classList.contains('page-enter')) {
 // Dissolvenza veloce prima di caricare un'altra pagina del sito, per
 // evitare stacchi bruschi quando si clicca un link (menu, articoli, ecc.)
 document.addEventListener('click', (e) => {
+  if (e.defaultPrevented) return; // es. schede articolo: aprono la tendina, non una pagina
   const link = e.target.closest('a');
   if (!link) return;
   if (link.target === '_blank' || link.hasAttribute('download')) return;
