@@ -49,10 +49,16 @@ function hasImage(url) {
   return !!(url && url.trim());
 }
 
+// Piccola cache: gli articoli vengono scaricati una sola volta per
+// visita, così la tendina dell'articolo si apre all'istante.
+let articlesCache = null;
+
 async function fetchArticles() {
+  if (articlesCache) return articlesCache;
   const res = await fetch('content/articoli.json', { cache: 'no-store' });
   const data = await res.json();
-  return (data.articles || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+  articlesCache = (data.articles || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+  return articlesCache;
 }
 
 async function fetchPortfolio() {
@@ -63,7 +69,7 @@ async function fetchPortfolio() {
 
 function articleCardHtml(a) {
   return `
-    <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+    <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
       <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
@@ -72,7 +78,7 @@ function articleCardHtml(a) {
 
 function archiveItemHtml(a) {
   return `
-    <a class="archive-item" data-category="${a.category}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+    <a class="archive-item" data-article-slug="${a.slug}" data-category="${a.category}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
       <div class="archive-thumb" style="background-image:url('${optimizeImage(a.image, 200)}')"></div>
       <div class="archive-body">
         <p class="archive-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
@@ -142,6 +148,7 @@ async function renderHomeLayers() {
 
   if (featuredEl && latest) {
     featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
+    featuredEl.setAttribute('data-article-slug', latest.slug);
     featuredEl.querySelector('.home-featured-media').style.backgroundImage =
       `url('${optimizeImage(latest.image, 1400)}')`;
     document.getElementById('homeFeaturedMeta').textContent =
@@ -152,7 +159,7 @@ async function renderHomeLayers() {
 
   if (layersEl) {
     layersEl.innerHTML = rest.slice(0, 4).map((a, i) => `
-      <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+      <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
         <span class="layer-date">${formatDateIt(a.date)}</span>
         <div class="layer-media" data-parallax>
           <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 1200)}')"></div>
@@ -180,6 +187,7 @@ async function renderArticoliPage() {
   const [latest, ...rest] = articles;
 
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
+  featuredEl.setAttribute('data-article-slug', latest.slug);
   featuredEl.innerHTML = `
     <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
@@ -250,7 +258,7 @@ function computeReadingTime(md) {
 
 function relatedCardHtml(a) {
   return `
-    <a class="article-card" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+    <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
       <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 700)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
@@ -451,6 +459,144 @@ async function renderPortfolioPage() {
   window.initScrollReveal && window.initScrollReveal();
 }
 
+// ==========================================================
+// TENDINA ARTICOLO — l'articolo si apre in una finestra
+// "bianco caldo" sopra la pagina (sfondo sfocato), senza
+// cambiare pagina. La pagina dedicata articolo.html?slug=...
+// resta comunque raggiungibile per i link diretti/condivisi.
+// ==========================================================
+
+function initArticleModal() {
+  const modal = document.getElementById('articleModal');
+  if (!modal || modal.dataset.wired) return;
+  modal.dataset.wired = 'true';
+
+  modal.querySelectorAll('[data-article-modal-close]').forEach((el) =>
+    el.addEventListener('click', closeArticleModal));
+  document.getElementById('articleModalClose').addEventListener('click', closeArticleModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeArticleModal();
+  });
+
+  // Il form commenti dentro la tendina (placeholder come l'altro)
+  const modalCommentForm = document.getElementById('modalCommentForm');
+  const modalCommentNote = document.getElementById('modalCommentNote');
+  if (modalCommentForm) {
+    modalCommentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      modalCommentForm.reset();
+      if (modalCommentNote) modalCommentNote.hidden = false;
+    });
+  }
+}
+
+async function openArticleModal(slug) {
+  const modal = document.getElementById('articleModal');
+  if (!modal) return; // pagina senza tendina: si naviga normalmente
+  initArticleModal();
+
+  const articles = await fetchArticles();
+  const article = articles.find((a) => a.slug === slug);
+  if (!article) return;
+
+  const panel = modal.querySelector('.article-modal-panel');
+
+  // Meta in una riga sola: DATA · CATEGORIA · TEMPO DI LETTURA
+  document.getElementById('modalArticleMeta').textContent =
+    `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body)} min di lettura`;
+  document.getElementById('modalArticleTitle').textContent = article.title;
+  document.getElementById('modalArticleExcerpt').textContent = computeExcerpt(article.body, 170);
+
+  const heroImg = document.getElementById('modalArticleImg');
+  if (hasImage(article.image)) {
+    heroImg.hidden = false;
+    heroImg.alt = article.title;
+    heroImg.src = optimizeImage(article.image, 1600);
+  } else {
+    heroImg.hidden = true;
+    heroImg.removeAttribute('src');
+  }
+
+  const bodyEl = document.getElementById('modalArticleBody');
+  bodyEl.innerHTML = renderMarkdown(article.body || '');
+
+  // Dissolvenza lenta anche per le immagini nel corpo
+  bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
+    if (img.complete) img.classList.add('is-loaded');
+    else img.onload = () => img.classList.add('is-loaded');
+  });
+
+  // Autore dalle impostazioni del sito
+  try {
+    const settingsRes = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    const settings = await settingsRes.json();
+    const nameEl = document.getElementById('modalAuthorName');
+    const bioEl = document.getElementById('modalAuthorBio');
+    if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
+    if (bioEl) bioEl.textContent = settings.author_bio || '';
+  } catch (e) { /* restano i valori già presenti */ }
+
+  // Condivisione: punta sempre alla pagina dedicata, così il link
+  // copiato/condiviso resta valido e apribile da chiunque.
+  const shareUrl = new URL(`articolo.html?slug=${encodeURIComponent(article.slug)}`, window.location.href).href;
+  const shareTwitter = document.getElementById('modalShareTwitter');
+  const shareFacebook = document.getElementById('modalShareFacebook');
+  const shareCopy = document.getElementById('modalShareCopy');
+  const shareNote = document.getElementById('modalShareNote');
+  if (shareTwitter) shareTwitter.onclick = () => {
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
+  };
+  if (shareFacebook) shareFacebook.onclick = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener');
+  };
+  if (shareCopy) shareCopy.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      if (shareNote) {
+        shareNote.hidden = false;
+        setTimeout(() => { shareNote.hidden = true; }, 2500);
+      }
+    } catch (e) { /* clipboard non disponibile */ }
+  };
+
+  // Articoli correlati dentro la tendina: cliccandone uno il
+  // contenuto della finestra si sostituisce (vedi delega globale).
+  const relatedEl = document.getElementById('modalRelatedList');
+  if (relatedEl) {
+    const others = articles.filter((a) => a.slug !== article.slug).slice(0, 3);
+    relatedEl.innerHTML = others.map(relatedCardHtml).join('');
+  }
+
+  modal.classList.add('is-open');
+  document.body.classList.add('modal-open');
+  if (panel) panel.scrollTop = 0;
+}
+
+function closeArticleModal() {
+  const modal = document.getElementById('articleModal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  document.body.classList.remove('modal-open');
+}
+
+// Delega globale: qualunque scheda articolo (home, archivio,
+// correlati) apre la tendina invece di cambiare pagina.
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('[data-article-slug]');
+  if (!link) return;
+  if (!document.getElementById('articleModal')) return; // fallback: pagina dedicata
+  e.preventDefault();
+  openArticleModal(link.getAttribute('data-article-slug'));
+});
+
+// Link diretto: se qualcuno arriva su index/articoli con ?slug=...
+// nell'indirizzo, la tendina si apre da sola appena la pagina è pronta.
+async function openArticleFromUrl() {
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  if (!slug || !document.getElementById('articleModal')) return;
+  openArticleModal(slug);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderSiteImages();
   renderHomeLayers();
@@ -458,6 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArticlePage();
   renderPortfolioPage();
   renderScattiGrid();
+  openArticleFromUrl();
 });
 
 // ---------------- HOMEPAGE: "I miei scatti" — Galleria minerale ----------------
