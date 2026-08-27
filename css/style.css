@@ -382,24 +382,21 @@ textarea:focus-visible {
    asimmetrici che si alternano a sinistra e destra.
    ========================================================== */
 .home-featured {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 56px;
-  align-items: stretch;
-  margin-bottom: 96px;
+  display: block;
+  margin-bottom: 110px;
   position: relative;
 }
 
 .home-featured-media {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 21 / 9;
   background-size: cover;
   background-position: center;
   overflow: hidden;
-  clip-path: var(--clip-rock-1);
-  transition: transform 0.4s var(--ease-out);
+  filter: saturate(0.45) contrast(0.98);
+  transition: filter 0.6s ease, transform 0.4s var(--ease-out);
 }
-.home-featured:hover .home-featured-media { transform: translateY(-4px); }
+.home-featured:hover .home-featured-media { transform: translateY(-4px); filter: saturate(1); }
 
 /* Velo terracotta che affiora al passaggio del mouse */
 .home-featured-media::before {
@@ -416,8 +413,9 @@ textarea:focus-visible {
 .home-featured-info {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 18px;
+  margin-top: 30px;
+  max-width: 860px;
 }
 
 .article-meta {
@@ -432,15 +430,15 @@ textarea:focus-visible {
 .home-featured-title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-  line-height: 1.15;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  line-height: 1.12;
   letter-spacing: 0.01em;
   margin: 0;
   color: var(--calce);
 }
 
 .home-featured-excerpt {
-  font-size: 0.98rem;
+  font-size: 1.04rem;
   line-height: 1.7;
   color: var(--sabbia);
   margin: 0;
@@ -456,12 +454,12 @@ textarea:focus-visible {
 }
 
 @media (max-width: 860px) {
-  .home-featured { grid-template-columns: 1fr; gap: 24px; margin-bottom: 72px; }
+  .home-featured { margin-bottom: 72px; }
   .home-featured-media { aspect-ratio: 16 / 9; }
 }
 
 /* Gli "strati": card asimmetriche alternate, con data verticale ai
-   margini in monospace e immagine con bordo irregolare + parallax */
+   margini in monospace e immagine a taglio netto + parallax */
 .layers-list {
   display: flex;
   flex-direction: column;
@@ -499,10 +497,7 @@ textarea:focus-visible {
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  clip-path: var(--clip-rock-2);
 }
-.layer-card:nth-child(3n) .layer-media { clip-path: var(--clip-rock-3); }
-.layer-card:nth-child(3n+1) .layer-media { clip-path: var(--clip-rock-1); }
 
 /* L'immagine interna è più alta del suo contenitore e si muove più
    lentamente dello scroll (parallax, gestita da effects.js) */
@@ -515,8 +510,8 @@ textarea:focus-visible {
   background-size: cover;
   background-position: center;
   will-change: transform;
-  filter: saturate(0.82);
-  transition: filter 0.5s ease;
+  filter: saturate(0.45) contrast(0.98);
+  transition: filter 0.6s ease;
 }
 .layer-card:hover .layer-media-inner { filter: saturate(1); }
 
@@ -573,9 +568,8 @@ textarea:focus-visible {
   background-position: center;
   margin-bottom: 22px;
   overflow: hidden;
-  clip-path: var(--clip-rock-4);
-  filter: saturate(0.85);
-  transition: filter 0.5s ease;
+  filter: saturate(0.45) contrast(0.98);
+  transition: filter 0.6s ease;
 }
 .article-card:hover .article-thumb { filter: saturate(1); }
 
