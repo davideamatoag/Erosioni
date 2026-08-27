@@ -6,19 +6,19 @@
 <title>Erosioni — Blog di fotografia, filosofia e politica</title>
 <meta name="description" content="Erosioni: blog di fotografia, filosofia e politica di Davide Amato. Articoli, portfolio foto/video, viaggi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Questrial&family=Roboto+Condensed:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260813b">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20260827a">
+<link rel="stylesheet" href="css/style-2.css?v=20260827a">
+<link rel="stylesheet" href="css/style-3.css?v=20260827a">
 </head>
 <body class="page-enter">
 
 <!-- HEADER -->
-<header class="site-header">
+<header class="site-header" id="siteHeader">
   <div class="header-inner">
-    <a href="#top" class="brand" id="heroBrand">
-      <span class="brand-text brand-text--default">Blog di fotografia, filosofia e politica</span>
-      <span class="brand-text brand-text--scrolled">Erosioni</span>
-    </a>
+    <a href="#top" class="brand">Erosioni</a>
     <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -31,23 +31,25 @@
   </div>
 </header>
 
-<!-- HERO (fissa sullo sfondo) -->
-<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('images/hero.jpg');">
+<!-- HERO — "Lo strato superficiale" (fissa sullo sfondo) -->
+<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('images/hero.jpg');">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="hero-inner">
     <h1 class="hero-title" id="heroTitle">Erosioni</h1>
+    <p class="hero-subtitle">Fotografia &middot; Filosofia &middot; Politica</p>
   </div>
+  <div class="scroll-indicator" aria-hidden="true"><span class="scroll-line"></span></div>
 </section>
 <div class="hero-spacer"></div>
 
-<!-- Tutto il resto della pagina scorre sopra la hero, come un sipario -->
+<!-- Tutto il resto della pagina scorre sopra la hero, come uno scavo -->
 <div class="curtain-content" id="curtainContent">
 
-<!-- ULTIMI ARTICOLI -->
+<!-- ULTIMI ARTICOLI — "Strati sedimentari" -->
 <section class="section section--large" id="articoli">
   <div class="container">
-    <div class="section-title-row">
-      <h2 class="section-title"><span class="dot"></span>Articoli recenti</h2>
-    </div>
+    <p class="section-eyebrow">Strati sedimentari</p>
+    <h2 class="section-title">Articoli recenti</h2>
 
     <a class="home-featured" id="homeFeatured" href="#">
       <div class="home-featured-media"></div>
@@ -59,23 +61,22 @@
       </div>
     </a>
 
-    <div class="articles-carousel-wrap">
-      <button class="carousel-side-arrow carousel-side-arrow--prev" id="articlesPrev" aria-label="Articoli precedenti">&#8249;</button>
-      <div class="articles-viewport">
-        <div class="article-grid" id="articlesTrack"></div>
-      </div>
-      <button class="carousel-side-arrow carousel-side-arrow--next" id="articlesNext" aria-label="Articoli successivi">&#8250;</button>
-    </div>
+    <div class="layers-list" id="articlesLayers"></div>
 
-    <div class="carousel-dots carousel-dots--bottom" id="articlesDots"></div>
+    <div class="section-more">
+      <a class="btn-outline" href="articoli.html">Tutti gli articoli</a>
+    </div>
   </div>
 </section>
 
-<!-- SCATTI RECENTI -->
+<hr class="strata" aria-hidden="true">
+
+<!-- I MIEI SCATTI — "Galleria minerale" -->
 <section class="section section--tight" id="scatti">
   <div class="container">
+    <p class="section-eyebrow">Galleria minerale</p>
     <h2 class="section-title">I miei scatti</h2>
-    <div class="shots-grid" id="scattiGrid"></div>
+    <div class="shots-masonry" id="scattiGrid"></div>
   </div>
 </section>
 
@@ -88,10 +89,11 @@
   </div>
 </div>
 
-<!-- NEWSLETTER -->
-<section class="newsletter" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.35) 0%, rgba(44,62,80,0.75) 100%), url('images/newsletter-bg.jpg');">
+<!-- NEWSLETTER — "Sedimentazione" -->
+<section class="newsletter" id="newsletter" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.78) 0%, rgba(26,24,22,0.88) 100%), url('images/newsletter-bg.jpg');">
   <div class="container">
-    <h2 class="newsletter-title">Registrati alla newsletter e resta aggiornato quando esce un nuovo articolo:</h2>
+    <p class="newsletter-eyebrow">Sedimentazione</p>
+    <h2 class="newsletter-title">Ogni articolo è uno strato che si deposita. Lascia la tua email e resta aggiornato quando ne esce uno nuovo.</h2>
     <form class="newsletter-form" id="newsletterForm">
       <input type="email" name="email" placeholder="La tua email" required aria-label="Indirizzo email">
       <button type="submit">Iscriviti</button>
@@ -100,73 +102,80 @@
   </div>
 </section>
 
-<!-- DAL PORTFOLIO -->
-<section class="section section--compact" id="portfolio">
+<!-- DAL PORTFOLIO — "Formazioni rocciose" -->
+<section class="section" id="portfolio">
   <div class="container">
+    <p class="section-eyebrow">Formazioni rocciose</p>
     <h2 class="section-title">Dal portfolio</h2>
-    <div class="portfolio-list">
-      <div class="portfolio-item">
-        <div class="portfolio-media"></div>
-        <div class="portfolio-copy">
+    <div class="formation-list">
+      <div class="formation-block">
+        <div class="formation-media" style="background-image:url('images/portfolio-pandarei.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Eventi &middot; Video</p>
           <h3>Pandarei</h3>
           <p>Recentemente ho lavorato alla festa organizzata dai ragazzi di Pandarei. Il video è ben riuscito e ho sperimentato con nuovi effetti e nuove tecniche di ripresa.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
         </div>
       </div>
-      <div class="portfolio-item">
-        <div class="portfolio-media"></div>
-        <div class="portfolio-copy">
+      <div class="formation-block formation-block--reverse">
+        <div class="formation-media" style="background-image:url('images/portfolio-tennis.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Lavori &middot; Video</p>
           <h3>Circolo Tennis</h3>
           <p>Ho avuto il piacere di realizzare un video per il circolo del tennis di Agrigento, in occasione di un torneo organizzato in memoria di Marco Chianetta.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- VIAGGI -->
-<section class="section section--peach">
+<hr class="strata" aria-hidden="true">
+
+<!-- VIAGGI — "Cartografia erosa" -->
+<section class="section section--tuff">
   <div class="container">
+    <p class="section-eyebrow">Cartografia erosa</p>
     <h2 class="section-title">Viaggi</h2>
-    <div class="travel-grid">
-      <div class="travel-item">
-        <div class="travel-media"></div>
+    <div class="travel-timeline">
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2024</span>
         <h3>Ragusa Ibla</h3>
         <p class="travel-year">2024</p>
         <p class="travel-desc">Paesaggi splendidi in un'estate calda.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-ragusa.jpg');"></div>
       </div>
-      <div class="travel-item">
-        <div class="travel-media"></div>
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2023</span>
         <h3>Madonie</h3>
         <p class="travel-year">2023</p>
         <p class="travel-desc">Un viaggio con Panna sulle vette siciliane.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-madonie.jpg');"></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CONTATTI -->
-<section class="section" id="bio">
-  <div class="container contact-inner" id="contatti">
-    <div>
-      <h2 class="section-title">Contatti</h2>
-      <p class="contact-email">davide.amatoag@gmail.com</p>
-    </div>
-    <a class="btn-outline" href="mailto:davide.amatoag@gmail.com">Mandami una e-mail</a>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('images/footer-bg.jpg');">
+<!-- FOOTER — "Fondo roccioso" -->
+<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('images/footer-bg.jpg');">
   <div class="container">
+    <p class="footer-eyebrow">Fondo roccioso</p>
+    <a class="footer-email" href="mailto:davide.amatoag@gmail.com">davide.amatoag@gmail.com</a>
+    <div class="footer-social">
+      <a href="contatti.html">Instagram</a>
+      <a href="contatti.html">YouTube</a>
+      <a href="contatti.html">LinkedIn</a>
+    </div>
+    <p class="footer-quote">&laquo;Panta rhei: tutto scorre, tutto si trasforma. Anche la pietra.&raquo;</p>
     <p class="footer-brand">Erosioni</p>
-    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato. Tutti i diritti riservati.</p>
+    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato &middot; Tutti i diritti riservati</p>
   </div>
 </footer>
 
 </div><!-- /.curtain-content -->
 
-<script src="js/content.js?v=20260813b"></script>
-<script src="js/effects.js?v=20260813b"></script>
-<script src="js/script.js?v=20260813b"></script>
+<script src="js/content.js?v=20260827a"></script>
+<script src="js/effects.js?v=20260827a"></script>
+<script src="js/script.js?v=20260827a"></script>
 </body>
 </html>
