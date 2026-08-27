@@ -344,9 +344,8 @@
   margin-bottom: 26px;
   position: relative;
   overflow: hidden;
-  clip-path: var(--clip-rock-1);
-  filter: saturate(0.85);
-  transition: filter 0.5s ease;
+  filter: saturate(0.45) contrast(0.98);
+  transition: filter 0.6s ease;
 }
 .featured-article:hover .featured-thumb { filter: saturate(1); }
 
@@ -449,9 +448,10 @@
   flex: 0 0 84px;
   background-size: cover;
   background-position: center;
-  clip-path: var(--clip-rock-4);
-  filter: saturate(0.8);
+  filter: saturate(0.45) contrast(0.98);
+  transition: filter 0.6s ease;
 }
+.archive-item:hover .archive-thumb { filter: saturate(1); }
 
 .archive-body { min-width: 0; }
 
