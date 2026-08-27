@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260827a">
-<link rel="stylesheet" href="css/style-2.css?v=20260827a">
-<link rel="stylesheet" href="css/style-3.css?v=20260827a">
+<link rel="stylesheet" href="css/style.css?v=20260827b">
+<link rel="stylesheet" href="css/style-2.css?v=20260827b">
+<link rel="stylesheet" href="css/style-3.css?v=20260827b">
 </head>
 <body class="page-enter">
 
@@ -96,6 +96,7 @@
 
 <!-- FOOTER -->
 <footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('images/footer-bg.jpg');">
+  <canvas class="footer-canvas" id="footerCanvas" aria-hidden="true"></canvas>
   <div class="container">
     <p class="footer-eyebrow">Fondo roccioso</p>
     <a class="footer-email" href="mailto:davide.amatoag@gmail.com">davide.amatoag@gmail.com</a>
@@ -110,8 +111,66 @@
   </div>
 </footer>
 
-<script src="js/content.js?v=20260827a"></script>
-<script src="js/effects.js?v=20260827a"></script>
-<script src="js/script.js?v=20260827a"></script>
+<!-- TENDINA ARTICOLO — finestra "bianco caldo" su sfondo sfocato -->
+<div class="article-modal" id="articleModal">
+  <div class="article-modal-backdrop" data-article-modal-close></div>
+  <article class="article-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalArticleTitle">
+    <button type="button" class="article-modal-close" id="articleModalClose" aria-label="Chiudi l'articolo">&times;</button>
+    <p class="article-modal-meta" id="modalArticleMeta"></p>
+    <h2 class="article-modal-title" id="modalArticleTitle"></h2>
+    <p class="article-modal-excerpt" id="modalArticleExcerpt"></p>
+    <img class="article-modal-hero" id="modalArticleImg" src="" alt="">
+    <div class="article-body" id="modalArticleBody"></div>
+
+    <hr class="article-modal-divider">
+
+    <div class="article-modal-author">
+      <p class="sidebar-label">Autore</p>
+      <p class="author-name" id="modalAuthorName">Davide Amato</p>
+      <p class="author-bio" id="modalAuthorBio"></p>
+    </div>
+
+    <div class="article-modal-share">
+      <p class="sidebar-label">Condividi</p>
+      <div class="share-icons">
+        <button type="button" class="share-icon" id="modalShareTwitter" aria-label="Condividi su X">𝕏</button>
+        <button type="button" class="share-icon" id="modalShareFacebook" aria-label="Condividi su Facebook">f</button>
+        <button type="button" class="share-icon" id="modalShareCopy" aria-label="Copia link">&#128279;</button>
+      </div>
+      <p class="share-note" id="modalShareNote" hidden>Link copiato!</p>
+    </div>
+
+    <hr class="article-modal-divider">
+
+    <h3 class="article-modal-related-heading">Articoli correlati</h3>
+    <div class="related-grid" id="modalRelatedList"></div>
+
+    <div class="comment-form-section article-modal-comments">
+      <h2>Lascia un commento</h2>
+      <form class="comment-form" id="modalCommentForm">
+        <div class="form-row">
+          <div>
+            <label for="modal-comment-name">Nome</label>
+            <input type="text" id="modal-comment-name" name="name" required>
+          </div>
+          <div>
+            <label for="modal-comment-email">Email</label>
+            <input type="email" id="modal-comment-email" name="email" required>
+          </div>
+        </div>
+        <div>
+          <label for="modal-comment-message">Commento</label>
+          <textarea id="modal-comment-message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit">Invia commento</button>
+        <p class="comment-note" id="modalCommentNote" hidden>Grazie per il tuo commento! Verrà pubblicato a breve.</p>
+      </form>
+    </div>
+  </article>
+</div>
+
+<script src="js/content.js?v=20260827b"></script>
+<script src="js/effects.js?v=20260827b"></script>
+<script src="js/script.js?v=20260827b"></script>
 </body>
 </html>
