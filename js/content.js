@@ -1,9 +1,10 @@
 // ==========================================================
-// content.js — legge content/articoli.json e content/portfolio.json
-// e costruisce dinamicamente le sezioni del sito. Questo è ciò che
-// rende il pannello di amministrazione (Decap CMS) utile: un
-// articolo o una voce di portfolio pubblicati da lì compaiono qui
-// automaticamente, senza toccare l'HTML.
+// content.js — legge content/articoli.json, content/portfolio.json,
+// content/scatti.json e content/impostazioni.json e costruisce
+// dinamicamente le sezioni del sito. Questo è ciò che rende il
+// pannello di amministrazione (Decap CMS) utile: un articolo o una
+// voce pubblicati da lì compaiono qui automaticamente, senza
+// toccare l'HTML.
 // ==========================================================
 
 const CATEGORY_LABELS = {
@@ -80,7 +81,9 @@ function archiveItemHtml(a) {
     </a>`;
 }
 
-// ---------------- HOMEPAGE: foto di sfondo (modificabili dal pannello) ----------------
+// ---------------- Foto di sfondo (modificabili dal pannello) ----------------
+// Hero, newsletter e footer possono avere una foto caricata dal pannello:
+// viene sempre stesa sotto un velo scuro "pietra" per restare leggibile.
 async function renderSiteImages() {
   const heroEl = document.querySelector('.hero');
   const newsletterEl = document.querySelector('.newsletter');
@@ -99,7 +102,7 @@ async function renderSiteImages() {
         preload.onload = () => {
           clearTimeout(revealTimeout);
           heroEl.style.backgroundImage =
-            `linear-gradient(180deg, rgba(44,62,80,0.55) 0%, rgba(44,62,80,0.15) 35%, rgba(44,62,80,0.1) 100%), url('${heroUrl}')`;
+            `linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('${heroUrl}')`;
           heroEl.classList.add('is-loaded');
         };
         preload.onerror = () => {
@@ -113,31 +116,33 @@ async function renderSiteImages() {
     }
     if (newsletterEl && data.newsletter_image) {
       newsletterEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.35) 0%, rgba(44,62,80,0.75) 100%), url('${optimizeImage(data.newsletter_image, 2600)}')`;
+        `linear-gradient(180deg, rgba(26,24,22,0.78) 0%, rgba(26,24,22,0.88) 100%), url('${optimizeImage(data.newsletter_image, 2600)}')`;
     }
     if (footerEl && data.footer_image) {
       footerEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.85) 100%), url('${optimizeImage(data.footer_image, 2200)}')`;
+        `linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('${optimizeImage(data.footer_image, 2200)}')`;
     }
   } catch (e) {
     if (heroEl) heroEl.classList.add('is-loaded');
   }
 }
 
-// ---------------- HOMEPAGE: carosello "Ultimi articoli" ----------------
-async function renderHomeCarousel() {
-  const track = document.getElementById('articlesTrack');
-  if (!track) return;
-  const dotsEl = document.getElementById('articlesDots');
+// ---------------- HOMEPAGE: "Strati sedimentari" ----------------
+// L'ultimo articolo in grande, poi gli altri come strati asimmetrici
+// che si alternano a sinistra e destra, con la data verticale ai margini.
+async function renderHomeLayers() {
+  const featuredEl = document.getElementById('homeFeatured');
+  const layersEl = document.getElementById('articlesLayers');
+  if (!featuredEl && !layersEl) return;
+
   const articles = await fetchArticles();
   if (!articles.length) return;
 
   const [latest, ...rest] = articles;
 
-  const featuredEl = document.getElementById('homeFeatured');
   if (featuredEl && latest) {
     featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
-    document.getElementById('homeFeatured').querySelector('.home-featured-media').style.backgroundImage =
+    featuredEl.querySelector('.home-featured-media').style.backgroundImage =
       `url('${optimizeImage(latest.image, 1400)}')`;
     document.getElementById('homeFeaturedMeta').textContent =
       `${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}`;
@@ -145,13 +150,24 @@ async function renderHomeCarousel() {
     document.getElementById('homeFeaturedExcerpt').textContent = computeExcerpt(latest.body, 150);
   }
 
-  const shown = rest.slice(0, 6);
-  track.innerHTML = shown.map(articleCardHtml).join('');
-  if (dotsEl) {
-    dotsEl.innerHTML = shown.map((_, i) => `<span class="carousel-dot" data-dot-index="${i}"></span>`).join('');
+  if (layersEl) {
+    layersEl.innerHTML = rest.slice(0, 4).map((a, i) => `
+      <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
+        <span class="layer-date">${formatDateIt(a.date)}</span>
+        <div class="layer-media" data-parallax>
+          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 1200)}')"></div>
+        </div>
+        <div class="layer-info">
+          <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
+          <h3 class="layer-title">${a.title}</h3>
+          <p class="layer-excerpt">${computeExcerpt(a.body, 130)}</p>
+          <span class="layer-cta">Leggi &rarr;</span>
+        </div>
+      </a>`).join('');
   }
-  window.initArticlesCarousel && window.initArticlesCarousel();
+
   window.initScrollReveal && window.initScrollReveal();
+  window.initParallax && window.initParallax();
 }
 
 // ---------------- PAGINA ARTICOLI: in evidenza + successivi + archivio ----------------
@@ -315,7 +331,7 @@ async function renderArticlePage() {
     if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
     if (bioEl) bioEl.textContent = settings.author_bio || '';
   } catch (e) {
-    // restano i valori di default gi\u00e0 nell'HTML
+    // restano i valori di default già nell'HTML
   }
 
   // Condivisione
@@ -437,16 +453,16 @@ async function renderPortfolioPage() {
 
 document.addEventListener('DOMContentLoaded', () => {
   renderSiteImages();
-  renderHomeCarousel();
+  renderHomeLayers();
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
   renderScattiGrid();
 });
 
-// ---------------- HOMEPAGE: "I miei scatti" — mosaico bento, ----------------
-// una selezione casuale ma stabile per tutta la giornata, con le foto
-// verticali nei riquadri verticali e quelle orizzontali in quelli larghi.
+// ---------------- HOMEPAGE: "I miei scatti" — Galleria minerale ----------------
+// Griglia masonry con una selezione casuale ma stabile per tutta la
+// giornata (cambia una volta al giorno) tra le foto caricate nel pannello.
 
 function seededRandom(seed) {
   let s = seed >>> 0;
@@ -473,33 +489,9 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-function detectOrientation(url) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const r = img.naturalWidth / (img.naturalHeight || 1);
-      resolve(r < 0.92 ? 'vertical' : r > 1.08 ? 'horizontal' : 'square');
-    };
-    img.onerror = () => resolve('square');
-    img.src = url;
-  });
-}
-
 async function renderScattiGrid() {
   const grid = document.getElementById('scattiGrid');
   if (!grid) return;
-
-  // Otto riquadri del mosaico (stesse aree gi\u00e0 definite in CSS), con la
-  // forma che ciascuno richiede: verticale, orizzontale o libera.
-  const cells = [
-    { key: 'a', need: 'square' },      // 2x2 — quasi quadrato, flessibile
-    { key: 'b', need: 'horizontal' },  // 3x2 — proporzione vicina a una foto orizzontale (~3:2)
-    { key: 'c', need: 'vertical' },    // 1x2 — proporzione vicina a una foto verticale da telefono
-    { key: 'd', need: 'horizontal' },  // 2x1 — panoramico, moderatamente largo
-    { key: 'e', need: 'horizontal' },  // 2x1 — panoramico, moderatamente largo
-    { key: 'f', need: 'square' },      // 1x1 — quadrato, flessibile
-    { key: 'g', need: 'square' },      // 1x1 — quadrato, flessibile
-  ];
 
   let urls = [];
   try {
@@ -509,50 +501,18 @@ async function renderScattiGrid() {
   } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
 
   if (!urls.length) {
-    grid.innerHTML = cells.map((c) => `<button type="button" class="shot shot--${c.key}" disabled></button>`).join('');
+    grid.innerHTML = Array.from({ length: 6 }, () =>
+      `<button type="button" class="shot shot--empty" disabled></button>`).join('');
     return;
   }
 
-  const seed = todaySeed();
-  const withOrientation = await Promise.all(urls.map(async (url) => ({
-    url, orientation: await detectOrientation(url),
-  })));
+  const shuffled = seededShuffle(urls, todaySeed()).slice(0, 9);
 
-  const pools = { vertical: [], horizontal: [], square: [] };
-  withOrientation.forEach((s) => pools[s.orientation].push(s.url));
-
-  const shuffledPools = {
-    vertical: seededShuffle(pools.vertical, seed + 1),
-    horizontal: seededShuffle(pools.horizontal, seed + 2),
-    square: seededShuffle(pools.square, seed + 3),
-  };
-  const allShuffled = seededShuffle(urls, seed);
-
-  const used = new Set();
-  function pick(order) {
-    for (const key of order) {
-      for (const url of shuffledPools[key]) {
-        if (!used.has(url)) { used.add(url); return url; }
-      }
-    }
-    for (const url of allShuffled) {
-      if (!used.has(url)) { used.add(url); return url; }
-    }
-    return allShuffled[Math.floor(Math.random() * allShuffled.length)] || '';
-  }
-
-  const order = {
-    vertical: ['vertical', 'square', 'horizontal'],
-    horizontal: ['horizontal', 'square', 'vertical'],
-    square: ['square', 'vertical', 'horizontal'],
-  };
-
-  grid.innerHTML = cells.map((c) => {
-    const url = pick(order[c.need]);
-    return url
-      ? `<button type="button" class="shot shot--${c.key}" style="background-image:url('${optimizeImage(url, 700)}')" data-full="${optimizeImage(url, 2200)}" aria-label="Apri lo scatto a grandezza originale"></button>`
-      : `<button type="button" class="shot shot--${c.key}" disabled></button>`;
-  }).join('');
+  grid.innerHTML = shuffled.map((url, i) => `
+    <button type="button" class="shot" data-full="${optimizeImage(url, 2200)}" aria-label="Apri lo scatto a grandezza originale">
+      <img class="shot-img" src="${optimizeImage(url, 800)}" alt="Scatto fotografico" loading="lazy">
+      <span class="shot-overlay"><span class="shot-index">${String(i + 1).padStart(2, '0')}</span></span>
+    </button>`).join('');
 
   grid.querySelectorAll('.shot[data-full]').forEach((btn) => {
     btn.addEventListener('click', () => openShotModal(btn.dataset.full));
