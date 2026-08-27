@@ -575,3 +575,234 @@
 
   .contact-inner { flex-direction: column; align-items: flex-start; }
 }
+
+/* ==========================================================
+   STELLA A QUATTRO PUNTE — hero
+   Quattro punte con angoli curvi; quella superiore e quella
+   inferiore sono allungate, quasi a cucire il titolo del sito
+   con la parte inferiore dello schermo.
+   ========================================================== */
+.hero-star-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.hero-star {
+  width: 52px;
+  height: 148px;
+  overflow: visible;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 10px rgba(212, 165, 116, 0.4));
+  animation: hero-star-pulse 4.2s ease-in-out infinite;
+}
+
+@keyframes hero-star-pulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.82; }
+  50% { transform: scaleY(1.07); opacity: 1; }
+}
+
+/* ---------------- Particelle anche nel footer ---------------- */
+.site-footer { position: relative; overflow: hidden; }
+
+.footer-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.site-footer .container { position: relative; z-index: 1; }
+
+/* ==========================================================
+   TENDINA ARTICOLO — finestra "bianco caldo" su sfondo sfocato
+   L'articolo si apre sopra la pagina, come un foglio appoggiato
+   sul banco di lavoro: la carta chiara aiuta la lettura.
+   ========================================================== */
+.article-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.article-modal.is-open { display: flex; }
+
+.article-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 24, 22, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.article-modal-panel {
+  position: relative;
+  z-index: 1;
+  background: #F6F1E7;
+  color: #2B2723;
+  width: min(880px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 60px 64px 52px;
+  box-shadow: 0 42px 120px rgba(0, 0, 0, 0.55);
+  border-top: 3px solid var(--terracotta);
+}
+
+.article-modal.is-open .article-modal-panel {
+  animation: modal-rise 0.55s var(--ease-out);
+}
+@keyframes modal-rise {
+  from { opacity: 0; transform: translateY(30px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.article-modal-panel::-webkit-scrollbar { width: 10px; }
+.article-modal-panel::-webkit-scrollbar-track { background: #EDE6D8; }
+.article-modal-panel::-webkit-scrollbar-thumb { background: #C8BBA6; }
+
+.article-modal-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: -34px -38px 0 0;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(43, 39, 35, 0.35);
+  background: #F6F1E7;
+  color: #2B2723;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.article-modal-close:hover {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: #F6F1E7;
+}
+
+.article-modal-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  margin: 0 0 18px;
+}
+
+.article-modal-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: #211D1A;
+  margin: 0 0 18px;
+}
+
+.article-modal-excerpt {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #5A534A;
+  margin: 0 0 30px;
+  max-width: 640px;
+}
+
+.article-modal-hero {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  clip-path: var(--clip-rock-1);
+  margin: 0 0 38px;
+}
+.article-modal-hero[hidden] { display: none; }
+
+/* Il corpo dentro la finestra chiara: inchiostro scuro su carta */
+.article-modal-panel .article-body p { color: #332E29; }
+.article-modal-panel .article-body h2 { color: #211D1A; }
+.article-modal-panel .article-body blockquote {
+  color: #6B6157;
+  border-left-color: var(--terracotta);
+}
+.article-modal-panel .article-body a {
+  color: #A65A43;
+  border-bottom-color: rgba(166, 90, 67, 0.45);
+}
+.article-modal-panel .article-body a:hover {
+  color: var(--terracotta);
+  border-bottom-color: var(--terracotta);
+}
+
+.article-modal-divider {
+  border: none;
+  border-top: 1px solid rgba(43, 39, 35, 0.16);
+  margin: 40px 0;
+}
+
+.article-modal-author .sidebar-label,
+.article-modal-share .sidebar-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--terracotta);
+  margin: 0 0 10px;
+}
+.article-modal-panel .author-name { color: #211D1A; }
+.article-modal-panel .author-bio { color: #5A534A; }
+
+.article-modal-share { margin-top: 28px; }
+.article-modal-panel .share-icon {
+  border-color: rgba(43, 39, 35, 0.35);
+  color: #2B2723;
+  background: transparent;
+}
+.article-modal-panel .share-icon:hover {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: #F6F1E7;
+}
+.article-modal-panel .share-note { color: #5F7055; }
+
+.article-modal-related-heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  color: #211D1A;
+  margin: 0 0 24px;
+}
+.article-modal-panel .article-title { color: #211D1A; }
+.article-modal-panel .article-card:hover .article-title { color: #A65A43; }
+
+.article-modal-comments { margin-top: 48px; padding-top: 36px; border-top: 1px solid rgba(43, 39, 35, 0.16); }
+.article-modal-comments h2 { color: #211D1A; }
+.article-modal-panel .comment-form label { color: #6B6157; }
+.article-modal-panel .comment-form input,
+.article-modal-panel .comment-form textarea {
+  color: #2B2723;
+  border-bottom-color: rgba(43, 39, 35, 0.28);
+}
+.article-modal-panel .comment-form input:focus,
+.article-modal-panel .comment-form textarea:focus { border-bottom-color: var(--terracotta); }
+.article-modal-panel .comment-form button { color: #2B2723; }
+.article-modal-panel .comment-form button:hover { color: #F6F1E7; }
+.article-modal-panel .comment-note { color: #5F7055; }
+
+@media (max-width: 640px) {
+  .article-modal { padding: 12px; }
+  .article-modal-panel { padding: 44px 26px 36px; }
+  .article-modal-close { margin: -22px -8px 0 0; }
+  .hero-star { width: 40px; height: 112px; }
+}
