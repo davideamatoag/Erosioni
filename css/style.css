@@ -211,7 +211,13 @@ textarea:focus-visible {
   z-index: 2;
   text-align: center;
   padding: 0 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+/* Bilancia la linea di scroll: il titolo resta centrato nello schermo */
+.hero-spacer-top { flex: 1 1 0; }
 
 .hero-title {
   font-family: var(--font-display);
@@ -254,27 +260,45 @@ textarea:focus-visible {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Indicatore di scroll: una linea verticale che pulsa */
-.scroll-indicator {
+/* Indicatore di scroll: una linea sottile che dal sottotitolo scende
+   fino al fondo dello schermo, come una fessura nella roccia che
+   invita a scendere più in profondità. */
+.scroll-line {
+  flex: 1 1 0;
+  width: 1px;
+  min-height: 96px;
+  margin-top: 36px;
+  position: relative;
+  background: linear-gradient(180deg, rgba(168, 159, 148, 0.85), rgba(168, 159, 148, 0.08));
+  transform-origin: top;
+  opacity: 0;
+  transform: scaleY(0);
+  animation: scroll-line-draw 1.6s var(--ease-out) 2.1s forwards;
+}
+@keyframes scroll-line-draw {
+  from { opacity: 0; transform: scaleY(0); }
+  30% { opacity: 1; }
+  to { opacity: 1; transform: scaleY(1); }
+}
+/* Una goccia di luce oro scende lungo la linea, invitando a seguirla */
+.scroll-line::after {
+  content: "";
   position: absolute;
   left: 50%;
-  bottom: 36px;
+  top: -4%;
+  width: 3px;
+  height: 26px;
   transform: translateX(-50%);
-  z-index: 2;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, var(--oro));
   opacity: 0;
-  animation: hero-sub-in 1s ease 2.1s forwards;
+  animation: scroll-drop 2.8s ease-in-out 4s infinite;
 }
-.scroll-line {
-  display: block;
-  width: 1px;
-  height: 64px;
-  background: var(--sabbia);
-  transform-origin: top;
-  animation: scroll-pulse 2.4s ease-in-out infinite;
-}
-@keyframes scroll-pulse {
-  0%, 100% { transform: scaleY(0.35); opacity: 0.4; }
-  50% { transform: scaleY(1); opacity: 1; }
+@keyframes scroll-drop {
+  0% { top: -4%; opacity: 0; }
+  18% { opacity: 1; }
+  72% { opacity: 1; }
+  100% { top: 96%; opacity: 0; }
 }
 
 .hero-spacer { height: 100vh; }
@@ -600,21 +624,24 @@ textarea:focus-visible {
 
 /* ==========================================================
    HOMEPAGE — "I miei scatti": Galleria minerale
-   Griglia masonry a 3 colonne, foto parzialmente desaturate
-   che riprendono colore al passaggio del mouse.
+   Griglia regolare a 3 colonne: ogni cornice ha la stessa
+   proporzione, così la parete di foto non lascia mai vuoti.
+   Foto parzialmente desaturate che riprendono colore al
+   passaggio del mouse.
    ========================================================== */
 .shots-masonry {
-  column-count: 3;
-  column-gap: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
 }
-@media (max-width: 860px) { .shots-masonry { column-count: 2; } }
-@media (max-width: 520px) { .shots-masonry { column-count: 2; column-gap: 12px; } }
+@media (max-width: 860px) { .shots-masonry { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .shots-masonry { gap: 12px; } }
 
 .shot {
   display: block;
   width: 100%;
-  break-inside: avoid;
-  margin: 0 0 22px;
+  aspect-ratio: 4 / 3;
+  margin: 0;
   padding: 0;
   border: none;
   background: var(--tuff);
@@ -626,12 +653,13 @@ textarea:focus-visible {
 .shot:nth-child(4n+2) { clip-path: var(--clip-rock-2); }
 .shot:nth-child(4n+3) { clip-path: var(--clip-rock-3); }
 .shot:nth-child(4n) { clip-path: var(--clip-rock-4); }
-@media (max-width: 520px) { .shot { margin-bottom: 12px; } }
 .shot:disabled { cursor: default; }
 
 .shot-img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  display: block;
   filter: saturate(0.45) contrast(0.98);
   transform: scale(1.001);
   transition: filter 0.6s ease, transform 0.6s var(--ease-out);
@@ -641,27 +669,39 @@ textarea:focus-visible {
   transform: scale(1.03);
 }
 
-/* Sovrapposizione al hover con il numero dello scatto in monospace */
+/* Sovrapposizione al passaggio del mouse: compare il titolo
+   della foto, scritto dal pannello di amministrazione */
 .shot-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  padding: 16px;
-  background: linear-gradient(180deg, transparent 55%, rgba(26, 24, 22, 0.72) 100%);
+  padding: 18px;
+  background: linear-gradient(180deg, transparent 50%, rgba(26, 24, 22, 0.78) 100%);
   opacity: 0;
   transition: opacity 0.45s ease;
 }
 .shot:hover .shot-overlay { opacity: 1; }
 
-.shot-index {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+.shot-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
   color: var(--calce);
+  transform: translateY(8px);
+  transition: transform 0.45s var(--ease-out);
 }
-.shot-index::before { content: "SCATTO · "; color: var(--terracotta); }
+.shot:hover .shot-title { transform: translateY(0); }
+.shot-title::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 2px;
+  background: var(--terracotta);
+  margin-bottom: 8px;
+}
 
 /* Cornice vuota per gli scatti mancanti */
 .shot--empty {
@@ -723,6 +763,18 @@ textarea:focus-visible {
   transition: background 0.25s ease, color 0.25s ease;
 }
 .shot-modal-close:hover { background: var(--terracotta); border-color: var(--terracotta); color: var(--stone); }
+
+.shot-modal-caption {
+  position: absolute;
+  bottom: -42px;
+  left: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--calce);
+  opacity: 0.85;
+}
 
 /* ==========================================================
    NEWSLETTER — "Sedimentazione"
