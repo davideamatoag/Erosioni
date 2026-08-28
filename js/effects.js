@@ -15,7 +15,7 @@
   const REVEAL_SELECTOR = [
     '.section-title', '.section-eyebrow', '.page-title', '.page-intro',
     '.hero-title', '.featured-article', '.home-featured', '.article-card',
-    '.layer-card', '.archive-item', '.masonry-item', '.shot',
+    '.layer-card', '.archive-item', '.masonry-item', '.work-row', '.shot',
     '.formation-block', '.travel-node', '.timeline-entry', '.comment-item',
     '.social-link', '.bio-text p', '.comment-form-section',
     '.latest-articles-panel', '.contact-block', '.newsletter-title',
@@ -97,7 +97,7 @@
       const span = document.createElement('span');
       span.className = 'hero-letter';
       span.style.setProperty('--i', i);
-      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      span.textContent = ch === ' ' ? ' ' : ch;
       span.setAttribute('aria-hidden', 'true');
       title.appendChild(span);
     });

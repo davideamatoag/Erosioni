@@ -60,7 +60,28 @@ collections:
                   - { label: "Riflessioni", value: "riflessioni" }
               - { label: "Data", name: "date", widget: "date", date_format: "YYYY-MM-DD", picker_utc: true }
               - { label: "Immagine di copertina", name: "image", widget: "image" }
-              - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "quote"] }
+              - label: "Font del testo (facoltativo)"
+                name: "font"
+                widget: "select"
+                required: false
+                default: "predefinito"
+                options:
+                  - { label: "Predefinito", value: "predefinito" }
+                  - { label: "Elegante (Playfair Display)", value: "elegante" }
+                  - { label: "Classico (Georgia)", value: "classico" }
+                  - { label: "Macchina da scrivere (Space Mono)", value: "macchina" }
+              - label: "Colore del testo (facoltativo)"
+                name: "colore"
+                widget: "select"
+                required: false
+                default: "predefinito"
+                options:
+                  - { label: "Predefinito", value: "predefinito" }
+                  - { label: "Avorio chiaro", value: "avorio" }
+                  - { label: "Sabbia", value: "sabbia" }
+                  - { label: "Oro", value: "oro" }
+                  - { label: "Terracotta", value: "terracotta" }
+              - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "heading-three", "quote", "bulleted-list", "numbered-list"] }
 
   - name: "scatti"
     label: "I miei scatti"
@@ -72,9 +93,10 @@ collections:
           - label: "Foto"
             name: "shots"
             widget: "list"
-            summary: "{{image}}"
+            summary: "{{title}} — {{image}}"
             fields:
               - { label: "Immagine", name: "image", widget: "image" }
+              - { label: "Titolo della foto (facoltativo — compare al passaggio del mouse)", name: "title", widget: "string", required: false }
 
   - name: "portfolio"
     label: "Portfolio"
