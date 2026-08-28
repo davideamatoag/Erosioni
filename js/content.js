@@ -61,6 +61,18 @@ async function fetchArticles() {
   return articlesCache;
 }
 
+let settingsCache = null;
+async function fetchSettings() {
+  if (settingsCache) return settingsCache;
+  try {
+    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    settingsCache = await res.json();
+  } catch (e) {
+    settingsCache = {};
+  }
+  return settingsCache;
+}
+
 async function fetchPortfolio() {
   const res = await fetch('content/portfolio.json', { cache: 'no-store' });
   const data = await res.json();
@@ -207,6 +219,11 @@ async function renderArticoliPage() {
 // ---------------- PAGINA SINGOLO ARTICOLO ----------------
 function renderInline(text) {
   return text
+    // Formattazione fine dal pannello: [colore=oro]parola[/colore] e
+    // [font=classico]parola[/font] — inserite dai pulsanti dell'editor,
+    // mai scritte a mano. Vedi admin/index.html.
+    .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
+    .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
       `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" alt="${alt}">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
@@ -225,6 +242,10 @@ function renderMarkdown(md) {
     if (soloImmagine) {
       return `<img class="article-inline-img" src="${optimizeImage(soloImmagine[2].trim(), 1000)}" alt="${soloImmagine[1]}">`;
     }
+    const blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
+    if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g, '<br>')}</p>`;
+    const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
+    if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g, '<br>')}</p>`;
     if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
     if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
     if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
@@ -250,6 +271,7 @@ function renderMarkdown(md) {
 
 function stripMarkdown(md) {
   return (md || '')
+    .replace(/\[\/?(colore|font|blocco|blocco-font)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^#+\s*/gm, '')
@@ -270,14 +292,21 @@ function computeExcerpt(md, maxLen) {
 
 // Font e colore del corpo articolo, scelti dal pannello: si traducono
 // in classi CSS (vedi style-3.css). "predefinito" non aggiunge nulla.
-function applyArticleBodyStyle(el, article) {
+function applyArticleBodyStyle(el, article, settings) {
   if (!el) return;
   el.classList.remove(
     'body-font-elegante', 'body-font-classico', 'body-font-macchina',
     'body-colore-avorio', 'body-colore-sabbia', 'body-colore-oro', 'body-colore-terracotta'
   );
-  if (article.font && article.font !== 'predefinito') el.classList.add(`body-font-${article.font}`);
-  if (article.colore && article.colore !== 'predefinito') el.classList.add(`body-colore-${article.colore}`);
+  // Vince la scelta fatta sul singolo articolo; se è "predefinito"
+  // si usa il default generale scelto nelle Impostazioni del sito.
+  const pick = (perArticle, perSite) =>
+    (perArticle && perArticle !== 'predefinito') ? perArticle
+      : (perSite && perSite !== 'predefinito' ? perSite : null);
+  const font = pick(article.font, settings && settings.default_font);
+  const colore = pick(article.colore, settings && settings.default_colore);
+  if (font) el.classList.add(`body-font-${font}`);
+  if (colore) el.classList.add(`body-colore-${colore}`);
 }
 
 function computeReadingTime(md) {
@@ -348,8 +377,9 @@ async function renderArticlePage() {
     };
     preload.src = fullUrl;
   }
+  const settings = await fetchSettings();
   bodyEl.innerHTML = renderMarkdown(article.body || '');
-  applyArticleBodyStyle(bodyEl, article);
+  applyArticleBodyStyle(bodyEl, article, settings);
 
   // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
   bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
@@ -361,16 +391,10 @@ async function renderArticlePage() {
   });
 
   // Autore (nome e bio dalle impostazioni del sito)
-  try {
-    const settingsRes = await fetch('content/impostazioni.json', { cache: 'no-store' });
-    const settings = await settingsRes.json();
-    const nameEl = document.getElementById('authorName');
-    const bioEl = document.getElementById('authorBio');
-    if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-    if (bioEl) bioEl.textContent = settings.author_bio || '';
-  } catch (e) {
-    // restano i valori di default già nell'HTML
-  }
+  const nameEl = document.getElementById('authorName');
+  const bioEl = document.getElementById('authorBio');
+  if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
+  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
 
   // Condivisione
   const pageUrl = window.location.href;
@@ -574,9 +598,10 @@ async function openArticleModal(slug, historyMode = 'push') {
     heroImg.removeAttribute('src');
   }
 
+  const settings = await fetchSettings();
   const bodyEl = document.getElementById('modalArticleBody');
   bodyEl.innerHTML = renderMarkdown(article.body || '');
-  applyArticleBodyStyle(bodyEl, article);
+  applyArticleBodyStyle(bodyEl, article, settings);
 
   // Dissolvenza lenta anche per le immagini nel corpo
   bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
@@ -585,14 +610,10 @@ async function openArticleModal(slug, historyMode = 'push') {
   });
 
   // Autore dalle impostazioni del sito
-  try {
-    const settingsRes = await fetch('content/impostazioni.json', { cache: 'no-store' });
-    const settings = await settingsRes.json();
-    const nameEl = document.getElementById('modalAuthorName');
-    const bioEl = document.getElementById('modalAuthorBio');
-    if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-    if (bioEl) bioEl.textContent = settings.author_bio || '';
-  } catch (e) { /* restano i valori già presenti */ }
+  const nameEl = document.getElementById('modalAuthorName');
+  const bioEl = document.getElementById('modalAuthorBio');
+  if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
+  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
 
   // Condivisione: punta sempre alla pagina dedicata, così il link
   // copiato/condiviso resta valido e apribile da chiunque.

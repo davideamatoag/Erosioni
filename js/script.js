@@ -70,6 +70,69 @@ if (newsletterForm) {
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+// ---------------------------------------------------------------
+// PERSONALIZZAZIONI GLOBALI dal Pannello (content/impostazioni.json):
+// colore accento del sito, email di contatto, link social e
+// citazione del footer. Si applicano su tutte le pagine; i campi
+// lasciati vuoti nel Pannello non cambiano nulla.
+// ---------------------------------------------------------------
+const ACCENT_COLORS = {
+  oro: '#D4A574',
+  muschio: '#8B9A7D',
+  ruggine: '#A65A43',
+  ardesia: '#6E8CA0',
+};
+
+(async function applySiteCustomizations() {
+  let settings;
+  try {
+    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    settings = await res.json();
+  } catch (e) {
+    return; // impostazioni non raggiungibili: resta tutto com'è
+  }
+
+  // Colore accento (terracotta di default): cambia bottoni, dettagli,
+  // sottolineature e marker in tutto il sito, perché usano --terracotta
+  const accent = ACCENT_COLORS[settings.accent_color];
+  if (accent) document.documentElement.style.setProperty('--terracotta', accent);
+
+  // Email di contatto: footer + pagina contatti
+  if (settings.contact_email && settings.contact_email.trim()) {
+    const email = settings.contact_email.trim();
+    const footerEmail = document.querySelector('.footer-email');
+    if (footerEmail) {
+      footerEmail.textContent = email;
+      footerEmail.href = `mailto:${email}`;
+    }
+    const contactEmail = document.querySelector('.contact-email');
+    if (contactEmail) contactEmail.textContent = email;
+    document.querySelectorAll('a[href^="mailto:"]').forEach((a) => { a.href = `mailto:${email}`; });
+  }
+
+  // Citazione del footer
+  if (settings.footer_quote && settings.footer_quote.trim()) {
+    const quoteEl = document.querySelector('.footer-quote');
+    if (quoteEl) quoteEl.textContent = `«${settings.footer_quote.trim()}»`;
+  }
+
+  // Link social: footer (tutte le pagine) e pagina contatti
+  const socialUrls = {
+    instagram: settings.social_instagram,
+    youtube: settings.social_youtube,
+    linkedin: settings.social_linkedin,
+  };
+  document.querySelectorAll('.footer-social a, .social-list a').forEach((a) => {
+    const label = (a.textContent || '').trim().split(/\s+/)[0].toLowerCase();
+    const url = socialUrls[label];
+    if (url && url.trim()) {
+      a.href = url.trim();
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  });
+})();
+
 // Pagina articolo — form commento (placeholder, nessun invio reale)
 const commentForm = document.getElementById('commentForm');
 const commentNote = document.getElementById('commentNote');
