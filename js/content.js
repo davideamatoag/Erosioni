@@ -225,8 +225,25 @@ function renderMarkdown(md) {
     if (soloImmagine) {
       return `<img class="article-inline-img" src="${optimizeImage(soloImmagine[2].trim(), 1000)}" alt="${soloImmagine[1]}">`;
     }
+    if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
     if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
     if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
+    if (/^[-•] /.test(trimmed)) {
+      const items = trimmed.split('\n')
+        .map((l) => l.trim())
+        .filter((l) => /^[-•] /.test(l))
+        .map((l) => `<li>${renderInline(l.slice(2))}</li>`)
+        .join('');
+      return `<ul>${items}</ul>`;
+    }
+    if (/^\d+\. /.test(trimmed)) {
+      const items = trimmed.split('\n')
+        .map((l) => l.trim())
+        .filter((l) => /^\d+\. /.test(l))
+        .map((l) => `<li>${renderInline(l.replace(/^\d+\. /, ''))}</li>`)
+        .join('');
+      return `<ol>${items}</ol>`;
+    }
     return `<p>${renderInline(trimmed).replace(/\n/g, '<br>')}</p>`;
   }).join('\n');
 }
@@ -249,6 +266,18 @@ function computeExcerpt(md, maxLen) {
   const source = stripMarkdown(firstBlock) || plain;
   if (source.length <= maxLen) return source;
   return source.slice(0, maxLen).replace(/\s+\S*$/, '') + '\u2026';
+}
+
+// Font e colore del corpo articolo, scelti dal pannello: si traducono
+// in classi CSS (vedi style-3.css). "predefinito" non aggiunge nulla.
+function applyArticleBodyStyle(el, article) {
+  if (!el) return;
+  el.classList.remove(
+    'body-font-elegante', 'body-font-classico', 'body-font-macchina',
+    'body-colore-avorio', 'body-colore-sabbia', 'body-colore-oro', 'body-colore-terracotta'
+  );
+  if (article.font && article.font !== 'predefinito') el.classList.add(`body-font-${article.font}`);
+  if (article.colore && article.colore !== 'predefinito') el.classList.add(`body-colore-${article.colore}`);
 }
 
 function computeReadingTime(md) {
@@ -320,6 +349,7 @@ async function renderArticlePage() {
     preload.src = fullUrl;
   }
   bodyEl.innerHTML = renderMarkdown(article.body || '');
+  applyArticleBodyStyle(bodyEl, article);
 
   // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
   bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
@@ -372,7 +402,7 @@ async function renderArticlePage() {
   }
 }
 
-// ---------------- PAGINA PORTFOLIO: mosaico ----------------
+// ---------------- PAGINA PORTFOLIO: "Sala di proiezione" ----------------
 function getVideoEmbedUrl(link) {
   if (!link) return null;
   const yt = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
@@ -436,22 +466,33 @@ function initPortfolioModal() {
 }
 
 async function renderPortfolioPage() {
-  const grid = document.getElementById('portfolioMasonry');
-  if (!grid) return;
+  const list = document.getElementById('portfolioWorks');
+  if (!list) return;
   const items = await fetchPortfolio();
 
-  grid.innerHTML = items.map((item, idx) => `
-    <button type="button" class="masonry-item" data-idx="${idx}">
-      ${hasImage(item.image)
-        ? `<img class="masonry-media" src="${optimizeImage(item.image, 1100)}" alt="${item.title}" loading="lazy" onerror="this.closest('.masonry-item').classList.add('is-broken')">`
-        : `<div class="masonry-media masonry-media--empty"></div>`}
-      <div class="masonry-caption">
-        <h3>${item.title}</h3>
-        <span class="masonry-tag">${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}</span>
-      </div>
-    </button>`).join('');
+  list.innerHTML = items.map((item, idx) => {
+    const isLead = idx === 0;
+    const isVideo = item.medium === 'video';
+    const hasDesc = item.description && item.description.trim();
+    return `
+    <button type="button" class="work-row${isLead ? ' work-row--lead' : (idx % 2 ? ' work-row--reverse' : '')}" data-idx="${idx}" aria-label="Apri il progetto: ${item.title}">
+      <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
+      <span class="work-media">
+        ${hasImage(item.image)
+          ? `<img src="${optimizeImage(item.image, isLead ? 2000 : 1200)}" alt="${item.title}" loading="lazy">`
+          : `<span class="work-media work-media--empty"><span>Immagine in arrivo</span></span>`}
+        ${isVideo ? '<span class="work-play" aria-hidden="true"></span>' : ''}
+      </span>
+      <span class="work-info">
+        <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${isVideo ? 'Video' : 'Foto'}</span>
+        <span class="work-title" style="display:block;">${item.title}</span>
+        ${hasDesc ? `<span class="work-desc" style="display:block;">${item.description.trim()}</span>` : ''}
+        <span class="work-cta" style="display:inline-block;">${isVideo ? 'Guarda il video' : 'Guarda il progetto'} &rarr;</span>
+      </span>
+    </button>`;
+  }).join('');
 
-  grid.querySelectorAll('.masonry-item').forEach(el => {
+  list.querySelectorAll('.work-row').forEach(el => {
     el.addEventListener('click', () => openPortfolioModal(items[Number(el.dataset.idx)]));
   });
 
@@ -462,9 +503,21 @@ async function renderPortfolioPage() {
 // ==========================================================
 // TENDINA ARTICOLO — l'articolo si apre in una finestra
 // "bianco caldo" sopra la pagina (sfondo sfocato), senza
-// cambiare pagina. La pagina dedicata articolo.html?slug=...
-// resta comunque raggiungibile per i link diretti/condivisi.
+// cambiare pagina. Mentre la tendina è aperta l'indirizzo nella
+// barra del browser diventa ?slug=...: il link si può copiare
+// e condividere, e il pulsante "indietro" richiude la tendina.
+// La pagina dedicata articolo.html?slug=... resta comunque
+// raggiungibile per i link diretti/condivisi.
 // ==========================================================
+
+// true quando l'apertura della tendina ha AGGIUNTO una voce nella
+// cronologia (click su una scheda): in quel caso la chiusura torna
+// indietro nella cronologia invece di riscrivere l'indirizzo.
+let articleModalPushed = false;
+
+function articleUrl(slug) {
+  return `${window.location.pathname}?slug=${encodeURIComponent(slug)}`;
+}
 
 function initArticleModal() {
   const modal = document.getElementById('articleModal');
@@ -472,8 +525,8 @@ function initArticleModal() {
   modal.dataset.wired = 'true';
 
   modal.querySelectorAll('[data-article-modal-close]').forEach((el) =>
-    el.addEventListener('click', closeArticleModal));
-  document.getElementById('articleModalClose').addEventListener('click', closeArticleModal);
+    el.addEventListener('click', () => closeArticleModal()));
+  document.getElementById('articleModalClose').addEventListener('click', () => closeArticleModal());
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('is-open')) closeArticleModal();
   });
@@ -490,7 +543,11 @@ function initArticleModal() {
   }
 }
 
-async function openArticleModal(slug) {
+// historyMode:
+//  'push'    — click su una scheda: nuova voce in cronologia
+//  'replace' — apertura automatica da link ?slug=...: l'indirizzo c'è già
+//  'none'    — navigazione avanti/indietro: la voce è già quella giusta
+async function openArticleModal(slug, historyMode = 'push') {
   const modal = document.getElementById('articleModal');
   if (!modal) return; // pagina senza tendina: si naviga normalmente
   initArticleModal();
@@ -519,6 +576,7 @@ async function openArticleModal(slug) {
 
   const bodyEl = document.getElementById('modalArticleBody');
   bodyEl.innerHTML = renderMarkdown(article.body || '');
+  applyArticleBodyStyle(bodyEl, article);
 
   // Dissolvenza lenta anche per le immagini nel corpo
   bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
@@ -570,14 +628,54 @@ async function openArticleModal(slug) {
   modal.classList.add('is-open');
   document.body.classList.add('modal-open');
   if (panel) panel.scrollTop = 0;
+
+  // L'indirizzo nella barra segue l'articolo aperto
+  if (historyMode === 'push') {
+    history.pushState({ erosioniArticle: article.slug }, '', articleUrl(article.slug));
+    articleModalPushed = true;
+  } else if (historyMode === 'replace') {
+    history.replaceState({ erosioniArticle: article.slug }, '', articleUrl(article.slug));
+    articleModalPushed = false;
+  } else {
+    // 'none': la voce di cronologia corrente è già quella dell'articolo
+    articleModalPushed = true;
+  }
 }
 
-function closeArticleModal() {
+// fromHistory: la chiusura arriva dal pulsante indietro/avanti del
+// browser — l'indirizzo è già cambiato, basta chiudere la finestra.
+function closeArticleModal(fromHistory) {
   const modal = document.getElementById('articleModal');
-  if (!modal) return;
+  if (!modal || !modal.classList.contains('is-open')) return;
   modal.classList.remove('is-open');
   document.body.classList.remove('modal-open');
+
+  if (fromHistory) {
+    articleModalPushed = false;
+    return;
+  }
+  if (articleModalPushed) {
+    // la voce ?slug= l'abbiamo aggiunta noi: torniamo indietro
+    articleModalPushed = false;
+    history.back();
+  } else {
+    // aperta da un link diretto: ripulisce l'indirizzo senza navigare
+    history.replaceState({}, '', window.location.pathname);
+  }
 }
+
+// Avanti/indietro del browser mentre la tendina è aperta:
+// se la voce di cronologia porta un articolo, lo mostra; altrimenti chiude.
+window.addEventListener('popstate', (e) => {
+  const modal = document.getElementById('articleModal');
+  if (!modal || !modal.classList.contains('is-open')) return;
+  const slug = e.state && e.state.erosioniArticle;
+  if (slug) {
+    openArticleModal(slug, 'none');
+  } else {
+    closeArticleModal(true);
+  }
+});
 
 // Delega globale: qualunque scheda articolo (home, archivio,
 // correlati) apre la tendina invece di cambiare pagina.
@@ -589,12 +687,15 @@ document.addEventListener('click', (e) => {
   openArticleModal(link.getAttribute('data-article-slug'));
 });
 
-// Link diretto: se qualcuno arriva su index/articoli con ?slug=...
-// nell'indirizzo, la tendina si apre da sola appena la pagina è pronta.
+// Link diretto: se qualcuno arriva su index/articoli/portfolio con
+// ?slug=... nell'indirizzo, la tendina si apre da sola appena la pagina
+// è pronta. Sulla pagina dedicata articolo.html no: lì l'articolo è
+// già mostrato dalla pagina stessa.
 async function openArticleFromUrl() {
   const slug = new URLSearchParams(window.location.search).get('slug');
   if (!slug || !document.getElementById('articleModal')) return;
-  openArticleModal(slug);
+  if (document.getElementById('articleBody')) return; // pagina articolo dedicata
+  openArticleModal(slug, 'replace');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -640,29 +741,32 @@ async function renderScattiGrid() {
   const grid = document.getElementById('scattiGrid');
   if (!grid) return;
 
-  let urls = [];
+  let shots = [];
   try {
     const res = await fetch('content/scatti.json', { cache: 'no-store' });
     const data = await res.json();
-    urls = (data.shots || []).map((s) => s.image).filter(hasImage);
+    shots = (data.shots || []).filter((shot) => hasImage(shot.image));
   } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
 
-  if (!urls.length) {
+  if (!shots.length) {
     grid.innerHTML = Array.from({ length: 6 }, () =>
       `<button type="button" class="shot shot--empty" disabled></button>`).join('');
     return;
   }
 
-  const shuffled = seededShuffle(urls, todaySeed()).slice(0, 9);
+  const shuffled = seededShuffle(shots, todaySeed()).slice(0, 9);
 
-  grid.innerHTML = shuffled.map((url, i) => `
-    <button type="button" class="shot" data-full="${optimizeImage(url, 2200)}" aria-label="Apri lo scatto a grandezza originale">
-      <img class="shot-img" src="${optimizeImage(url, 800)}" alt="Scatto fotografico" loading="lazy">
-      <span class="shot-overlay"><span class="shot-index">${String(i + 1).padStart(2, '0')}</span></span>
-    </button>`).join('');
+  grid.innerHTML = shuffled.map((shot) => {
+    const title = (shot.title || '').trim();
+    return `
+    <button type="button" class="shot" data-full="${optimizeImage(shot.image, 2200)}" data-title="${title.replace(/"/g, '&quot;')}" aria-label="Apri lo scatto a grandezza originale${title ? `: ${title}` : ''}">
+      <img class="shot-img" src="${optimizeImage(shot.image, 800)}" alt="${title || 'Scatto fotografico'}" loading="lazy">
+      ${title ? `<span class="shot-overlay"><span class="shot-title">${title}</span></span>` : ''}
+    </button>`;
+  }).join('');
 
   grid.querySelectorAll('.shot[data-full]').forEach((btn) => {
-    btn.addEventListener('click', () => openShotModal(btn.dataset.full));
+    btn.addEventListener('click', () => openShotModal(btn.dataset.full, btn.dataset.title));
   });
   initShotModal();
 
@@ -670,10 +774,15 @@ async function renderScattiGrid() {
 }
 
 // ---------------- TENDINA per vedere uno scatto a grandezza originale ----------------
-function openShotModal(url) {
+function openShotModal(url, title) {
   const modal = document.getElementById('shotModal');
   if (!modal) return;
   document.getElementById('shotModalImg').src = url;
+  const captionEl = document.getElementById('shotModalCaption');
+  if (captionEl) {
+    captionEl.textContent = title || '';
+    captionEl.hidden = !title;
+  }
   modal.classList.add('is-open');
   document.body.classList.add('modal-open');
 }
