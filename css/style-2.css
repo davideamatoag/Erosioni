@@ -546,19 +546,24 @@
 }
 
 /* ==========================================================
-   PAGINA PORTFOLIO — mosaico non allineato a griglia
+   PAGINA PORTFOLIO — "Sala di proiezione"
+   Ogni lavoro è una proiezione a sé: immagine grande in scena,
+   didascalia accanto come le note di un regista, e il numero
+   della sala gigante e sfumato sullo sfondo. La prima voce
+   apre la serata a tutta larghezza.
    ========================================================== */
-.portfolio-masonry {
-  column-count: 3;
-  column-gap: 28px;
+.work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 130px;
 }
-@media (max-width: 900px) { .portfolio-masonry { column-count: 2; } }
-@media (max-width: 640px) { .portfolio-masonry { column-count: 1; } }
 
-.masonry-item {
-  break-inside: avoid;
-  margin-bottom: 32px;
-  display: block;
+.work-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 64px;
+  align-items: center;
   width: 100%;
   text-align: left;
   background: none;
@@ -567,65 +572,174 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.35s var(--ease-out);
 }
-.masonry-item:nth-child(3n+2) { margin-top: 56px; }
-.masonry-item:nth-child(5n) { margin-top: 32px; }
-.masonry-item:hover { transform: translateY(-8px); }
-@media (max-width: 640px) {
-  .masonry-item:nth-child(3n+2), .masonry-item:nth-child(5n) { margin-top: 0; }
-}
+.work-row--reverse { grid-template-columns: 1fr 1.2fr; }
+.work-row--reverse .work-media { order: 2; }
+.work-row--reverse .work-info { order: 1; }
 
-.masonry-media {
-  width: 100%;
+/* La prima voce apre la serata: tutta larghezza, formato panoramico */
+.work-row--lead { grid-template-columns: 1fr; gap: 34px; }
+.work-row--lead .work-media { aspect-ratio: 21 / 10; }
+.work-row--lead .work-title { font-size: clamp(2.1rem, 4.6vw, 3.4rem); }
+.work-row--lead .work-desc { max-width: 640px; }
+
+/* Il numero della "sala": gigante e sfumato, come proiettato sul muro */
+.work-index {
+  position: absolute;
+  top: -0.62em;
+  right: 8px;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(4rem, 9vw, 7.5rem);
+  line-height: 1;
+  color: var(--calce);
+  opacity: 0.09;
+  pointer-events: none;
+  user-select: none;
+}
+.work-row--reverse .work-index { right: auto; left: 8px; }
+.work-row--lead .work-index { right: 16px; }
+
+.work-media {
+  position: relative;
   display: block;
-  margin-bottom: 14px;
-  clip-path: var(--clip-rock-2);
-  filter: saturate(0.75);
-  transition: filter 0.5s ease;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--tuff);
 }
-.masonry-item:hover .masonry-media { filter: saturate(1); }
+.work-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.5) contrast(0.98);
+  transform: scale(1.001);
+  transition: filter 0.6s ease, transform 0.9s var(--ease-out);
+}
+.work-row:hover .work-media img {
+  filter: saturate(1);
+  transform: scale(1.045);
+}
 
-.masonry-caption {
+/* Velo cinematografico che si dissolve al passaggio */
+.work-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(26, 24, 22, 0.22) 0%, transparent 30%, transparent 70%, rgba(26, 24, 22, 0.35) 100%);
+  transition: opacity 0.6s ease;
+}
+.work-row:hover .work-media::after { opacity: 0.4; }
+
+/* Il "play" per i video: un bottoncino di proiezione */
+.work-play {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+.work-play::before {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 226, 217, 0.6);
+  background: rgba(26, 24, 22, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s var(--ease-out);
+}
+.work-play::after {
+  content: "";
+  position: relative;
+  left: 3px;
+  width: 0;
+  height: 0;
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  border-left: 17px solid var(--calce);
+  transition: border-left-color 0.35s ease;
+}
+.work-row:hover .work-play::before {
+  background: rgba(196, 112, 90, 0.55);
+  border-color: var(--terracotta);
+  transform: scale(1.08);
 }
 
-.masonry-caption h3 {
+.work-info { position: relative; z-index: 1; }
+
+.work-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  margin: 0 0 14px;
+}
+
+.work-title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 1.1rem;
-  margin: 0;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+  margin: 0 0 16px;
   color: var(--calce);
+  transition: color 0.3s ease;
+}
+.work-row:hover .work-title { color: var(--oro); }
+
+.work-desc {
+  margin: 0 0 24px;
+  color: var(--sabbia);
+  font-size: 0.97rem;
+  line-height: 1.75;
 }
 
-.masonry-tag {
+.work-cta {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  color: var(--sabbia);
+  border-bottom: 1px solid rgba(168, 159, 148, 0.4);
+  padding-bottom: 4px;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.work-row:hover .work-cta {
   color: var(--terracotta);
-  white-space: nowrap;
+  border-color: var(--terracotta);
 }
 
-.masonry-media--empty {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
+/* Cornice vuota se manca l'immagine: resta ben visibile */
+.work-media--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px dashed rgba(168, 159, 148, 0.35);
 }
-
-/* Voce la cui immagine non si carica: ben visibile invece dell'icona rotta */
-.masonry-item.is-broken .masonry-media {
-  background: repeating-linear-gradient(45deg, var(--tuff), var(--tuff) 10px, rgba(196,112,90,0.14) 10px, rgba(196,112,90,0.14) 20px);
-  min-height: 160px;
+.work-media--empty span {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sabbia);
+  opacity: 0.7;
 }
-.masonry-item.is-broken .masonry-caption h3::after {
-  content: " (immagine non trovata)";
-  color: var(--terracotta);
-  font-size: 0.75rem;
+
+@media (max-width: 900px) {
+  .work-list { gap: 88px; }
+  .work-row,
+  .work-row--reverse { grid-template-columns: 1fr; gap: 28px; }
+  .work-row--reverse .work-media { order: 0; }
+  .work-row--reverse .work-info { order: 1; }
+  .work-row--reverse .work-index { left: auto; right: 8px; }
+  .work-index { top: -0.55em; }
 }
 
 /* ---------------- Tendina di dettaglio portfolio ---------------- */
