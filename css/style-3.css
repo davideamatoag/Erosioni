@@ -264,6 +264,61 @@
   color: var(--calce);
 }
 
+.article-body h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.22rem;
+  letter-spacing: 0.01em;
+  margin: 38px 0 14px;
+  color: var(--calce);
+}
+
+.article-body ul,
+.article-body ol {
+  margin: 0 0 28px;
+  padding-left: 26px;
+  font-size: 1.06rem;
+  line-height: 1.9;
+  color: var(--calce);
+}
+.article-body li { margin-bottom: 8px; }
+.article-body li::marker { color: var(--terracotta); }
+
+/* ---------------- Font e colore del testo scelti dal pannello ---------------- */
+.article-body.body-font-elegante p,
+.article-body.body-font-elegante li {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+}
+.article-body.body-font-classico p,
+.article-body.body-font-classico li {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.article-body.body-font-macchina p,
+.article-body.body-font-macchina li {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  line-height: 1.85;
+}
+
+.article-body.body-colore-avorio p, .article-body.body-colore-avorio li { color: #F6F1E7; }
+.article-body.body-colore-sabbia p, .article-body.body-colore-sabbia li { color: #B4AB9F; }
+.article-body.body-colore-oro p, .article-body.body-colore-oro li { color: #D4A574; }
+.article-body.body-colore-terracotta p, .article-body.body-colore-terracotta li { color: #CD7A62; }
+
+/* Nella tendina chiara gli stessi colori in versione "inchiostro" */
+.article-modal-panel .article-body.body-colore-avorio p,
+.article-modal-panel .article-body.body-colore-avorio li { color: #211D1A; }
+.article-modal-panel .article-body.body-colore-sabbia p,
+.article-modal-panel .article-body.body-colore-sabbia li { color: #6B6157; }
+.article-modal-panel .article-body.body-colore-oro p,
+.article-modal-panel .article-body.body-colore-oro li { color: #8F6132; }
+.article-modal-panel .article-body.body-colore-terracotta p,
+.article-modal-panel .article-body.body-colore-terracotta li { color: #A65A43; }
+.article-modal-panel .article-body h3 { color: #211D1A; }
+.article-modal-panel .article-body ul,
+.article-modal-panel .article-body ol { color: #332E29; }
+
 .article-inline-img {
   display: block;
   width: 100%;
@@ -523,12 +578,13 @@
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal-init { opacity: 1; transform: none; transition: none; }
-  .hero-letter, .hero-subtitle, .scroll-indicator { animation: none !important; opacity: 1 !important; clip-path: none !important; }
-  .scroll-line { animation: none; }
+  .hero-letter, .hero-subtitle { animation: none !important; opacity: 1 !important; clip-path: none !important; }
+  .scroll-line { animation: none; opacity: 1; transform: none; }
+  .scroll-line::after { display: none; }
   .formation-block:hover .formation-media::after { animation: none; opacity: 0.6; top: 50%; }
-  .layer-card, .article-card, .featured-article, .masonry-item,
+  .layer-card, .article-card, .featured-article, .work-row,
   .archive-item, .travel-node, .timeline-entry, .shot-img,
-  .layer-media-inner, .article-thumb, .featured-thumb, .formation-media, .masonry-media {
+  .layer-media-inner, .article-thumb, .featured-thumb, .formation-media, .work-media {
     transition: none !important;
   }
 }
@@ -572,32 +628,6 @@
   .article-top { padding: 116px 0 0; }
 
   .contact-inner { flex-direction: column; align-items: flex-start; }
-}
-
-/* ==========================================================
-   STELLA A QUATTRO PUNTE — hero
-   Quattro punte con angoli curvi; quella superiore e quella
-   inferiore sono allungate, quasi a cucire il titolo del sito
-   con la parte inferiore dello schermo.
-   ========================================================== */
-.hero-star-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: 40px;
-}
-
-.hero-star {
-  width: 64px;
-  height: 220px;
-  overflow: visible;
-  transform-origin: 50% 50%;
-  filter: drop-shadow(0 0 12px rgba(138, 82, 54, 0.55));
-  animation: hero-star-pulse 4.2s ease-in-out infinite;
-}
-
-@keyframes hero-star-pulse {
-  0%, 100% { transform: scaleY(1); opacity: 0.82; }
-  50% { transform: scaleY(1.07); opacity: 1; }
 }
 
 /* ---------------- Particelle anche nel footer ---------------- */
@@ -801,5 +831,4 @@
   .article-modal { padding: 10px; }
   .article-modal-panel { padding: 44px 24px 36px; }
   .article-modal-close { margin: -22px -6px 0 0; }
-  .hero-star { width: 48px; height: 165px; }
 }
