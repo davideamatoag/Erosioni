@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260827c">
-<link rel="stylesheet" href="css/style-2.css?v=20260827c">
-<link rel="stylesheet" href="css/style-3.css?v=20260827c">
+<link rel="stylesheet" href="css/style.css?v=20260828a">
+<link rel="stylesheet" href="css/style-2.css?v=20260828a">
+<link rel="stylesheet" href="css/style-3.css?v=20260828a">
 </head>
 <body class="page-enter">
 
@@ -35,22 +35,12 @@
 <section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('images/hero.jpg');">
   <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
   <div class="hero-inner">
+    <span class="hero-spacer-top" aria-hidden="true"></span>
     <h1 class="hero-title" id="heroTitle">Erosioni</h1>
     <p class="hero-subtitle">Fotografia &middot; Filosofia &middot; Politica</p>
-    <!-- Stella a quattro punte: lame sottilissime che cuciono
-         il titolo con il fondo dello schermo -->
-    <div class="hero-star-wrap" aria-hidden="true">
-      <svg class="hero-star" viewBox="0 0 140 480" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="starGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#B08A58"/>
-            <stop offset="55%" stop-color="#8A5236"/>
-            <stop offset="100%" stop-color="#5E3626"/>
-          </linearGradient>
-        </defs>
-        <path d="M70 4 C71.5 128, 76.5 218, 134 238 C76.5 258, 71.5 352, 70 476 C68.5 352, 63.5 258, 6 238 C63.5 218, 68.5 128, 70 4 Z" fill="url(#starGrad)"/>
-      </svg>
-    </div>
+    <!-- Linea di scroll: una fessura sottile che dal sottotitolo
+         scende fino al fondo dello schermo, invitando a scendere -->
+    <span class="scroll-line" aria-hidden="true"></span>
   </div>
 </section>
 <div class="hero-spacer"></div>
@@ -99,6 +89,7 @@
   <div class="shot-modal-panel">
     <button type="button" class="shot-modal-close" id="shotModalClose" aria-label="Chiudi">&times;</button>
     <img class="shot-modal-img" id="shotModalImg" src="" alt="Scatto a grandezza originale">
+    <p class="shot-modal-caption" id="shotModalCaption" hidden></p>
   </div>
 </div>
 
@@ -246,8 +237,8 @@
   </article>
 </div>
 
-<script src="js/content.js?v=20260827c"></script>
-<script src="js/effects.js?v=20260827c"></script>
-<script src="js/script.js?v=20260827c"></script>
+<script src="js/content.js?v=20260828a"></script>
+<script src="js/effects.js?v=20260828a"></script>
+<script src="js/script.js?v=20260828a"></script>
 </body>
 </html>
