@@ -1072,3 +1072,53 @@
 .portfolio-modal-panel--gallery .portfolio-modal-info { order: -1; }
 /* L'attributo hidden deve vincere anche sui bottoni con display impostato */
 .portfolio-modal [hidden] { display: none !important; }
+
+/* ---------------- Pagina voce portfolio (voce.html) ---------------- */
+.voce-tag { display: inline-block; margin-bottom: 6px; }
+
+.voce-desc {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.75;
+  color: var(--calce);
+  max-width: 720px;
+  margin: 18px 0 0;
+  white-space: pre-line;
+}
+
+.voce-gallery { padding-top: 10px; }
+.voce-gallery .container { max-width: 1400px; }
+
+.voce-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+.voce-thumb { aspect-ratio: 3 / 2; }
+.voce-thumb--lead {
+  grid-column: 1 / -1;
+  aspect-ratio: 21 / 10;
+}
+.voce-thumb .pf-thumb-title { font-size: 0.95rem; }
+
+.voce-cover img {
+  width: 100%;
+  max-height: 78vh;
+  object-fit: cover;
+  display: block;
+}
+
+.voce-empty {
+  color: var(--sabbia);
+  font-size: 1rem;
+  padding: 40px 0;
+}
+.voce-empty a { color: var(--oro); border-bottom: 1px solid rgba(212, 165, 116, 0.4); }
+
+@media (max-width: 860px) {
+  .voce-gallery-grid { grid-template-columns: 1fr; gap: 14px; }
+  .voce-thumb--lead { aspect-ratio: 3 / 2; }
+  .voce-desc { font-size: 1.1rem; }
+}

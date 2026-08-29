@@ -699,6 +699,11 @@
   color: var(--sabbia);
   font-size: 0.97rem;
   line-height: 1.75;
+  /* Anteprima: massimo due righe, il testo completo resta nella pagina della voce */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .work-cta {

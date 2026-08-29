@@ -30,6 +30,16 @@ function capitalize(str) {
   return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
 
+// Indirizzo breve e stabile di una voce di portfolio, derivato dal titolo
+// (usato per la pagina dedicata: voce.html?slug=nome-voce)
+function portfolioSlug(title) {
+  return (title || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // Se l'immagine viene da Cloudinary, inserisce automaticamente formato e
 // qualità "auto" e un limite di larghezza — così anche una foto pesante
 // caricata dal telefono arriva al visitatore già ottimizzata, senza dover
@@ -580,7 +590,8 @@ function closePfLightbox() {
   lb.setAttribute('aria-hidden', 'true');
   document.getElementById('pfLightboxStage').innerHTML = '';
   // Se sotto c'è ancora la galleria aperta, il blocco dello scroll resta
-  if (!document.getElementById('portfolioModal').classList.contains('is-open')) {
+  const pm = document.getElementById('portfolioModal');
+  if (!pm || !pm.classList.contains('is-open')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -727,18 +738,102 @@ async function renderPortfolioPage() {
       <span class="work-info">
         <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${tag}</span>
         <span class="work-title" style="display:block;">${item.title}</span>
-        ${hasDesc ? `<span class="work-desc" style="display:block;">${item.description.trim()}</span>` : ''}
+        ${hasDesc ? `<span class="work-desc">${item.description.trim()}</span>` : ''}
         <span class="work-cta" style="display:inline-block;">${galleria.length ? 'Sfoglia la galleria' : (isVideo ? 'Guarda il video' : 'Guarda il progetto')} &rarr;</span>
       </span>
     </button>`;
   }).join('');
 
   list.querySelectorAll('.work-row').forEach(el => {
-    el.addEventListener('click', () => openPortfolioModal(items[Number(el.dataset.idx)]));
+    el.addEventListener('click', () => {
+      const item = items[Number(el.dataset.idx)];
+      window.location.href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
+    });
   });
 
-  initPortfolioModal();
   window.initScrollReveal && window.initScrollReveal();
+}
+
+// ---------------- PAGINA VOCE PORTFOLIO (voce.html) ----------------
+// Ogni voce del portfolio ha una pagina dedicata: intestazione con
+// descrizione e informazioni (data, luogo, categoria), poi la galleria
+// di foto e video in grande; cliccando un contenuto si apre il lightbox.
+
+async function renderVocePage() {
+  const root = document.getElementById('voceRoot');
+  if (!root) return;
+
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  const items = await fetchPortfolio();
+  const item = items.find(i => portfolioSlug(i.title) === slug);
+
+  if (!item) {
+    document.getElementById('voceTitle').textContent = 'Voce non trovata';
+    document.getElementById('voceTag').textContent = '';
+    document.getElementById('voceDesc').hidden = true;
+    document.getElementById('voceMeta').hidden = true;
+    document.getElementById('voceGallery').innerHTML =
+      '<p class="voce-empty">Questa voce non esiste (o è stata rinominata). <a href="portfolio.html">Torna al portfolio</a>.</p>';
+    return;
+  }
+
+  document.title = `${item.title} — Portfolio — Erosioni`;
+
+  const media = getPortfolioMedia(item);
+  const foto = media.filter(m => m.tipo === 'foto').length;
+  const video = media.filter(m => m.tipo === 'video').length;
+  const parti = [];
+  if (foto) parti.push(`${foto} foto`);
+  if (video) parti.push(`${video} video`);
+
+  document.getElementById('voceTag').textContent = capitalize(item.category);
+  document.getElementById('voceTitle').textContent = item.title;
+
+  const descEl = document.getElementById('voceDesc');
+  const hasDesc = item.description && item.description.trim();
+  descEl.textContent = hasDesc ? item.description.trim() : '';
+  descEl.hidden = !hasDesc;
+
+  // Informazioni aggiuntive: data, luogo, categoria, contenuti
+  const meta = document.getElementById('voceMeta');
+  const blocchi = [];
+  if (item.date) blocchi.push(['Data', formatDateIt(item.date)]);
+  if (item.luogo && item.luogo.trim()) blocchi.push(['Luogo', item.luogo.trim()]);
+  blocchi.push(['Categoria', capitalize(item.category)]);
+  if (parti.length) blocchi.push(['Contenuti', parti.join(' + ')]);
+  meta.innerHTML = blocchi.map(([label, value]) =>
+    `<div class="meta-block"><span class="meta-label">${label}</span><span class="meta-value">${value}</span></div>`
+  ).join('');
+
+  // Galleria grande a tutta larghezza
+  const gallery = document.getElementById('voceGallery').querySelector('.container');
+  if (media.length) {
+    gallery.innerHTML = `
+      <div class="voce-gallery-grid">
+        ${media.map((m, i) => `
+        <button type="button" class="pf-thumb voce-thumb${i === 0 ? ' voce-thumb--lead' : ''}" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
+          ${m.tipo === 'video'
+            ? (videoPoster(m.file)
+                ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
+                : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
+              + '<span class="pf-thumb-play" aria-hidden="true"></span>'
+            : `<img src="${optimizeImage(m.file, 1400)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
+          ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
+        </button>`).join('')}
+      </div>`;
+    gallery.querySelectorAll('.voce-thumb').forEach(btn => {
+      btn.addEventListener('click', () => openPfLightbox(media, Number(btn.dataset.i)));
+    });
+  } else if (hasImage(item.image)) {
+    // Voce senza galleria: mostra almeno la copertina in grande
+    gallery.innerHTML = `
+      <div class="voce-cover">
+        <img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">
+      </div>`;
+  }
+
+  window.initScrollReveal && window.initScrollReveal();
+  document.querySelectorAll('.article-reveal').forEach(el => el.classList.add('is-loaded'));
 }
 
 // ==========================================================
@@ -942,6 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
+  renderVocePage();
   renderScattiGrid();
   openArticleFromUrl();
 });

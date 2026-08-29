@@ -184,3 +184,5 @@ collections:
                   - { label: "File (foto o video caricato su Cloudinary)", name: "file", widget: "image" }
                   - { label: "Titolo / didascalia (facoltativo)", name: "titolo", widget: "string", required: false }
               - { label: "Descrizione del progetto (facoltativa)", name: "description", widget: "text", required: false }
+              - { label: "Data (facoltativa)", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, picker_utc: true, required: false }
+              - { label: "Luogo (facoltativo)", name: "luogo", widget: "string", required: false }
