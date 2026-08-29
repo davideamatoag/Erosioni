@@ -35,6 +35,43 @@ collections:
           - { label: "Foto di sfondo del footer (fondo pagina)", name: "footer_image", widget: "image" }
           - { label: "Nome autore (mostrato negli articoli)", name: "author_name", widget: "string" }
           - { label: "Breve bio dell'autore (mostrata negli articoli)", name: "author_bio", widget: "text" }
+          - label: "Colore accento del sito (bottoni, dettagli, sottolineature)"
+            name: "accent_color"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Terracotta (predefinito)", value: "predefinito" }
+              - { label: "Oro", value: "oro" }
+              - { label: "Muschio", value: "muschio" }
+              - { label: "Ruggine", value: "ruggine" }
+              - { label: "Blu ardesia", value: "ardesia" }
+          - label: "Font predefinito degli articoli"
+            name: "default_font"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Predefinito (Inter)", value: "predefinito" }
+              - { label: "Elegante (Playfair Display)", value: "elegante" }
+              - { label: "Classico (Georgia)", value: "classico" }
+              - { label: "Macchina da scrivere (Space Mono)", value: "macchina" }
+          - label: "Colore predefinito del testo degli articoli"
+            name: "default_colore"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Predefinito (calce)", value: "predefinito" }
+              - { label: "Avorio chiaro", value: "avorio" }
+              - { label: "Sabbia", value: "sabbia" }
+              - { label: "Oro", value: "oro" }
+              - { label: "Terracotta", value: "terracotta" }
+          - { label: "Email di contatto (footer e pagina contatti)", name: "contact_email", widget: "string", required: false }
+          - { label: "Link Instagram (facoltativo)", name: "social_instagram", widget: "string", required: false }
+          - { label: "Link YouTube (facoltativo)", name: "social_youtube", widget: "string", required: false }
+          - { label: "Link LinkedIn (facoltativo)", name: "social_linkedin", widget: "string", required: false }
+          - { label: "Citazione nel footer (senza virgolette: le aggiunge il sito)", name: "footer_quote", widget: "string", required: false }
 
   - name: "articoli"
     label: "Articoli"

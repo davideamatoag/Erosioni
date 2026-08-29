@@ -319,6 +319,39 @@
 .article-modal-panel .article-body ul,
 .article-modal-panel .article-body ol { color: #332E29; }
 
+/* ---------------- Formattazione fine: singole parole o paragrafi ----------------
+   Inserita dai pulsanti "Colore testo" / "Font testo" / "Paragrafo"
+   dell'editor del Pannello (vedi admin/index.html). I colori hanno una
+   versione chiara per la pagina scura e una "inchiostro" per la tendina. */
+.article-body .t-avorio { color: #F6F1E7; }
+.article-body .t-sabbia { color: #B4AB9F; }
+.article-body .t-oro { color: #D4A574; }
+.article-body .t-terracotta { color: #CD7A62; }
+
+.article-modal-panel .article-body .t-avorio { color: #211D1A; }
+.article-modal-panel .article-body .t-sabbia { color: #6B6157; }
+.article-modal-panel .article-body .t-oro { color: #8F6132; }
+.article-modal-panel .article-body .t-terracotta { color: #A65A43; }
+
+.article-body .t-font-elegante { font-family: var(--font-display); font-size: 1.08em; }
+.article-body .t-font-classico { font-family: Georgia, 'Times New Roman', serif; }
+.article-body .t-font-macchina { font-family: var(--font-mono); font-size: 0.88em; }
+
+/* Paragrafi interi */
+.article-body p.blocco-avorio { color: #F6F1E7; }
+.article-body p.blocco-sabbia { color: #B4AB9F; }
+.article-body p.blocco-oro { color: #D4A574; }
+.article-body p.blocco-terracotta { color: #CD7A62; }
+
+.article-modal-panel .article-body p.blocco-avorio { color: #211D1A; }
+.article-modal-panel .article-body p.blocco-sabbia { color: #6B6157; }
+.article-modal-panel .article-body p.blocco-oro { color: #8F6132; }
+.article-modal-panel .article-body p.blocco-terracotta { color: #A65A43; }
+
+.article-body p.blocco-font-elegante { font-family: var(--font-display); font-size: 1.12rem; }
+.article-body p.blocco-font-classico { font-family: Georgia, 'Times New Roman', serif; }
+.article-body p.blocco-font-macchina { font-family: var(--font-mono); font-size: 0.92rem; line-height: 1.85; }
+
 .article-inline-img {
   display: block;
   width: 100%;

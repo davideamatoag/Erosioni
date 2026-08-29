@@ -8,5 +8,81 @@
 <body>
 <!-- Non toccare: carica il Content Manager che legge admin/config.yml -->
 <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+<!-- Pulsanti extra dell'editor articoli: formattazione fine di parole
+     e paragrafi. Scrivono nel testo dei "segnaposto" come
+     [colore=oro]parola[/colore] che il sito (js/content.js) trasforma
+     in testo colorato/con font diverso. Non scriverli a mano. -->
+<script>
+(function () {
+  var COLORI = [
+    { label: 'Avorio chiaro', value: 'avorio' },
+    { label: 'Sabbia', value: 'sabbia' },
+    { label: 'Oro', value: 'oro' },
+    { label: 'Terracotta', value: 'terracotta' }
+  ];
+  var FONT = [
+    { label: 'Elegante (Playfair Display)', value: 'elegante' },
+    { label: 'Classico (Georgia)', value: 'classico' },
+    { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
+  ];
+
+  // Parola o frase colorata
+  CMS.registerEditorComponent({
+    id: 'colore-testo',
+    label: 'Colore testo',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
+      { name: 'testo', label: 'Testo da colorare', widget: 'string' }
+    ],
+    pattern: /\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/,
+    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
+    toBlock: function (o) { return '[colore=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/colore]'; },
+    toPreview: function (o) { return '<strong>[' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
+  });
+
+  // Parola o frase con font diverso
+  CMS.registerEditorComponent({
+    id: 'font-testo',
+    label: 'Font testo',
+    fields: [
+      { name: 'font', label: 'Font', widget: 'select', options: FONT },
+      { name: 'testo', label: 'Testo', widget: 'string' }
+    ],
+    pattern: /\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/,
+    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
+    toBlock: function (o) { return '[font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/font]'; },
+    toPreview: function (o) { return '<strong>[' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
+  });
+
+  // Paragrafo intero colorato
+  CMS.registerEditorComponent({
+    id: 'paragrafo-colore',
+    label: 'Paragrafo colorato',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
+      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
+    ],
+    pattern: /\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]/,
+    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
+    toBlock: function (o) { return '[blocco=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/blocco]'; },
+    toPreview: function (o) { return '<strong>[paragrafo ' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
+  });
+
+  // Paragrafo intero con font diverso
+  CMS.registerEditorComponent({
+    id: 'paragrafo-font',
+    label: 'Paragrafo con font',
+    fields: [
+      { name: 'font', label: 'Font', widget: 'select', options: FONT },
+      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
+    ],
+    pattern: /\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]/,
+    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
+    toBlock: function (o) { return '[blocco-font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/blocco-font]'; },
+    toPreview: function (o) { return '<strong>[paragrafo ' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
+  });
+})();
+</script>
 </body>
 </html>
