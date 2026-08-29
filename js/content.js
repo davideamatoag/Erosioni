@@ -482,6 +482,11 @@ function getVideoEmbedUrl(link) {
 // ricade sulla singola immagine/video della scheda (compatibilità con le
 // voci già esistenti).
 function getPortfolioMedia(item) {
+  // Campo "foto": selezione multipla dal pannello, elenco semplice di URL
+  const fotoMultiple = (item.foto || [])
+    .filter(f => f && String(f).trim())
+    .map(f => ({ tipo: 'foto', file: String(f).trim(), titolo: '' }));
+  // Campo "media": elementi singoli con tipo (foto/video) e didascalia
   const lista = (item.media || [])
     .filter(m => m && m.file && m.file.trim())
     .map(m => ({
@@ -489,7 +494,8 @@ function getPortfolioMedia(item) {
       file: m.file.trim(),
       titolo: (m.titolo || '').trim()
     }));
-  if (lista.length) return lista;
+  const tutti = fotoMultiple.concat(lista);
+  if (tutti.length) return tutti;
   // Compatibilità con le voci senza galleria
   if (hasImage(item.image)) {
     return [{ tipo: item.medium === 'video' ? 'video' : 'foto', file: item.image, titolo: item.title || '' }];
@@ -636,7 +642,8 @@ function openPortfolioModal(item) {
 
   // Se la voce ha una galleria di contenuti (campo "media" del pannello),
   // mostra la griglia di miniature con lightbox; altrimenti la vista singola.
-  const galleria = (item.media || []).filter(m => m && m.file && m.file.trim());
+  const galleria = (item.media || []).filter(m => m && m.file && m.file.trim())
+    .concat((item.foto || []).filter(f => f && String(f).trim()));
   if (galleria.length) {
     openPortfolioGallery(item, getPortfolioMedia(item));
     return;

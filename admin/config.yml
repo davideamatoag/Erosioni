@@ -163,7 +163,12 @@ collections:
                   - { label: "Video", value: "video" }
               - { label: "Immagine (usata anche come copertina per i video)", name: "image", widget: "image" }
               - { label: "Link (facoltativo — es. URL YouTube/Vimeo per un video)", name: "link", widget: "string", required: false }
-              - label: "Contenuti della galleria (foto e/o video della voce)"
+              - label: "Foto della galleria (puoi selezionarne/caricarne TANTE INSIEME da Cloudinary)"
+                name: "foto"
+                widget: "image"
+                multiple: true
+                required: false
+              - label: "Contenuti della galleria (video, o foto con didascalia — uno alla volta)"
                 name: "media"
                 widget: "list"
                 required: false
