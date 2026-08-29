@@ -1,89 +1,244 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pannello di amministrazione — Erosioni</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erosioni — Blog di fotografia, filosofia e politica</title>
+<meta name="description" content="Erosioni: blog di fotografia, filosofia e politica di Davide Amato. Articoli, portfolio foto/video, viaggi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20260828b">
+<link rel="stylesheet" href="css/style-2.css?v=20260828b">
+<link rel="stylesheet" href="css/style-3.css?v=20260828b">
 </head>
-<body>
-<!-- Non toccare: carica Sveltia CMS, il Content Manager che legge admin/config.yml
-     (stessa configurazione di prima, interfaccia più moderna) -->
-<script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+<body class="page-enter">
 
-<!-- Pulsanti extra dell'editor articoli: formattazione fine di parole
-     e paragrafi. Scrivono nel testo dei "segnaposto" come
-     [colore=oro]parola[/colore] che il sito (js/content.js) trasforma
-     in testo colorato/con font diverso. Non scriverli a mano. -->
-<script>
-(function () {
-  var COLORI = [
-    { label: 'Avorio chiaro', value: 'avorio' },
-    { label: 'Sabbia', value: 'sabbia' },
-    { label: 'Oro', value: 'oro' },
-    { label: 'Terracotta', value: 'terracotta' }
-  ];
-  var FONT = [
-    { label: 'Elegante (Playfair Display)', value: 'elegante' },
-    { label: 'Classico (Georgia)', value: 'classico' },
-    { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
-  ];
+<!-- HEADER -->
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+    <a href="#top" class="brand">Erosioni</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="main-nav" id="mainNav">
+      <a href="articoli.html">Articoli</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="bio.html">Bio</a>
+      <a href="contatti.html">Contatti</a>
+    </nav>
+  </div>
+</header>
 
-  // Parola o frase colorata
-  CMS.registerEditorComponent({
-    id: 'colore-testo',
-    label: 'Colore testo',
-    fields: [
-      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
-      { name: 'testo', label: 'Testo da colorare', widget: 'string' }
-    ],
-    pattern: /\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/,
-    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[colore=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/colore]'; },
-    toPreview: function (o) { return '<strong>[' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
-  });
+<!-- HERO — "Lo strato superficiale" (fissa sullo sfondo) -->
+<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('images/hero.jpg');">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <span class="hero-spacer-top" aria-hidden="true"></span>
+    <h1 class="hero-title" id="heroTitle">Erosioni</h1>
+    <p class="hero-subtitle">Fotografia &middot; Filosofia &middot; Politica</p>
+    <!-- Linea di scroll: una fessura sottile che dal sottotitolo
+         scende fino al fondo dello schermo, invitando a scendere -->
+    <span class="scroll-line" aria-hidden="true"></span>
+  </div>
+</section>
+<div class="hero-spacer"></div>
 
-  // Parola o frase con font diverso
-  CMS.registerEditorComponent({
-    id: 'font-testo',
-    label: 'Font testo',
-    fields: [
-      { name: 'font', label: 'Font', widget: 'select', options: FONT },
-      { name: 'testo', label: 'Testo', widget: 'string' }
-    ],
-    pattern: /\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/,
-    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/font]'; },
-    toPreview: function (o) { return '<strong>[' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
-  });
+<!-- Tutto il resto della pagina scorre sopra la hero, come uno scavo -->
+<div class="curtain-content" id="curtainContent">
 
-  // Paragrafo intero colorato
-  CMS.registerEditorComponent({
-    id: 'paragrafo-colore',
-    label: 'Paragrafo colorato',
-    fields: [
-      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
-      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
-    ],
-    pattern: /\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]/,
-    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[blocco=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/blocco]'; },
-    toPreview: function (o) { return '<strong>[paragrafo ' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
-  });
+<!-- ULTIMI ARTICOLI — "Strati sedimentari" -->
+<section class="section section--large" id="articoli">
+  <div class="container">
+    <p class="section-eyebrow">Strati sedimentari</p>
+    <h2 class="section-title">Articoli recenti</h2>
 
-  // Paragrafo intero con font diverso
-  CMS.registerEditorComponent({
-    id: 'paragrafo-font',
-    label: 'Paragrafo con font',
-    fields: [
-      { name: 'font', label: 'Font', widget: 'select', options: FONT },
-      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
-    ],
-    pattern: /\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]/,
-    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[blocco-font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/blocco-font]'; },
-    toPreview: function (o) { return '<strong>[paragrafo ' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
-  });
-})();
-</script>
+    <a class="home-featured" id="homeFeatured" href="#">
+      <div class="home-featured-media"></div>
+      <div class="home-featured-info">
+        <p class="article-meta" id="homeFeaturedMeta"></p>
+        <h3 class="home-featured-title" id="homeFeaturedTitle"></h3>
+        <p class="home-featured-excerpt" id="homeFeaturedExcerpt"></p>
+        <span class="home-featured-cta">Leggi l'articolo &rarr;</span>
+      </div>
+    </a>
+
+    <div class="layers-list" id="articlesLayers"></div>
+
+    <div class="section-more">
+      <a class="btn-outline" href="articoli.html">Tutti gli articoli</a>
+    </div>
+  </div>
+</section>
+
+<hr class="strata" aria-hidden="true">
+
+<!-- I MIEI SCATTI — "Galleria minerale" -->
+<section class="section section--tight" id="scatti">
+  <div class="container">
+    <p class="section-eyebrow">Galleria minerale</p>
+    <h2 class="section-title">I miei scatti</h2>
+    <div class="shots-masonry" id="scattiGrid"></div>
+  </div>
+</section>
+
+<!-- TENDINA SCATTO A GRANDEZZA ORIGINALE -->
+<div class="shot-modal" id="shotModal">
+  <div class="shot-modal-backdrop" data-shot-modal-close></div>
+  <div class="shot-modal-panel">
+    <button type="button" class="shot-modal-close" id="shotModalClose" aria-label="Chiudi">&times;</button>
+    <img class="shot-modal-img" id="shotModalImg" src="" alt="Scatto a grandezza originale">
+    <p class="shot-modal-caption" id="shotModalCaption" hidden></p>
+  </div>
+</div>
+
+<!-- NEWSLETTER — "Sedimentazione" -->
+<section class="newsletter" id="newsletter" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.78) 0%, rgba(26,24,22,0.88) 100%), url('images/newsletter-bg.jpg');">
+  <div class="container">
+    <p class="newsletter-eyebrow">Sedimentazione</p>
+    <h2 class="newsletter-title">Ogni articolo è uno strato che si deposita. Lascia la tua email e resta aggiornato quando ne esce uno nuovo.</h2>
+    <form class="newsletter-form" id="newsletterForm">
+      <input type="email" name="email" placeholder="La tua email" required aria-label="Indirizzo email">
+      <button type="submit">Iscriviti</button>
+    </form>
+    <p class="newsletter-note" id="newsletterNote" hidden>Grazie! Controlla la tua casella per confermare.</p>
+  </div>
+</section>
+
+<!-- DAL PORTFOLIO — "Formazioni rocciose" -->
+<section class="section" id="portfolio">
+  <div class="container">
+    <p class="section-eyebrow">Formazioni rocciose</p>
+    <h2 class="section-title">Dal portfolio</h2>
+    <div class="formation-list">
+      <div class="formation-block">
+        <div class="formation-media" style="background-image:url('images/portfolio-pandarei.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Eventi &middot; Video</p>
+          <h3>Pandarei</h3>
+          <p>Recentemente ho lavorato alla festa organizzata dai ragazzi di Pandarei. Il video è ben riuscito e ho sperimentato con nuovi effetti e nuove tecniche di ripresa.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
+        </div>
+      </div>
+      <div class="formation-block formation-block--reverse">
+        <div class="formation-media" style="background-image:url('images/portfolio-tennis.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Lavori &middot; Video</p>
+          <h3>Circolo Tennis</h3>
+          <p>Ho avuto il piacere di realizzare un video per il circolo del tennis di Agrigento, in occasione di un torneo organizzato in memoria di Marco Chianetta.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="strata" aria-hidden="true">
+
+<!-- VIAGGI — "Cartografia erosa" -->
+<section class="section section--tuff">
+  <div class="container">
+    <p class="section-eyebrow">Cartografia erosa</p>
+    <h2 class="section-title">Viaggi</h2>
+    <div class="travel-timeline">
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2024</span>
+        <h3>Ragusa Ibla</h3>
+        <p class="travel-year">2024</p>
+        <p class="travel-desc">Paesaggi splendidi in un'estate calda.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-ragusa.jpg');"></div>
+      </div>
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2023</span>
+        <h3>Madonie</h3>
+        <p class="travel-year">2023</p>
+        <p class="travel-desc">Un viaggio con Panna sulle vette siciliane.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-madonie.jpg');"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER — "Fondo roccioso" -->
+<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('images/footer-bg.jpg');">
+  <canvas class="footer-canvas" id="footerCanvas" aria-hidden="true"></canvas>
+  <div class="container">
+    <p class="footer-eyebrow">Fondo roccioso</p>
+    <a class="footer-email" href="mailto:davide.amatoag@gmail.com">davide.amatoag@gmail.com</a>
+    <div class="footer-social">
+      <a href="contatti.html">Instagram</a>
+      <a href="contatti.html">YouTube</a>
+      <a href="contatti.html">LinkedIn</a>
+    </div>
+    <p class="footer-quote">&laquo;Panta rhei: tutto scorre, tutto si trasforma. Anche la pietra.&raquo;</p>
+    <p class="footer-brand">Erosioni</p>
+    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato &middot; Tutti i diritti riservati</p>
+  </div>
+</footer>
+
+</div><!-- /.curtain-content -->
+
+<!-- TENDINA ARTICOLO — finestra "bianco caldo" su sfondo sfocato -->
+<div class="article-modal" id="articleModal">
+  <div class="article-modal-backdrop" data-article-modal-close></div>
+  <article class="article-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalArticleTitle">
+    <button type="button" class="article-modal-close" id="articleModalClose" aria-label="Chiudi l'articolo">&times;</button>
+    <p class="article-modal-meta" id="modalArticleMeta"></p>
+    <h2 class="article-modal-title" id="modalArticleTitle"></h2>
+    <p class="article-modal-excerpt" id="modalArticleExcerpt"></p>
+    <img class="article-modal-hero" id="modalArticleImg" src="" alt="">
+    <div class="article-body" id="modalArticleBody"></div>
+
+    <hr class="article-modal-divider">
+
+    <div class="article-modal-author">
+      <p class="sidebar-label">Autore</p>
+      <p class="author-name" id="modalAuthorName">Davide Amato</p>
+      <p class="author-bio" id="modalAuthorBio"></p>
+    </div>
+
+    <div class="article-modal-share">
+      <p class="sidebar-label">Condividi</p>
+      <div class="share-icons">
+        <button type="button" class="share-icon" id="modalShareTwitter" aria-label="Condividi su X">𝕏</button>
+        <button type="button" class="share-icon" id="modalShareFacebook" aria-label="Condividi su Facebook">f</button>
+        <button type="button" class="share-icon" id="modalShareCopy" aria-label="Copia link">&#128279;</button>
+      </div>
+      <p class="share-note" id="modalShareNote" hidden>Link copiato!</p>
+    </div>
+
+    <hr class="article-modal-divider">
+
+    <h3 class="article-modal-related-heading">Articoli correlati</h3>
+    <div class="related-grid" id="modalRelatedList"></div>
+
+    <div class="comment-form-section article-modal-comments">
+      <h2>Lascia un commento</h2>
+      <form class="comment-form" id="modalCommentForm">
+        <div class="form-row">
+          <div>
+            <label for="modal-comment-name">Nome</label>
+            <input type="text" id="modal-comment-name" name="name" required>
+          </div>
+          <div>
+            <label for="modal-comment-email">Email</label>
+            <input type="email" id="modal-comment-email" name="email" required>
+          </div>
+        </div>
+        <div>
+          <label for="modal-comment-message">Commento</label>
+          <textarea id="modal-comment-message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit">Invia commento</button>
+        <p class="comment-note" id="modalCommentNote" hidden>Grazie per il tuo commento! Verrà pubblicato a breve.</p>
+      </form>
+    </div>
+  </article>
+</div>
+
+<script src="js/content.js?v=20260828b"></script>
+<script src="js/effects.js?v=20260828b"></script>
+<script src="js/script.js?v=20260828b"></script>
 </body>
 </html>
