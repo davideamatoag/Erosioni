@@ -217,8 +217,27 @@ async function renderArticoliPage() {
 }
 
 // ---------------- PAGINA SINGOLO ARTICOLO ----------------
+// Converte gli attributi di [stile=...] / [stile-blocco=...] in classi CSS.
+// attr tipo "c:oro,f:classico" -> classi "t-oro t-font-classico"
+// (o "blocco-oro blocco-font-classico" per i paragrafi interi).
+function stileClassi(attrs, perBlocco) {
+  const COLORI = ['avorio', 'sabbia', 'oro', 'terracotta'];
+  const FONT = ['elegante', 'classico', 'macchina'];
+  const classi = [];
+  (attrs || '').split(',').forEach((parte) => {
+    const [chiave, valore] = parte.split(':');
+    if (chiave === 'c' && COLORI.includes(valore)) classi.push((perBlocco ? 'blocco-' : 't-') + valore);
+    if (chiave === 'f' && FONT.includes(valore)) classi.push((perBlocco ? 'blocco-font-' : 't-font-') + valore);
+  });
+  return classi.join(' ');
+}
+
 function renderInline(text) {
   return text
+    .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
+      const classi = stileClassi(attrs, false);
+      return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
+    })
     // Formattazione fine dal pannello: [colore=oro]parola[/colore] e
     // [font=classico]parola[/font] — inserite dai pulsanti dell'editor,
     // mai scritte a mano. Vedi admin/index.html.
@@ -228,7 +247,9 @@ function renderInline(text) {
       `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" alt="${alt}">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // il pannello scrive il corsivo anche con i trattini bassi: _così_
+    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '<em>$1</em>');
 }
 
 function renderMarkdown(md) {
@@ -241,6 +262,12 @@ function renderMarkdown(md) {
     const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (soloImmagine) {
       return `<img class="article-inline-img" src="${optimizeImage(soloImmagine[2].trim(), 1000)}" alt="${soloImmagine[1]}">`;
+    }
+    const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
+    if (stileBlocco) {
+      const classi = stileClassi(stileBlocco[1], true);
+      const contenuto = renderInline(stileBlocco[2]).replace(/\n/g, '<br>');
+      return classi ? `<p class="${classi}">${contenuto}</p>` : `<p>${contenuto}</p>`;
     }
     const blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
     if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g, '<br>')}</p>`;
@@ -271,13 +298,14 @@ function renderMarkdown(md) {
 
 function stripMarkdown(md) {
   return (md || '')
-    .replace(/\[\/?(colore|font|blocco|blocco-font)(=[^\]]*)?\]/g, '')
+    .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^#+\s*/gm, '')
     .replace(/^>\s*/gm, '')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }

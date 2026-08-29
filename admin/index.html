@@ -10,78 +10,95 @@
      (stessa configurazione di prima, interfaccia più moderna) -->
 <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
 
-<!-- Pulsanti extra dell'editor articoli: formattazione fine di parole
-     e paragrafi. Scrivono nel testo dei "segnaposto" come
-     [colore=oro]parola[/colore] che il sito (js/content.js) trasforma
-     in testo colorato/con font diverso. Non scriverli a mano. -->
+<!-- Pulsanti extra dell'editor articoli: "Stile testo" e "Stile paragrafo".
+     Come grassetto/corsivo: selezioni il testo, apri il pulsante "+" della
+     barra, scegli lo stile e decidi colore e/o font insieme.
+     Scrivono nel testo dei "segnaposto" come [stile=c:oro,f:classico]parola[/stile]
+     che il sito (js/content.js) trasforma in testo colorato/con font diverso.
+     Non scriverli a mano. -->
 <script>
 (function () {
+  var NESSUNO = { label: '— Nessuno —', value: 'nessuno' };
   var COLORI = [
+    NESSUNO,
     { label: 'Avorio chiaro', value: 'avorio' },
     { label: 'Sabbia', value: 'sabbia' },
     { label: 'Oro', value: 'oro' },
     { label: 'Terracotta', value: 'terracotta' }
   ];
   var FONT = [
+    NESSUNO,
     { label: 'Elegante (Playfair Display)', value: 'elegante' },
     { label: 'Classico (Georgia)', value: 'classico' },
     { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
   ];
 
-  // Parola o frase colorata
+  function attrString(o) {
+    var parti = [];
+    if (o.colore && o.colore !== 'nessuno') parti.push('c:' + o.colore);
+    if (o.font && o.font !== 'nessuno') parti.push('f:' + o.font);
+    return parti.join(',');
+  }
+
+  function parseAttr(str) {
+    var out = { colore: 'nessuno', font: 'nessuno' };
+    (str || '').split(',').forEach(function (p) {
+      var kv = p.split(':');
+      if (kv[0] === 'c') out.colore = kv[1];
+      if (kv[0] === 'f') out.font = kv[1];
+    });
+    return out;
+  }
+
+  function anteprima(o) {
+    var cose = [];
+    if (o.colore && o.colore !== 'nessuno') cose.push(o.colore);
+    if (o.font && o.font !== 'nessuno') cose.push(o.font);
+    return '<strong>[' + (cose.join(' + ') || 'nessuno stile') + ']</strong> ' + (o.testo || '');
+  }
+
+  // Parola o frase: colore e/o font insieme
   CMS.registerEditorComponent({
-    id: 'colore-testo',
-    label: 'Colore testo',
+    id: 'stile-testo',
+    label: 'Stile testo',
     fields: [
-      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
-      { name: 'testo', label: 'Testo da colorare', widget: 'string' }
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
+      { name: 'testo', label: 'Testo da formattare', widget: 'string' }
     ],
-    pattern: /\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/,
-    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[colore=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/colore]'; },
-    toPreview: function (o) { return '<strong>[' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
+    pattern: /\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/,
+    fromBlock: function (m) {
+      var o = parseAttr(m[1]);
+      o.testo = m[2];
+      return o;
+    },
+    toBlock: function (o) {
+      var attr = attrString(o);
+      return attr ? '[stile=' + attr + ']' + (o.testo || '') + '[/stile]' : (o.testo || '');
+    },
+    toPreview: anteprima
   });
 
-  // Parola o frase con font diverso
+  // Paragrafo intero: colore e/o font insieme
   CMS.registerEditorComponent({
-    id: 'font-testo',
-    label: 'Font testo',
+    id: 'stile-paragrafo',
+    label: 'Stile paragrafo',
     fields: [
-      { name: 'font', label: 'Font', widget: 'select', options: FONT },
-      { name: 'testo', label: 'Testo', widget: 'string' }
-    ],
-    pattern: /\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/,
-    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/font]'; },
-    toPreview: function (o) { return '<strong>[' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
-  });
-
-  // Paragrafo intero colorato
-  CMS.registerEditorComponent({
-    id: 'paragrafo-colore',
-    label: 'Paragrafo colorato',
-    fields: [
-      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI },
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
       { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
     ],
-    pattern: /\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]/,
-    fromBlock: function (m) { return { colore: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[blocco=' + (o.colore || 'oro') + ']' + (o.testo || '') + '[/blocco]'; },
-    toPreview: function (o) { return '<strong>[paragrafo ' + (o.colore || '') + ']</strong> ' + (o.testo || ''); }
-  });
-
-  // Paragrafo intero con font diverso
-  CMS.registerEditorComponent({
-    id: 'paragrafo-font',
-    label: 'Paragrafo con font',
-    fields: [
-      { name: 'font', label: 'Font', widget: 'select', options: FONT },
-      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
-    ],
-    pattern: /\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]/,
-    fromBlock: function (m) { return { font: m[1], testo: m[2] }; },
-    toBlock: function (o) { return '[blocco-font=' + (o.font || 'elegante') + ']' + (o.testo || '') + '[/blocco-font]'; },
-    toPreview: function (o) { return '<strong>[paragrafo ' + (o.font || '') + ']</strong> ' + (o.testo || ''); }
+    pattern: /\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]/,
+    fromBlock: function (m) {
+      var o = parseAttr(m[1]);
+      o.testo = m[2];
+      return o;
+    },
+    toBlock: function (o) {
+      var attr = attrString(o);
+      return attr ? '[stile-blocco=' + attr + ']' + (o.testo || '') + '[/stile-blocco]' : (o.testo || '');
+    },
+    toPreview: function (o) { return '<strong>[paragrafo]</strong> ' + anteprima(o); }
   });
 })();
 </script>
