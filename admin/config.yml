@@ -95,7 +95,7 @@ collections:
                   - { label: "Cinema", value: "cinema" }
                   - { label: "Politica", value: "politica" }
                   - { label: "Riflessioni", value: "riflessioni" }
-              - { label: "Data", name: "date", widget: "date", date_format: "YYYY-MM-DD", picker_utc: true }
+              - { label: "Data", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, picker_utc: true }
               - { label: "Immagine di copertina", name: "image", widget: "image" }
               - label: "Font del testo (facoltativo)"
                 name: "font"
