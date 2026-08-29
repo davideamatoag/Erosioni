@@ -413,7 +413,7 @@ textarea:focus-visible {
 
 .home-featured-media {
   position: relative;
-  aspect-ratio: 21 / 9;
+  aspect-ratio: 3 / 2;
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -479,7 +479,7 @@ textarea:focus-visible {
 
 @media (max-width: 860px) {
   .home-featured { margin-bottom: 72px; }
-  .home-featured-media { aspect-ratio: 16 / 9; }
+  .home-featured-media { aspect-ratio: 3 / 2; }
 }
 
 /* Gli "strati": card asimmetriche alternate, con data verticale ai

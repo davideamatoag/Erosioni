@@ -338,7 +338,7 @@
 }
 
 .featured-thumb {
-  aspect-ratio: 21 / 9;
+  aspect-ratio: 3 / 2;
   background-size: cover;
   background-position: center;
   margin-bottom: 26px;

@@ -10,24 +10,20 @@
      (stessa configurazione di prima, interfaccia più moderna) -->
 <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
 
-<!-- Pulsanti extra dell'editor articoli: "Stile testo" e "Stile paragrafo".
-     Come grassetto/corsivo: selezioni il testo, apri il pulsante "+" della
-     barra, scegli lo stile e decidi colore e/o font insieme.
-     Scrivono nel testo dei "segnaposto" come [stile=c:oro,f:classico]parola[/stile]
-     che il sito (js/content.js) trasforma in testo colorato/con font diverso.
-     Non scriverli a mano. -->
+<!-- Editor components: fanno vedere i segnaposto [stile=...] come schede
+     nell'editor (così si capisce che quella porzione ha uno stile) e
+     permettono di modificarli con un doppio clic. -->
 <script>
 (function () {
-  var NESSUNO = { label: '— Nessuno —', value: 'nessuno' };
   var COLORI = [
-    NESSUNO,
+    { label: '— Nessuno —', value: 'nessuno' },
     { label: 'Avorio chiaro', value: 'avorio' },
     { label: 'Sabbia', value: 'sabbia' },
     { label: 'Oro', value: 'oro' },
     { label: 'Terracotta', value: 'terracotta' }
   ];
   var FONT = [
-    NESSUNO,
+    { label: '— Nessuno —', value: 'nessuno' },
     { label: 'Elegante (Playfair Display)', value: 'elegante' },
     { label: 'Classico (Georgia)', value: 'classico' },
     { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
@@ -39,7 +35,6 @@
     if (o.font && o.font !== 'nessuno') parti.push('f:' + o.font);
     return parti.join(',');
   }
-
   function parseAttr(str) {
     var out = { colore: 'nessuno', font: 'nessuno' };
     (str || '').split(',').forEach(function (p) {
@@ -49,7 +44,6 @@
     });
     return out;
   }
-
   function anteprima(o) {
     var cose = [];
     if (o.colore && o.colore !== 'nessuno') cose.push(o.colore);
@@ -57,7 +51,6 @@
     return '<strong>[' + (cose.join(' + ') || 'nessuno stile') + ']</strong> ' + (o.testo || '');
   }
 
-  // Parola o frase: colore e/o font insieme
   CMS.registerEditorComponent({
     id: 'stile-testo',
     label: 'Stile testo',
@@ -67,11 +60,7 @@
       { name: 'testo', label: 'Testo da formattare', widget: 'string' }
     ],
     pattern: /\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/,
-    fromBlock: function (m) {
-      var o = parseAttr(m[1]);
-      o.testo = m[2];
-      return o;
-    },
+    fromBlock: function (m) { var o = parseAttr(m[1]); o.testo = m[2]; return o; },
     toBlock: function (o) {
       var attr = attrString(o);
       return attr ? '[stile=' + attr + ']' + (o.testo || '') + '[/stile]' : (o.testo || '');
@@ -79,7 +68,6 @@
     toPreview: anteprima
   });
 
-  // Paragrafo intero: colore e/o font insieme
   CMS.registerEditorComponent({
     id: 'stile-paragrafo',
     label: 'Stile paragrafo',
@@ -89,17 +77,295 @@
       { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
     ],
     pattern: /\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]/,
-    fromBlock: function (m) {
-      var o = parseAttr(m[1]);
-      o.testo = m[2];
-      return o;
-    },
+    fromBlock: function (m) { var o = parseAttr(m[1]); o.testo = m[2]; return o; },
     toBlock: function (o) {
       var attr = attrString(o);
       return attr ? '[stile-blocco=' + attr + ']' + (o.testo || '') + '[/stile-blocco]' : (o.testo || '');
     },
     toPreview: function (o) { return '<strong>[paragrafo]</strong> ' + anteprima(o); }
   });
+})();
+</script>
+
+<!-- ============================================================
+     BARRA STILE "tipo Word": due menù a tendina (Font e Colore)
+     sempre visibili in basso a destra mentre scrivi un articolo.
+     Selezioni il testo nell'editor, scegli dal menù, e lo stile
+     si applica alla selezione — senza dialoghi, e si combina
+     liberamente con grassetto, corsivo, elenchi, ecc.
+     ============================================================ -->
+<style>
+  #barra-stile {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #211D1A;
+    color: #F6F1E7;
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.45);
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    user-select: none;
+  }
+  #barra-stile .bs-titolo { opacity: 0.65; margin-right: 2px; }
+  #barra-stile .bs-gruppo { position: relative; }
+  #barra-stile .bs-btn {
+    background: #332E29;
+    color: #F6F1E7;
+    border: 1px solid rgba(246,241,231,0.18);
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 128px;
+    text-align: left;
+  }
+  #barra-stile .bs-btn:hover { border-color: #D4A574; }
+  #barra-stile .bs-menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    min-width: 100%;
+    background: #2B2723;
+    border: 1px solid rgba(246,241,231,0.14);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  #barra-stile .bs-menu.aperto { display: block; }
+  #barra-stile .bs-opzione {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #F6F1E7;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #barra-stile .bs-opzione:hover { background: #D4A574; color: #211D1A; }
+  #barra-stile .bs-opzione.attiva { color: #D4A574; }
+  #barra-stile .bs-stato { opacity: 0.55; font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+<script>
+(function () {
+  var COLORI = [
+    { label: 'Predefinito', value: 'nessuno' },
+    { label: 'Avorio chiaro', value: 'avorio' },
+    { label: 'Sabbia', value: 'sabbia' },
+    { label: 'Oro', value: 'oro' },
+    { label: 'Terracotta', value: 'terracotta' }
+  ];
+  var FONT = [
+    { label: 'Predefinito', value: 'nessuno' },
+    { label: 'Elegante (Playfair Display)', value: 'elegante' },
+    { label: 'Classico (Georgia)', value: 'classico' },
+    { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
+  ];
+
+  var scelta = { colore: 'nessuno', font: 'nessuno' };
+  // Ultima selezione vista dentro un editor di testo del pannello:
+  // la teniamo da parte perché cliccando i menù il focus si sposta.
+  var ultimaSelezione = null;
+
+  function dentroEditor(node) {
+    while (node) {
+      if (node.nodeType === 1) {
+        if (node.isContentEditable) return node;
+        if (node.tagName === 'TEXTAREA') return node;
+      }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function registraSelezione() {
+    var sel = window.getSelection();
+    if (sel && !sel.isCollapsed && sel.rangeCount) {
+      var ed = dentroEditor(sel.anchorNode);
+      if (ed) ultimaSelezione = { editor: ed, testo: sel.toString() };
+    }
+  }
+  document.addEventListener('mouseup', registraSelezione);
+  document.addEventListener('keyup', registraSelezione);
+
+  function testoPulito(testo) {
+    // Toglie eventuali stili già applicati alla selezione, così il nuovo
+    // stile SOSTITUISCE il vecchio invece di sommarsi in modo illeggibile.
+    return testo
+      .replace(/\[stile=[^\]]*\]/g, '')
+      .replace(/\[\/stile\]/g, '')
+      .replace(/\[colore=[^\]]*\]/g, '')
+      .replace(/\[\/colore\]/g, '')
+      .replace(/\[font=[^\]]*\]/g, '')
+      .replace(/\[\/font\]/g, '');
+  }
+
+  function attrCorrenti() {
+    var parti = [];
+    if (scelta.colore !== 'nessuno') parti.push('c:' + scelta.colore);
+    if (scelta.font !== 'nessuno') parti.push('f:' + scelta.font);
+    return parti.join(',');
+  }
+
+  // Se la selezione si trova DENTRO un paio di marcatori [stile=...]...[/stile]
+  // (o [colore]/[font] legacy), allarga la selezione per inglobare anche i
+  // marcatori: così il nuovo stile sostituisce il vecchio invece di annidarsi.
+  function espandiRangeSuStili(range, ed) {
+    var walker = document.createTreeWalker(ed, NodeFilter.SHOW_TEXT);
+    var nodi = [], n, pieno = '';
+    while ((n = walker.nextNode())) { nodi.push({ n: n, da: pieno.length }); pieno += n.nodeValue; }
+    function indiceDi(container, offset) {
+      for (var i = 0; i < nodi.length; i++) {
+        if (nodi[i].n === container) return nodi[i].da + offset;
+      }
+      return -1;
+    }
+    function posizioneDi(indice) {
+      for (var i = nodi.length - 1; i >= 0; i--) {
+        if (nodi[i].da <= indice && indice <= nodi[i].da + nodi[i].n.nodeValue.length) {
+          return { nodo: nodi[i].n, offset: indice - nodi[i].da };
+        }
+      }
+      return null;
+    }
+    var s = indiceDi(range.startContainer, range.startOffset);
+    var e = indiceDi(range.endContainer, range.endOffset);
+    if (s < 0 || e < 0) return;
+    // Marcatori di apertura/chiusura possibili
+    var APERTURA = /\[(?:stile|colore|font)=[^\]]*\]/g;
+    var CHIUSURA = /\[\/(?:stile|colore|font)\]/g;
+    // L'apertura più vicina prima della selezione, senza chiusure in mezzo
+    var inizio = s, fine = e, m;
+    APERTURA.lastIndex = 0;
+    while ((m = APERTURA.exec(pieno)) && m.index < s) {
+      var tra = pieno.slice(m.index + m[0].length, s);
+      if (tra.indexOf('[/stile]') === -1 && tra.indexOf('[/colore]') === -1 && tra.indexOf('[/font]') === -1) {
+        inizio = m.index;
+      }
+    }
+    // La chiusura più vicina dopo la selezione, senza aperture in mezzo
+    CHIUSURA.lastIndex = 0;
+    while ((m = CHIUSURA.exec(pieno))) {
+      if (m.index >= e) {
+        var tra2 = pieno.slice(e, m.index);
+        if (tra2.indexOf('[stile=') === -1 && tra2.indexOf('[colore=') === -1 && tra2.indexOf('[font=') === -1) {
+          fine = m.index + m[0].length;
+          break;
+        }
+      }
+    }
+    if (inizio < s && fine > e) {
+      var ps = posizioneDi(inizio), pe = posizioneDi(fine);
+      if (ps && pe) { range.setStart(ps.nodo, ps.offset); range.setEnd(pe.nodo, pe.offset); }
+    }
+  }
+
+  function applicaStile() {
+    var sel = window.getSelection();
+    var testo = sel && !sel.isCollapsed ? sel.toString() : (ultimaSelezione ? ultimaSelezione.testo : '');
+    if (!testo) return;
+
+    var ed = sel && !sel.isCollapsed ? dentroEditor(sel.anchorNode)
+                                     : (ultimaSelezione && ultimaSelezione.editor);
+    if (ed && ed.tagName === 'TEXTAREA') {
+      // Editor in modalità codice (textarea)
+      var pulitoT = testoPulito(testo);
+      var attrT = attrCorrenti();
+      ed.focus();
+      ed.setRangeText(attrT ? '[stile=' + attrT + ']' + pulitoT + '[/stile]' : pulitoT,
+                      ed.selectionStart, ed.selectionEnd, 'end');
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (ed && sel && !sel.isCollapsed && sel.rangeCount) {
+      // Editor visuale (contenteditable): prima ingloba eventuali marcatori
+      // di stile già presenti attorno alla selezione, poi sostituisci tutto.
+      var range = sel.getRangeAt(0);
+      espandiRangeSuStili(range, ed);
+      var pulito = testoPulito(range.toString());
+      var attr = attrCorrenti();
+      var nuovo = attr ? '[stile=' + attr + ']' + pulito + '[/stile]' : pulito;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
+  function costruisciBarra() {
+    if (document.getElementById('barra-stile')) return;
+    var bar = document.createElement('div');
+    bar.id = 'barra-stile';
+
+    var titolo = document.createElement('span');
+    titolo.className = 'bs-titolo';
+    titolo.textContent = 'Stile testo:';
+    bar.appendChild(titolo);
+
+    function gruppo(etichetta, opzioni, chiave) {
+      var g = document.createElement('div');
+      g.className = 'bs-gruppo';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'bs-btn';
+      btn.textContent = etichetta + ': Predefinito ▾';
+      var menu = document.createElement('div');
+      menu.className = 'bs-menu';
+      opzioni.forEach(function (op) {
+        var voce = document.createElement('button');
+        voce.type = 'button';
+        voce.className = 'bs-opzione';
+        voce.textContent = op.label;
+        voce.addEventListener('click', function () {
+          scelta[chiave] = op.value;
+          btn.textContent = etichetta + ': ' + op.label + ' ▾';
+          menu.querySelectorAll('.bs-opzione').forEach(function (v) { v.classList.remove('attiva'); });
+          voce.classList.add('attiva');
+          menu.classList.remove('aperto');
+          applicaStile();
+        });
+        menu.appendChild(voce);
+      });
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#barra-stile .bs-menu').forEach(function (m) {
+          if (m !== menu) m.classList.remove('aperto');
+        });
+        menu.classList.toggle('aperto');
+      });
+      g.appendChild(btn);
+      g.appendChild(menu);
+      return g;
+    }
+
+    bar.appendChild(gruppo('Font', FONT, 'font'));
+    bar.appendChild(gruppo('Colore', COLORI, 'colore'));
+
+    // Niente blur della selezione quando si clicca la barra
+    bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
+
+    document.body.appendChild(bar);
+
+    document.addEventListener('click', function (e) {
+      if (!bar.contains(e.target)) {
+        bar.querySelectorAll('.bs-menu').forEach(function (m) { m.classList.remove('aperto'); });
+      }
+    });
+  }
+
+  // Il pannello è una single-page app: la barra viene creata appena il DOM è pronto
+  var tentativi = 0;
+  var timer = setInterval(function () {
+    tentativi++;
+    if (document.body) { costruisciBarra(); clearInterval(timer); }
+    if (tentativi > 100) clearInterval(timer);
+  }, 300);
 })();
 </script>
 </body>

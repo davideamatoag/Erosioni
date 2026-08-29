@@ -256,8 +256,21 @@ function renderMarkdown(md) {
   // Piccolo motore markdown minimale: paragrafi, ## sottotitoli, > citazioni,
   // ![immagini](url) (a blocco intero o dentro al testo), più **grassetto**,
   // *corsivo* e [link](url).
-  const blocks = md.split(/\n\s*\n/);
+  // Le righe vuote CONSECUTIVE non vengono buttate via: ogni riga vuota
+  // oltre la prima diventa uno spaziatore visibile (.riga-vuota), così
+  // gli spazi inseriti dal pannello si vedono anche nell'articolo finale.
+  const pieces = md.split(/(\n\s*\n+)/);
+  const blocks = [];
+  pieces.forEach((piece, i) => {
+    if (i % 2 === 0) {
+      if (piece.trim()) blocks.push(piece);
+    } else {
+      const extra = piece.split('\n').length - 3; // newline oltre la separazione normale
+      for (let k = 0; k < extra; k++) blocks.push('[riga-vuota]');
+    }
+  });
   return blocks.map(block => {
+    if (block === '[riga-vuota]') return '<p class="riga-vuota" aria-hidden="true"></p>';
     const trimmed = block.trim();
     const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (soloImmagine) {

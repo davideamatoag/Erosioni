@@ -352,6 +352,10 @@
 .article-body p.blocco-font-classico { font-family: Georgia, 'Times New Roman', serif; }
 .article-body p.blocco-font-macchina { font-family: var(--font-mono); font-size: 0.92rem; line-height: 1.85; }
 
+/* Riga vuota inserita volutamente dall'autore (più invio di fila
+   nel pannello): spazio verticale visibile, senza testo */
+.article-body p.riga-vuota { height: 1.2em; margin: 0; }
+
 .article-inline-img {
   display: block;
   width: 100%;
