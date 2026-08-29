@@ -1,0 +1,166 @@
+backend:
+  name: github
+  repo: davideamatoag/Erosioni   # CAMBIA se il repository ha un nome diverso
+  branch: main
+  base_url: https://erosioni-cms-auth.davideamato1936.workers.dev
+  auth_endpoint: auth
+
+# Dove finiscono le foto caricate SENZA passare da Cloudinary (usato solo
+# come libreria di riserva — con Cloudinary attivo qui sotto, il pannello
+# user\u00e0 quello per tutte le nuove immagini).
+media_folder: "images/uploads"
+public_folder: "/Erosioni/images/uploads"   # CAMBIA "Erosioni" se il repository ha un nome diverso
+
+# Libreria media su Cloudinary: qui finiscono foto (e volendo video) caricati
+# dal pannello, invece che nel repository GitHub. Vedi il README per come
+# ottenere questi due valori (non sono segreti, si possono lasciare qui).
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: "plscorbg"
+    api_key: "434229193441551"
+
+publish_mode: simple
+
+collections:
+  - name: "impostazioni"
+    label: "Impostazioni sito"
+    files:
+      - file: "content/impostazioni.json"
+        label: "Homepage"
+        name: "impostazioni"
+        fields:
+          - { label: "Foto principale (hero) della homepage", name: "hero_image", widget: "image" }
+          - { label: "Foto di sfondo della sezione newsletter", name: "newsletter_image", widget: "image" }
+          - { label: "Foto di sfondo del footer (fondo pagina)", name: "footer_image", widget: "image" }
+          - { label: "Nome autore (mostrato negli articoli)", name: "author_name", widget: "string" }
+          - { label: "Breve bio dell'autore (mostrata negli articoli)", name: "author_bio", widget: "text" }
+          - label: "Colore accento del sito (bottoni, dettagli, sottolineature)"
+            name: "accent_color"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Terracotta (predefinito)", value: "predefinito" }
+              - { label: "Oro", value: "oro" }
+              - { label: "Muschio", value: "muschio" }
+              - { label: "Ruggine", value: "ruggine" }
+              - { label: "Blu ardesia", value: "ardesia" }
+          - label: "Font predefinito degli articoli"
+            name: "default_font"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Predefinito (Inter)", value: "predefinito" }
+              - { label: "Elegante (Playfair Display)", value: "elegante" }
+              - { label: "Classico (Georgia)", value: "classico" }
+              - { label: "Macchina da scrivere (Space Mono)", value: "macchina" }
+          - label: "Colore predefinito del testo degli articoli"
+            name: "default_colore"
+            widget: "select"
+            required: false
+            default: "predefinito"
+            options:
+              - { label: "Predefinito (calce)", value: "predefinito" }
+              - { label: "Avorio chiaro", value: "avorio" }
+              - { label: "Sabbia", value: "sabbia" }
+              - { label: "Oro", value: "oro" }
+              - { label: "Terracotta", value: "terracotta" }
+          - { label: "Email di contatto (footer e pagina contatti)", name: "contact_email", widget: "string", required: false }
+          - { label: "Link Instagram (facoltativo)", name: "social_instagram", widget: "string", required: false }
+          - { label: "Link YouTube (facoltativo)", name: "social_youtube", widget: "string", required: false }
+          - { label: "Link LinkedIn (facoltativo)", name: "social_linkedin", widget: "string", required: false }
+          - { label: "Citazione nel footer (senza virgolette: le aggiunge il sito)", name: "footer_quote", widget: "string", required: false }
+
+  - name: "articoli"
+    label: "Articoli"
+    files:
+      - file: "content/articoli.json"
+        label: "Elenco articoli"
+        name: "articoli"
+        fields:
+          - label: "Articoli"
+            name: "articles"
+            widget: "list"
+            summary: "{{title}} — {{date}}"
+            fields:
+              - { label: "Slug (usato nell'indirizzo, es. montagna, senza spazi o accenti)", name: "slug", widget: "string" }
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Recensioni", value: "recensioni" }
+                  - { label: "Cinema", value: "cinema" }
+                  - { label: "Politica", value: "politica" }
+                  - { label: "Riflessioni", value: "riflessioni" }
+              - { label: "Data", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, picker_utc: true }
+              - { label: "Immagine di copertina", name: "image", widget: "image" }
+              - label: "Font del testo (facoltativo)"
+                name: "font"
+                widget: "select"
+                required: false
+                default: "predefinito"
+                options:
+                  - { label: "Predefinito", value: "predefinito" }
+                  - { label: "Elegante (Playfair Display)", value: "elegante" }
+                  - { label: "Classico (Georgia)", value: "classico" }
+                  - { label: "Macchina da scrivere (Space Mono)", value: "macchina" }
+              - label: "Colore del testo (facoltativo)"
+                name: "colore"
+                widget: "select"
+                required: false
+                default: "predefinito"
+                options:
+                  - { label: "Predefinito", value: "predefinito" }
+                  - { label: "Avorio chiaro", value: "avorio" }
+                  - { label: "Sabbia", value: "sabbia" }
+                  - { label: "Oro", value: "oro" }
+                  - { label: "Terracotta", value: "terracotta" }
+              - { label: "Testo dell'articolo", name: "body", widget: "markdown", buttons: ["bold", "italic", "link", "heading-two", "heading-three", "quote", "bulleted-list", "numbered-list"] }
+
+  - name: "scatti"
+    label: "I miei scatti"
+    files:
+      - file: "content/scatti.json"
+        label: "Elenco scatti"
+        name: "scatti"
+        fields:
+          - label: "Foto"
+            name: "shots"
+            widget: "list"
+            summary: "{{title}} — {{image}}"
+            fields:
+              - { label: "Immagine", name: "image", widget: "image" }
+              - { label: "Titolo della foto (facoltativo — compare al passaggio del mouse)", name: "title", widget: "string", required: false }
+
+  - name: "portfolio"
+    label: "Portfolio"
+    files:
+      - file: "content/portfolio.json"
+        label: "Voci portfolio"
+        name: "portfolio"
+        fields:
+          - label: "Voci"
+            name: "items"
+            widget: "list"
+            summary: "{{title}} — {{category}}"
+            fields:
+              - { label: "Titolo", name: "title", widget: "string" }
+              - label: "Categoria"
+                name: "category"
+                widget: "select"
+                options:
+                  - { label: "Eventi", value: "eventi" }
+                  - { label: "Lavori", value: "lavori" }
+                  - { label: "Viaggi", value: "viaggi" }
+              - label: "Tipo"
+                name: "medium"
+                widget: "select"
+                options:
+                  - { label: "Foto", value: "foto" }
+                  - { label: "Video", value: "video" }
+              - { label: "Immagine (usata anche come copertina per i video)", name: "image", widget: "image" }
+              - { label: "Link (facoltativo — es. URL YouTube/Vimeo per un video)", name: "link", widget: "string", required: false }
+              - { label: "Descrizione del progetto (facoltativa)", name: "description", widget: "text", required: false }
