@@ -163,4 +163,19 @@ collections:
                   - { label: "Video", value: "video" }
               - { label: "Immagine (usata anche come copertina per i video)", name: "image", widget: "image" }
               - { label: "Link (facoltativo — es. URL YouTube/Vimeo per un video)", name: "link", widget: "string", required: false }
+              - label: "Contenuti della galleria (foto e/o video della voce)"
+                name: "media"
+                widget: "list"
+                required: false
+                summary: "{{fields.tipo}} — {{fields.titolo}}"
+                fields:
+                  - label: "Tipo"
+                    name: "tipo"
+                    widget: "select"
+                    options:
+                      - { label: "Foto", value: "foto" }
+                      - { label: "Video", value: "video" }
+                    default: "foto"
+                  - { label: "File (foto o video caricato su Cloudinary)", name: "file", widget: "image" }
+                  - { label: "Titolo / didascalia (facoltativo)", name: "titolo", widget: "string", required: false }
               - { label: "Descrizione del progetto (facoltativa)", name: "description", widget: "text", required: false }

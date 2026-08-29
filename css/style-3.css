@@ -869,3 +869,206 @@
   .article-modal-panel { padding: 44px 24px 36px; }
   .article-modal-close { margin: -22px -6px 0 0; }
 }
+
+/* ---------------- Galleria portfolio (tendina) ---------------- */
+/* Quando la voce contiene una galleria di foto/video, il pannello
+   diventa a colonna unica: titolo in alto, griglia sotto. */
+.portfolio-modal-panel--gallery { grid-template-columns: 1fr; width: min(1180px, 100%); }
+.portfolio-modal-panel--gallery .portfolio-modal-info {
+  padding: 40px 40px 8px;
+  display: block;
+}
+.portfolio-modal-panel--gallery .portfolio-modal-info h2 { margin: 10px 0 10px; }
+.portfolio-modal-panel--gallery .portfolio-modal-media {
+  display: block;
+  background: transparent;
+  min-height: 0;
+  padding: 18px 40px 44px;
+}
+
+/* Griglia di miniature nello spirito di "I miei scatti" */
+.pf-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+.pf-thumb {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: none;
+  background: var(--stone);
+  cursor: pointer;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+.pf-thumb img,
+.pf-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+.pf-thumb:hover img,
+.pf-thumb:hover video { transform: scale(1.045); }
+.pf-thumb:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }
+.pf-thumb-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 26px 14px 12px;
+  background: linear-gradient(to top, rgba(26, 24, 22, 0.82), transparent);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  text-align: left;
+}
+.pf-thumb:hover .pf-thumb-overlay { opacity: 1; }
+.pf-thumb-title {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--calce);
+}
+.pf-thumb-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(26, 24, 22, 0.62);
+  border: 1px solid rgba(232, 226, 217, 0.55);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.pf-thumb-play::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-left: 15px solid var(--calce);
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+}
+.pf-thumb:hover .pf-thumb-play { background: var(--terracotta); border-color: var(--terracotta); }
+
+@media (max-width: 760px) {
+  .portfolio-modal-panel--gallery .portfolio-modal-info { padding: 30px 24px 6px; }
+  .portfolio-modal-panel--gallery .portfolio-modal-media { padding: 14px 24px 34px; }
+  .pf-gallery-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+}
+
+/* ---------------- Lightbox portfolio: vista a grandezza naturale ---------------- */
+.pf-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.pf-lightbox.is-open { display: flex; }
+.pf-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 17, 15, 0.94);
+  backdrop-filter: blur(6px);
+}
+.pf-lightbox-figure {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: min(1400px, 92vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pf-lightbox-stage { display: flex; align-items: center; justify-content: center; max-height: 80vh; }
+.pf-lightbox-stage img {
+  max-width: min(1400px, 92vw);
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+.pf-lightbox-stage video {
+  max-width: min(1400px, 92vw);
+  max-height: 80vh;
+  background: #000;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+.pf-lightbox-caption {
+  margin-top: 16px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  color: var(--sabbia);
+  text-align: center;
+}
+.pf-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 226, 217, 0.4);
+  background: rgba(26, 24, 22, 0.55);
+  color: var(--calce);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.pf-lightbox-nav:hover { background: var(--terracotta); border-color: var(--terracotta); color: var(--stone); }
+.pf-lightbox-nav--prev { left: 26px; }
+.pf-lightbox-nav--next { right: 26px; }
+.pf-lightbox-close {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 226, 217, 0.4);
+  background: rgba(26, 24, 22, 0.55);
+  color: var(--calce);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.pf-lightbox-close:hover { background: var(--terracotta); border-color: var(--terracotta); color: var(--stone); }
+.pf-lightbox-counter {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: var(--sabbia);
+}
+
+@media (max-width: 760px) {
+  .pf-lightbox-nav { width: 44px; height: 44px; }
+  .pf-lightbox-nav--prev { left: 10px; }
+  .pf-lightbox-nav--next { right: 10px; }
+  .pf-lightbox-stage img,
+  .pf-lightbox-stage video { max-height: 70vh; }
+}
+
+/* In modalità galleria il titolo sta sopra la griglia, non a lato */
+.portfolio-modal-panel--gallery .portfolio-modal-info { order: -1; }
+/* L'attributo hidden deve vincere anche sui bottoni con display impostato */
+.portfolio-modal [hidden] { display: none !important; }

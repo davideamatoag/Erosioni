@@ -477,11 +477,173 @@ function getVideoEmbedUrl(link) {
   return null;
 }
 
+// Restituisce l'elenco dei contenuti (foto/video) di una voce di portfolio.
+// Se la voce usa il nuovo campo "media" del pannello, usa quello; altrimenti
+// ricade sulla singola immagine/video della scheda (compatibilità con le
+// voci già esistenti).
+function getPortfolioMedia(item) {
+  const lista = (item.media || [])
+    .filter(m => m && m.file && m.file.trim())
+    .map(m => ({
+      tipo: m.tipo === 'video' ? 'video' : 'foto',
+      file: m.file.trim(),
+      titolo: (m.titolo || '').trim()
+    }));
+  if (lista.length) return lista;
+  // Compatibilità con le voci senza galleria
+  if (hasImage(item.image)) {
+    return [{ tipo: item.medium === 'video' ? 'video' : 'foto', file: item.image, titolo: item.title || '' }];
+  }
+  return [];
+}
+
+// ---------------- Galleria portfolio: tendina + lightbox ----------------
+// Aprendo una voce del portfolio si vede una griglia di miniature (stesso
+// spirito della griglia "I miei scatti"); cliccando una miniatura si apre il
+// contenuto a grandezza naturale con frecce per scorrere avanti/indietro.
+
+let pfLightboxItems = [];
+let pfLightboxIndex = 0;
+
+function pfLightboxHtml() {
+  return `
+  <div class="pf-lightbox" id="pfLightbox" aria-hidden="true">
+    <div class="pf-lightbox-backdrop" data-pf-lb-close></div>
+    <button type="button" class="pf-lightbox-close" id="pfLightboxClose" aria-label="Chiudi">&times;</button>
+    <button type="button" class="pf-lightbox-nav pf-lightbox-nav--prev" id="pfLightboxPrev" aria-label="Contenuto precedente">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <figure class="pf-lightbox-figure">
+      <div class="pf-lightbox-stage" id="pfLightboxStage"></div>
+      <figcaption class="pf-lightbox-caption" id="pfLightboxCaption"></figcaption>
+    </figure>
+    <button type="button" class="pf-lightbox-nav pf-lightbox-nav--next" id="pfLightboxNext" aria-label="Contenuto successivo">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+    <span class="pf-lightbox-counter" id="pfLightboxCounter"></span>
+  </div>`;
+}
+
+function showPfLightboxItem(index) {
+  if (!pfLightboxItems.length) return;
+  pfLightboxIndex = (index + pfLightboxItems.length) % pfLightboxItems.length;
+  const m = pfLightboxItems[pfLightboxIndex];
+  const stage = document.getElementById('pfLightboxStage');
+  if (m.tipo === 'video') {
+    stage.innerHTML = `<video src="${m.file}" controls autoplay playsinline></video>`;
+  } else {
+    stage.innerHTML = `<img src="${optimizeImage(m.file, 2200)}" alt="${m.titolo.replace(/"/g, '&quot;') || 'Foto del portfolio'}">`;
+  }
+  const caption = document.getElementById('pfLightboxCaption');
+  caption.textContent = m.titolo || '';
+  caption.hidden = !m.titolo;
+  document.getElementById('pfLightboxCounter').textContent = `${pfLightboxIndex + 1} / ${pfLightboxItems.length}`;
+  const multi = pfLightboxItems.length > 1;
+  document.getElementById('pfLightboxPrev').style.display = multi ? '' : 'none';
+  document.getElementById('pfLightboxNext').style.display = multi ? '' : 'none';
+  document.getElementById('pfLightboxCounter').style.display = multi ? '' : 'none';
+}
+
+function openPfLightbox(items, index) {
+  let lb = document.getElementById('pfLightbox');
+  if (!lb) {
+    document.body.insertAdjacentHTML('beforeend', pfLightboxHtml());
+    lb = document.getElementById('pfLightbox');
+    lb.querySelectorAll('[data-pf-lb-close]').forEach(el => el.addEventListener('click', closePfLightbox));
+    document.getElementById('pfLightboxClose').addEventListener('click', closePfLightbox);
+    document.getElementById('pfLightboxPrev').addEventListener('click', () => showPfLightboxItem(pfLightboxIndex - 1));
+    document.getElementById('pfLightboxNext').addEventListener('click', () => showPfLightboxItem(pfLightboxIndex + 1));
+    document.addEventListener('keydown', (e) => {
+      if (!lb.classList.contains('is-open')) return;
+      if (e.key === 'Escape') closePfLightbox();
+      if (e.key === 'ArrowLeft') showPfLightboxItem(pfLightboxIndex - 1);
+      if (e.key === 'ArrowRight') showPfLightboxItem(pfLightboxIndex + 1);
+    });
+  }
+  pfLightboxItems = items;
+  showPfLightboxItem(index);
+  lb.classList.add('is-open');
+  lb.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function closePfLightbox() {
+  const lb = document.getElementById('pfLightbox');
+  if (!lb) return;
+  lb.classList.remove('is-open');
+  lb.setAttribute('aria-hidden', 'true');
+  document.getElementById('pfLightboxStage').innerHTML = '';
+  // Se sotto c'è ancora la galleria aperta, il blocco dello scroll resta
+  if (!document.getElementById('portfolioModal').classList.contains('is-open')) {
+    document.body.classList.remove('modal-open');
+  }
+}
+
+// Scheda di anteprima di un video caricato su Cloudinary: si ottiene
+// chiedendo il primo fotogramma come immagine.
+function videoPoster(url) {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return null;
+  return url.replace('/upload/', '/upload/so_0,f_auto,q_auto,w_800/').replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+}
+
+function openPortfolioGallery(item, media) {
+  const modal = document.getElementById('portfolioModal');
+  if (!modal) return;
+  modal.querySelector('.portfolio-modal-panel').classList.add('portfolio-modal-panel--gallery');
+  const mediaEl = document.getElementById('portfolioModalMedia');
+
+  const foto = media.filter(m => m.tipo === 'foto').length;
+  const video = media.filter(m => m.tipo === 'video').length;
+  const parti = [];
+  if (foto) parti.push(`${foto} foto`);
+  if (video) parti.push(`${video} video`);
+  document.getElementById('portfolioModalTag').textContent =
+    `${capitalize(item.category)} · ${parti.join(' + ')}`;
+  document.getElementById('portfolioModalTitle').textContent = item.title;
+
+  const descEl = document.getElementById('portfolioModalDesc');
+  const hasDesc = item.description && item.description.trim();
+  descEl.textContent = hasDesc ? item.description.trim() : '';
+  descEl.hidden = !hasDesc;
+
+  document.getElementById('portfolioModalExternal').hidden = true;
+
+  mediaEl.innerHTML = `
+    <div class="pf-gallery-grid">
+      ${media.map((m, i) => `
+      <button type="button" class="pf-thumb" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
+        ${m.tipo === 'video'
+          ? (videoPoster(m.file)
+              ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
+              : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
+            + '<span class="pf-thumb-play" aria-hidden="true"></span>'
+          : `<img src="${optimizeImage(m.file, 800)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
+        ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
+      </button>`).join('')}
+    </div>`;
+
+  mediaEl.querySelectorAll('.pf-thumb').forEach(btn => {
+    btn.addEventListener('click', () => openPfLightbox(media, Number(btn.dataset.i)));
+  });
+
+  modal.classList.add('is-open');
+  document.body.classList.add('modal-open');
+}
+
 function openPortfolioModal(item) {
   const modal = document.getElementById('portfolioModal');
   if (!modal) return;
 
+  // Se la voce ha una galleria di contenuti (campo "media" del pannello),
+  // mostra la griglia di miniature con lightbox; altrimenti la vista singola.
+  const galleria = (item.media || []).filter(m => m && m.file && m.file.trim());
+  if (galleria.length) {
+    openPortfolioGallery(item, getPortfolioMedia(item));
+    return;
+  }
+
   const mediaEl = document.getElementById('portfolioModalMedia');
+  modal.querySelector('.portfolio-modal-panel').classList.remove('portfolio-modal-panel--gallery');
   const embedUrl = item.medium === 'video' ? getVideoEmbedUrl(item.link) : null;
 
   mediaEl.innerHTML = embedUrl
@@ -500,6 +662,7 @@ function openPortfolioModal(item) {
   descEl.hidden = !hasDesc;
 
   const externalEl = document.getElementById('portfolioModalExternal');
+  externalEl.hidden = false;
   const externalHref = item.link && item.link.trim() ? item.link.trim() : item.image;
   externalEl.href = externalHref;
   externalEl.textContent = item.medium === 'video' && embedUrl ? 'Apri su YouTube/Vimeo'
@@ -539,6 +702,12 @@ async function renderPortfolioPage() {
     const isLead = idx === 0;
     const isVideo = item.medium === 'video';
     const hasDesc = item.description && item.description.trim();
+    const galleria = (item.media || []).filter(m => m && m.file && m.file.trim());
+    const nFoto = galleria.filter(m => m.tipo !== 'video').length;
+    const nVideo = galleria.filter(m => m.tipo === 'video').length;
+    const tag = galleria.length
+      ? [nFoto ? `${nFoto} foto` : '', nVideo ? `${nVideo} video` : ''].filter(Boolean).join(' + ')
+      : (isVideo ? 'Video' : 'Foto');
     return `
     <button type="button" class="work-row${isLead ? ' work-row--lead' : (idx % 2 ? ' work-row--reverse' : '')}" data-idx="${idx}" aria-label="Apri il progetto: ${item.title}">
       <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
@@ -546,13 +715,13 @@ async function renderPortfolioPage() {
         ${hasImage(item.image)
           ? `<img src="${optimizeImage(item.image, isLead ? 2000 : 1200)}" alt="${item.title}" loading="lazy">`
           : `<span class="work-media work-media--empty"><span>Immagine in arrivo</span></span>`}
-        ${isVideo ? '<span class="work-play" aria-hidden="true"></span>' : ''}
+        ${isVideo && !galleria.length ? '<span class="work-play" aria-hidden="true"></span>' : ''}
       </span>
       <span class="work-info">
-        <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${isVideo ? 'Video' : 'Foto'}</span>
+        <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${tag}</span>
         <span class="work-title" style="display:block;">${item.title}</span>
         ${hasDesc ? `<span class="work-desc" style="display:block;">${item.description.trim()}</span>` : ''}
-        <span class="work-cta" style="display:inline-block;">${isVideo ? 'Guarda il video' : 'Guarda il progetto'} &rarr;</span>
+        <span class="work-cta" style="display:inline-block;">${galleria.length ? 'Sfoglia la galleria' : (isVideo ? 'Guarda il video' : 'Guarda il progetto')} &rarr;</span>
       </span>
     </button>`;
   }).join('');
