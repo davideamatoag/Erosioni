@@ -1,46 +1,60 @@
 {
   "shots": [
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/Copy_of_Foto_Matrimonio_Trabia-13_ixdcjj.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/Copy_of_Foto_Matrimonio_Trabia-13_ixdcjj.jpg",
+      "title": "Pescatore sul Tirreno"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/DSC06621-Modifica_c7miea.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/DSC06621-Modifica_c7miea.jpg",
+      "title": "Torre Salsa"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/Copy_of_PXL_20250405_135914503.RAW-02.ORIGINAL-Modifica_uqcngl.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654905/Copy_of_PXL_20250405_135914503.RAW-02.ORIGINAL-Modifica_uqcngl.jpg",
+      "title": "Panna"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654904/_DSC8528-Modifica_ogpu7o.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654904/_DSC8528-Modifica_ogpu7o.jpg",
+      "title": "La terra"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654903/Copy_of__DSC6790-3_fdjivc.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654903/Copy_of__DSC6790-3_fdjivc.jpg",
+      "title": "Fulmini in inverno"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654904/Copy_of_DSC07094-Modifica_r7ufjp.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654904/Copy_of_DSC07094-Modifica_r7ufjp.jpg",
+      "title": "Le foglie"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654906/DSC06666-Modifica_vojm8z.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786654906/DSC06666-Modifica_vojm8z.jpg",
+      "title": "Torre Salsa"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655103/DSC07693_dzx1et.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655103/DSC07693_dzx1et.jpg",
+      "title": "La montagna Svizzera"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655215/DSC07551-Modifica_yzt5am.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655215/DSC07551-Modifica_yzt5am.jpg",
+      "title": "Al bar"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655242/Foto_gita_notturna_Demetra-38_rfai3r.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655242/Foto_gita_notturna_Demetra-38_rfai3r.jpg",
+      "title": "Di notte"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655244/Foto_gita_notturna_Demetra-14_cfwnh2.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655244/Foto_gita_notturna_Demetra-14_cfwnh2.jpg",
+      "title": "Panna"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655386/75720009_z2dyxq.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655386/75720009_z2dyxq.jpg",
+      "title": "Kolymbethra"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655385/75720033_xsdd9j.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655385/75720033_xsdd9j.jpg",
+      "title": "Budapest"
     },
     {
-      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655425/DSC01386-Modifica_vy51md.jpg"
+      "image": "https://res.cloudinary.com/plscorbg/image/upload/v1786655425/DSC01386-Modifica_vy51md.jpg",
+      "title": "Punta Bianca"
     }
   ]
 }
