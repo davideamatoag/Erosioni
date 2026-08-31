@@ -1122,3 +1122,29 @@
   .voce-thumb--lead { aspect-ratio: 3 / 2; }
   .voce-desc { font-size: 1.1rem; }
 }
+
+/* Homepage: anteprime portfolio collegate alla pagina della voce */
+a.formation-media { display: block; }
+.formation-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Homepage: nodi viaggio cliccabili (link alla pagina della voce) */
+a.travel-node { display: block; text-decoration: none; color: inherit; }
+.travel-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Messaggio quando una sezione della home non ha ancora voci */
+.section-empty {
+  color: var(--sabbia);
+  font-style: italic;
+  font-size: 0.95rem;
+  padding: 24px 0;
+}

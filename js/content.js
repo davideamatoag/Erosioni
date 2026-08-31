@@ -1034,6 +1034,8 @@ async function openArticleFromUrl() {
 document.addEventListener('DOMContentLoaded', () => {
   renderSiteImages();
   renderHomeLayers();
+  renderHomeViaggi();
+  renderHomePortfolio();
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
@@ -1041,6 +1043,81 @@ document.addEventListener('DOMContentLoaded', () => {
   renderScattiGrid();
   openArticleFromUrl();
 });
+
+// ---------------- HOMEPAGE: "Viaggi" (Sezione 3) ----------------
+// Timeline dei viaggi: mostra SOLO le voci del portfolio con categoria
+// "viaggi", collegate alla pagina di ciascuna voce.
+async function renderHomeViaggi() {
+  const timeline = document.getElementById('homeViaggi');
+  if (!timeline) return;
+  const items = await fetchPortfolio();
+  const viaggi = items.filter(i => i.category === 'viaggi');
+  if (!viaggi.length) {
+    timeline.innerHTML = '<p class="section-empty">Nuovi viaggi in arrivo.</p>';
+    return;
+  }
+
+  const conData = viaggi.filter(i => i.date);
+  const senzaData = viaggi.filter(i => !i.date);
+  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
+  const ordinati = conData.concat(senzaData);
+
+  timeline.innerHTML = ordinati.map((item) => {
+    const year = item.date ? item.date.slice(0, 4) : '';
+    const desc = (item.description || '').trim();
+    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
+    return `
+      <a class="travel-node" href="${href}">
+        ${year ? `<span class="travel-year-bg" aria-hidden="true">${year}</span>` : ''}
+        <h3>${item.title}</h3>
+        ${year ? `<p class="travel-year">${year}</p>` : ''}
+        ${desc ? `<p class="travel-desc">${desc}</p>` : ''}
+        <span class="travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></span>
+      </a>`;
+  }).join('');
+}
+
+// ---------------- HOMEPAGE: "Dal portfolio" (Sezione 4) ----------------
+// Mostra le due voci più recenti tra EVENTI e LAVORI (i viaggi hanno la
+// loro sezione dedicata), collegate alla pagina di ciascuna voce.
+async function renderHomePortfolio() {
+  const list = document.querySelector('#portfolio .formation-list');
+  if (!list) return;
+  const items = await fetchPortfolio();
+  const filtrate = items.filter(i => i.category !== 'viaggi');
+  if (!filtrate.length) {
+    list.innerHTML = '<p class="section-empty">Nuovi progetti in arrivo.</p>';
+    return;
+  }
+
+  const conData = filtrate.filter(i => i.date);
+  const senzaData = filtrate.filter(i => !i.date);
+  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
+  const latest = conData.concat(senzaData).slice(0, 2);
+
+  list.innerHTML = latest.map((item, idx) => {
+    const galleria = getPortfolioMedia(item);
+    const nFoto = galleria.filter(m => m.tipo === 'foto').length;
+    const nVideo = galleria.filter(m => m.tipo === 'video').length;
+    const parti = [];
+    if (nFoto) parti.push(`${nFoto} foto`);
+    if (nVideo) parti.push(`${nVideo} video`);
+    const tag = parti.length ? parti.join(' + ')
+      : (item.medium === 'video' ? 'Video' : 'Foto');
+    const desc = (item.description || '').trim();
+    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
+    return `
+      <div class="formation-block${idx % 2 ? ' formation-block--reverse' : ''}">
+        <a class="formation-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1600) : ''}');" aria-label="Apri: ${item.title}"></a>
+        <div class="formation-copy">
+          <p class="article-meta">${capitalize(item.category)} &middot; ${tag}</p>
+          <h3>${item.title}</h3>
+          ${desc ? `<p class="formation-desc">${desc}</p>` : ''}
+          <a class="btn-outline" href="${href}">Apri la voce</a>
+        </div>
+      </div>`;
+  }).join('');
+}
 
 // ---------------- HOMEPAGE: "I miei scatti" — Galleria minerale ----------------
 // Griglia masonry con una selezione casuale ma stabile per tutta la
