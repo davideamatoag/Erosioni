@@ -1004,16 +1004,22 @@ function initArticleModal() {
     if (e.key === 'Escape' && modal.classList.contains('is-open')) closeArticleModal();
   });
 
-  // Barra di avanzamento lettura dentro la tendina: segue lo scorrimento
-  // del pannello (che è l'elemento che scorre, non la finestra)
+  // Barra di avanzamento lettura della tendina: bordo verticale appena
+  // fuori dal lato sinistro del pannello, che si riempie scorrendo.
   const panel = modal.querySelector('.article-modal-panel');
   const progress = document.getElementById('modalReadingProgress');
   if (panel && progress) {
-    panel.addEventListener('scroll', () => {
+    const aggiornaProgressModal = () => {
+      const rect = panel.getBoundingClientRect();
       const max = panel.scrollHeight - panel.clientHeight;
       const quota = max > 0 ? Math.min(1, panel.scrollTop / max) : 0;
-      progress.style.transform = `scaleX(${quota})`;
-    }, { passive: true });
+      progress.style.left = `${rect.left - 4}px`;
+      progress.style.top = `${rect.top}px`;
+      progress.style.height = `${quota * rect.height}px`;
+    };
+    panel.addEventListener('scroll', aggiornaProgressModal, { passive: true });
+    window.addEventListener('resize', aggiornaProgressModal);
+    modal._aggiornaProgress = aggiornaProgressModal;
   }
 
   // Rimandi alle note DENTRO la tendina: niente navigazione con #
@@ -1145,8 +1151,10 @@ async function openArticleModal(slug, historyMode = 'push') {
   modal.classList.add('is-open');
   document.body.classList.add('modal-open');
   if (panel) panel.scrollTop = 0;
-  const progressBar = document.getElementById('modalReadingProgress');
-  if (progressBar) progressBar.style.transform = 'scaleX(0)';
+  // Azzera e riposiziona il bordo di avanzamento (dopo che la tendina è visibile)
+  requestAnimationFrame(() => {
+    if (modal._aggiornaProgress) modal._aggiornaProgress();
+  });
 
   // L'indirizzo nella barra segue l'articolo aperto
   if (historyMode === 'push') {

@@ -1288,21 +1288,17 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
 
 /* ---- Le stesse migliorie della pagina articolo, dentro la tendina ---- */
 
-/* Barra di avanzamento dentro il pannello chiaro: resta appiccicata
-   in cima mentre si scorre (i margini negativi compensano il padding) */
+/* Barra di avanzamento della tendina: BORDO VERTICALE sinistro,
+   appena fuori dal pannello, che si riempie dall'alto verso il basso
+   man mano che si scorre. Posizione e altezza le calcola il JS. */
 .modal-reading-progress {
-  position: sticky;
-  top: 0;
-  height: 2px;
-  margin: 0 -88px 24px;
+  position: fixed;
+  width: 3px;
+  height: 0;
   background: #A65A43;
-  transform: scaleX(0);
-  transform-origin: left center;
-  z-index: 5;
+  border-radius: 3px;
+  z-index: 6;
   pointer-events: none;
-}
-@media (max-width: 640px) {
-  .modal-reading-progress { margin: 0 -24px 20px; }
 }
 
 /* Capolettera anche nella tendina (terracotta scuro per il fondo chiaro) */
