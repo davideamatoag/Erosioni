@@ -1322,3 +1322,34 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   #modalArticleBody p { text-align: justify; }
 }
 #modalArticleBody p, #modalArticleBody li { hyphens: auto; -webkit-hyphens: auto; }
+
+/* Tasto discreto "Pagina intera" nella tendina articolo:
+   porta alla pagina dedicata con sfondo scuro */
+.article-modal-fullpage {
+  position: absolute;
+  top: 24px;
+  right: 146px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(43, 39, 35, 0.55);
+  text-decoration: none;
+  padding: 6px 4px;
+  z-index: 5;
+  transition: color 0.25s ease;
+}
+.article-modal-fullpage:hover { color: #A65A43; }
+@media (max-width: 640px) {
+  .article-modal-fullpage { top: 16px; right: 84px; }
+}
+
+/* Illuminazione nota dopo il clic sul rimando dentro la tendina
+   (lì non si usa l'# nell'indirizzo, quindi niente :target) */
+.note-articolo li.nota-flash,
+.nota-rif.nota-flash {
+  background: rgba(166, 90, 67, 0.16);
+  border-radius: 4px;
+  box-shadow: 0 0 0 6px rgba(166, 90, 67, 0.16);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}

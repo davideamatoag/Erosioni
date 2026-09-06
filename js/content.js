@@ -269,6 +269,8 @@ function renderInline(text) {
     .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
     // Interlinea usata su una PARTE di paragrafo: vale per quelle righe
     .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
+    // [riga-vuota] finito in mezzo a un paragrafo: scompare, non si legge
+    .replace(/\[riga-vuota\]/g, '')
     .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
       const classi = stileClassi(attrs, false);
       return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
@@ -326,6 +328,9 @@ function renderMarkdown(md) {
     note.push(noteImportate[n] || `Nota ${n}.`);
     return `{{NOTA_${note.length}}}`;
   });
+  // Le definizioni delle note erano in fondo: tolgo la scia di righe
+  // vuote che lasciano, altrimenti tra testo e note resta un vuoto enorme
+  md = md.replace(/\s+$/, '');
 
   const pieces = md.split(/(\n\s*\n+)/);
   const blocks = [];
@@ -333,6 +338,12 @@ function renderMarkdown(md) {
     if (i % 2 === 0) {
       if (piece.trim()) blocks.push(piece);
     } else {
+      // Le righe vuote di troppo attorno a un TITOLO non diventano
+      // spaziatori: il titolo ha già il suo margine, e l'editor ne
+      // aggiunge sempre una quando si inserisce un heading.
+      const precedente = blocks.length ? blocks[blocks.length - 1].trim() : '';
+      const successivo = (pieces[i + 1] || '').trim();
+      if (/^#{1,3}\s/.test(precedente) || /^#{1,3}\s/.test(successivo)) return;
       const extra = piece.split('\n').length - 3; // newline oltre la separazione normale
       for (let k = 0; k < extra; k++) blocks.push('[riga-vuota]');
     }
@@ -406,6 +417,7 @@ function stripMarkdown(md) {
     .replace(/\[nota\][\s\S]*?\[\/nota\]/g, '') // le note non finiscono nei riassunti
     .replace(/^\s*\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)\s+[^\n]+$/gm, '') // definizioni note Word/Docs
     .replace(/\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)/g, '') // rimandi note Word/Docs
+    .replace(/\[riga-vuota\]/g, '')
     .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco|u|s|interlinea)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -1001,6 +1013,23 @@ function initArticleModal() {
     }, { passive: true });
   }
 
+  // Rimandi alle note DENTRO la tendina: niente navigazione con #
+  // (cambierebbe l'indirizzo e chiuderebbe la tendina); si scorre
+  // dolcemente dentro il pannello e la nota si illumina.
+  if (panel) {
+    panel.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#nota-"], a[href^="#rif-"]');
+      if (!a) return;
+      e.preventDefault();
+      const target = panel.querySelector(a.getAttribute('href'));
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      panel.querySelectorAll('.nota-flash').forEach((el) => el.classList.remove('nota-flash'));
+      target.classList.add('nota-flash');
+      setTimeout(() => target.classList.remove('nota-flash'), 1800);
+    });
+  }
+
   // Il form commenti dentro la tendina (placeholder come l'altro)
   const modalCommentForm = document.getElementById('modalCommentForm');
   const modalCommentNote = document.getElementById('modalCommentNote');
@@ -1048,6 +1077,10 @@ async function openArticleModal(slug, historyMode = 'push') {
   const bodyEl = document.getElementById('modalArticleBody');
   bodyEl.innerHTML = renderMarkdown(article.body || '');
   applyArticleBodyStyle(bodyEl, article, settings);
+
+  // Tasto "Pagina intera": porta alla pagina dedicata (sfondo scuro)
+  const fullPageLink = document.getElementById('modalFullPageLink');
+  if (fullPageLink) fullPageLink.href = `articolo.html?slug=${encodeURIComponent(article.slug)}`;
 
   // Dissolvenza lenta anche per le immagini nel corpo, che diventano
   // cliccabili: si aprono a tutto schermo nel lightbox (come nella
@@ -1156,6 +1189,10 @@ window.addEventListener('popstate', (e) => {
   if (slug) {
     openArticleModal(slug, 'none');
   } else {
+    // Se l'indirizzo porta ancora ?slug=... (es. è cambiato solo il #
+    // dopo un clic su una nota), la tendina resta aperta com'è.
+    const slugNellUrl = new URLSearchParams(window.location.search).get('slug');
+    if (slugNellUrl) return;
     closeArticleModal(true);
   }
 });
