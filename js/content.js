@@ -305,6 +305,28 @@ function renderMarkdown(md) {
     return `{{NOTA_${note.length}}}`;
   });
 
+  // NOTE INCOLLATE DA WORD / GOOGLE DOCS: i rimandi arrivano nella forma
+  // [[1]](#_ftn1) e le note in fondo come [[1]](#_ftnref1) testo della nota
+  // (Word usa #_ftn1 anche per le definizioni). Vengono convertite nel
+  // nostro sistema: numerini in apice + sezione "Note" elegante in fondo.
+  const noteImportate = {};
+  // 1) Definizioni Google Docs: [[n]](#_ftnrefN) testo
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^\n]+)/g, (m, n, testo) => {
+    noteImportate[n] = testo.trim();
+    return '';
+  });
+  // 2) Definizioni Word: stesso marcatore dei rimandi, ma a inizio blocco
+  //    e seguito dal testo della nota
+  md = md.replace(/(^|\n\s*\n)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^\n]+)/g, (m, sep, n, testo) => {
+    noteImportate[n] = testo.trim();
+    return sep;
+  });
+  // 3) Rimandi rimasti nel testo → numerini in apice collegati alle note
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, (m, n) => {
+    note.push(noteImportate[n] || `Nota ${n}.`);
+    return `{{NOTA_${note.length}}}`;
+  });
+
   const pieces = md.split(/(\n\s*\n+)/);
   const blocks = [];
   pieces.forEach((piece, i) => {
@@ -382,6 +404,8 @@ function renderMarkdown(md) {
 function stripMarkdown(md) {
   return (md || '')
     .replace(/\[nota\][\s\S]*?\[\/nota\]/g, '') // le note non finiscono nei riassunti
+    .replace(/^\s*\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)\s+[^\n]+$/gm, '') // definizioni note Word/Docs
+    .replace(/\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)/g, '') // rimandi note Word/Docs
     .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco|u|s|interlinea)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
