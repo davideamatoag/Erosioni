@@ -10,9 +10,10 @@
      (stessa configurazione di prima, interfaccia più moderna) -->
 <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
 
-<!-- Editor components: fanno vedere i segnaposto [stile=...] come schede
-     nell'editor (così si capisce che quella porzione ha uno stile) e
-     permettono di modificarli con un doppio clic. -->
+<!-- Editor components: i segnaposto [stile=...] compaiono nell'editor e
+     nell'anteprima già formattati (colore e font reali), e il CSS del sito
+     viene iniettato nel riquadro di anteprima: quello che vedi nel pannello
+     è (quasi) quello che vedranno i lettori. -->
 <script>
 (function () {
   var COLORI = [
@@ -29,6 +30,19 @@
     { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
   ];
 
+  // Gli stessi identici valori usati dal sito (css/style-3.css)
+  var COLORI_CSS = {
+    avorio: '#F6F1E7',
+    sabbia: '#B4AB9F',
+    oro: '#D4A574',
+    terracotta: '#CD7A62'
+  };
+  var FONT_CSS = {
+    elegante: "'Playfair Display', Georgia, serif",
+    classico: "Georgia, 'Times New Roman', serif",
+    macchina: "'Space Mono', 'Courier New', monospace"
+  };
+
   function attrString(o) {
     var parti = [];
     if (o.colore && o.colore !== 'nessuno') parti.push('c:' + o.colore);
@@ -44,11 +58,20 @@
     });
     return out;
   }
+  function esc(t) {
+    return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function stileInline(o) {
+    var s = [];
+    if (o.colore && COLORI_CSS[o.colore]) s.push('color:' + COLORI_CSS[o.colore]);
+    if (o.font && FONT_CSS[o.font]) s.push('font-family:' + FONT_CSS[o.font]);
+    if (o.font === 'elegante') s.push('font-size:1.08em');
+    if (o.font === 'macchina') s.push('font-size:0.88em');
+    return s.join(';');
+  }
+  // Anteprima: il testo si vede DAVVERO con il colore e il font scelti
   function anteprima(o) {
-    var cose = [];
-    if (o.colore && o.colore !== 'nessuno') cose.push(o.colore);
-    if (o.font && o.font !== 'nessuno') cose.push(o.font);
-    return '<strong>[' + (cose.join(' + ') || 'nessuno stile') + ']</strong> ' + (o.testo || '');
+    return '<span style="' + stileInline(o) + '">' + esc(o.testo) + '</span>';
   }
 
   CMS.registerEditorComponent({
@@ -82,8 +105,113 @@
       var attr = attrString(o);
       return attr ? '[stile-blocco=' + attr + ']' + (o.testo || '') + '[/stile-blocco]' : (o.testo || '');
     },
-    toPreview: function (o) { return '<strong>[paragrafo]</strong> ' + anteprima(o); }
+    toPreview: function (o) {
+      return '<p style="' + stileInline(o) + ';margin:0 0 28px">' + esc(o.testo).replace(/\n/g, '<br>') + '</p>';
+    }
   });
+
+  // ---------------- Componenti legacy ----------------
+  // Per gli articoli scritti con i vecchi segnaposto [colore=...] e
+  // [font=...]: anche quelli si vedono formattati, non come codice grezzo.
+  function parseSemplice(m, chiave) {
+    var o = { colore: 'nessuno', font: 'nessuno', testo: m[2] };
+    o[chiave] = m[1];
+    return o;
+  }
+  CMS.registerEditorComponent({
+    id: 'colore-legacy',
+    label: 'Colore (formato precedente)',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'testo', label: 'Testo', widget: 'string' }
+    ],
+    pattern: /\[colore=([^\]]+)\]([\s\S]*?)\[\/colore\]/,
+    fromBlock: function (m) { return parseSemplice(m, 'colore'); },
+    toBlock: function (o) {
+      return o.colore && o.colore !== 'nessuno'
+        ? '[colore=' + o.colore + ']' + (o.testo || '') + '[/colore]' : (o.testo || '');
+    },
+    toPreview: anteprima
+  });
+  CMS.registerEditorComponent({
+    id: 'font-legacy',
+    label: 'Font (formato precedente)',
+    fields: [
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
+      { name: 'testo', label: 'Testo', widget: 'string' }
+    ],
+    pattern: /\[font=([^\]]+)\]([\s\S]*?)\[\/font\]/,
+    fromBlock: function (m) { return parseSemplice(m, 'font'); },
+    toBlock: function (o) {
+      return o.font && o.font !== 'nessuno'
+        ? '[font=' + o.font + ']' + (o.testo || '') + '[/font]' : (o.testo || '');
+    },
+    toPreview: anteprima
+  });
+
+  // ---------------- Note a piè di pagina ----------------
+  // [nota]...[/nota]: il sito numera tutte le note in ordine e le
+  // raccoglie in fondo all'articolo automaticamente.
+  CMS.registerEditorComponent({
+    id: 'nota',
+    label: 'Nota a piè di pagina',
+    fields: [
+      { name: 'testo', label: 'Testo della nota', widget: 'text' }
+    ],
+    pattern: /\[nota\]([\s\S]*?)\[\/nota\]/,
+    fromBlock: function (m) { return { testo: m[1] }; },
+    toBlock: function (o) { return '[nota]' + (o.testo || '') + '[/nota]'; },
+    toPreview: function (o) {
+      var stralcio = esc(o.testo).split(/\s+/).slice(0, 6).join(' ');
+      return '<sup style="color:#CD7A62;font-size:0.75em" title="' + esc(o.testo) + '">[nota: ' + stralcio + '&hellip;]</sup>';
+    }
+  });
+
+  // ---------------- Anteprima fedele al sito ----------------
+  // Carica i font del sito nel riquadro di anteprima...
+  CMS.registerPreviewStyle(
+    'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap'
+  );
+  // ...e gli stessi stili tipografici della pagina articolo
+  CMS.registerPreviewStyle(`
+    body {
+      background: #1A1816;
+      color: #E8E2D9;
+      font-family: 'Inter', Arial, sans-serif;
+      padding: 24px;
+    }
+    p {
+      font-size: 1.06rem;
+      line-height: 1.9;
+      color: #E8E2D9;
+      margin: 0 0 28px;
+    }
+    h1, h2, h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 500;
+      color: #E8E2D9;
+      letter-spacing: 0.01em;
+    }
+    h2 { font-size: 1.6rem; margin: 48px 0 20px; }
+    h3 { font-size: 1.25rem; margin: 40px 0 16px; }
+    strong { color: #F6F1E7; }
+    em { color: inherit; }
+    blockquote {
+      border-left: 2px solid #C4705A;
+      margin: 36px 0;
+      padding: 4px 0 4px 24px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: #B4AB9F;
+    }
+    ul, ol { margin: 0 0 28px; padding-left: 24px; }
+    li { font-size: 1.06rem; line-height: 1.9; color: #E8E2D9; margin-bottom: 8px; }
+    li::marker { color: #C4705A; }
+    img { max-width: 100%; height: auto; display: block; margin: 36px 0; }
+    a { color: #D4A574; }
+    hr { border: none; border-top: 1px solid rgba(232,226,217,0.18); margin: 40px 0; }
+  `, { raw: true });
 })();
 </script>
 
@@ -299,6 +427,25 @@
     ultimaSelezione = null;
   }
 
+  function applicaNota() {
+    var sel = window.getSelection();
+    var testo = sel && !sel.isCollapsed ? sel.toString() : (ultimaSelezione ? ultimaSelezione.testo : '');
+    if (!testo) return;
+    // Niente note dentro le note: se la selezione ne contiene già, le apre
+    var pulito = testo.replace(/\[nota\]/g, '').replace(/\[\/nota\]/g, '');
+    var nuovo = '[nota]' + pulito + '[/nota]';
+    var ed = sel && !sel.isCollapsed ? dentroEditor(sel.anchorNode)
+                                     : (ultimaSelezione && ultimaSelezione.editor);
+    if (ed && ed.tagName === 'TEXTAREA') {
+      ed.focus();
+      ed.setRangeText(nuovo, ed.selectionStart, ed.selectionEnd, 'end');
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
   function costruisciBarra() {
     if (document.getElementById('barra-stile')) return;
     var bar = document.createElement('div');
@@ -346,6 +493,17 @@
 
     bar.appendChild(gruppo('Font', FONT, 'font'));
     bar.appendChild(gruppo('Colore', COLORI, 'colore'));
+
+    // Pulsante "Nota": trasforma il testo selezionato in una nota a piè
+    // di pagina (il sito la numera e la sposta in fondo all'articolo)
+    var btnNota = document.createElement('button');
+    btnNota.type = 'button';
+    btnNota.className = 'bs-btn';
+    btnNota.style.minWidth = '0';
+    btnNota.textContent = '↩ Nota';
+    btnNota.title = 'Trasforma il testo selezionato in una nota a piè di pagina: verrà numerata e spostata in fondo all\'articolo';
+    btnNota.addEventListener('click', applicaNota);
+    bar.appendChild(btnNota);
 
     // Niente blur della selezione quando si clicca la barra
     bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
