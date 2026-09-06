@@ -1285,3 +1285,40 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   background: rgba(166, 90, 67, 0.14);
   box-shadow: 0 0 0 6px rgba(166, 90, 67, 0.14);
 }
+
+/* ---- Le stesse migliorie della pagina articolo, dentro la tendina ---- */
+
+/* Barra di avanzamento dentro il pannello chiaro: resta appiccicata
+   in cima mentre si scorre (i margini negativi compensano il padding) */
+.modal-reading-progress {
+  position: sticky;
+  top: 0;
+  height: 2px;
+  margin: 0 -88px 24px;
+  background: #A65A43;
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: 5;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .modal-reading-progress { margin: 0 -24px 20px; }
+}
+
+/* Capolettera anche nella tendina (terracotta scuro per il fondo chiaro) */
+#modalArticleBody > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 3.6em;
+  line-height: 0.82;
+  color: #A65A43;
+  float: left;
+  padding: 0.06em 0.12em 0 0;
+}
+
+/* Giustificato + sillabazione anche nella tendina */
+@media (min-width: 720px) {
+  #modalArticleBody p { text-align: justify; }
+}
+#modalArticleBody p, #modalArticleBody li { hyphens: auto; -webkit-hyphens: auto; }

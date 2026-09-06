@@ -264,6 +264,11 @@ function stileClassi(attrs, perBlocco) {
 
 function renderInline(text) {
   return text
+    // Sottolineato [u] e Barrato [s] dalla barra strumenti del pannello
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+    .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
+    // Interlinea usata su una PARTE di paragrafo: vale per quelle righe
+    .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
     .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
       const classi = stileClassi(attrs, false);
       return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
@@ -323,6 +328,11 @@ function renderMarkdown(md) {
         ? `<figure class="article-figure">${img}<figcaption>${renderInline(alt)}</figcaption></figure>`
         : img;
     }
+    // Interlinea su un intero paragrafo: [interlinea=1.6]testo[/interlinea]
+    const interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
+    if (interlinea) {
+      return `<p style="line-height:${interlinea[1]}">${renderInline(interlinea[2]).replace(/\n/g, '<br>')}</p>`;
+    }
     const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
     if (stileBlocco) {
       const classi = stileClassi(stileBlocco[1], true);
@@ -372,7 +382,7 @@ function renderMarkdown(md) {
 function stripMarkdown(md) {
   return (md || '')
     .replace(/\[nota\][\s\S]*?\[\/nota\]/g, '') // le note non finiscono nei riassunti
-    .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco)(=[^\]]*)?\]/g, '')
+    .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco|u|s|interlinea)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^#+\s*/gm, '')
@@ -955,6 +965,18 @@ function initArticleModal() {
     if (e.key === 'Escape' && modal.classList.contains('is-open')) closeArticleModal();
   });
 
+  // Barra di avanzamento lettura dentro la tendina: segue lo scorrimento
+  // del pannello (che è l'elemento che scorre, non la finestra)
+  const panel = modal.querySelector('.article-modal-panel');
+  const progress = document.getElementById('modalReadingProgress');
+  if (panel && progress) {
+    panel.addEventListener('scroll', () => {
+      const max = panel.scrollHeight - panel.clientHeight;
+      const quota = max > 0 ? Math.min(1, panel.scrollTop / max) : 0;
+      progress.style.transform = `scaleX(${quota})`;
+    }, { passive: true });
+  }
+
   // Il form commenti dentro la tendina (placeholder come l'altro)
   const modalCommentForm = document.getElementById('modalCommentForm');
   const modalCommentNote = document.getElementById('modalCommentNote');
@@ -1003,10 +1025,20 @@ async function openArticleModal(slug, historyMode = 'push') {
   bodyEl.innerHTML = renderMarkdown(article.body || '');
   applyArticleBodyStyle(bodyEl, article, settings);
 
-  // Dissolvenza lenta anche per le immagini nel corpo
-  bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
+  // Dissolvenza lenta anche per le immagini nel corpo, che diventano
+  // cliccabili: si aprono a tutto schermo nel lightbox (come nella
+  // pagina dedicata e nella galleria portfolio)
+  const modalImgs = [...bodyEl.querySelectorAll('.article-inline-img')];
+  const modalLightboxItems = modalImgs.map((img) => ({
+    tipo: 'foto',
+    file: img.dataset.full || img.src,
+    titolo: img.alt || ''
+  }));
+  modalImgs.forEach((img, i) => {
     if (img.complete) img.classList.add('is-loaded');
     else img.onload = () => img.classList.add('is-loaded');
+    img.classList.add('is-zoomable');
+    img.addEventListener('click', () => openPfLightbox(modalLightboxItems, i));
   });
 
   // Autore dalle impostazioni del sito
@@ -1020,8 +1052,12 @@ async function openArticleModal(slug, historyMode = 'push') {
   const shareUrl = new URL(`articolo.html?slug=${encodeURIComponent(article.slug)}`, window.location.href).href;
   const shareTwitter = document.getElementById('modalShareTwitter');
   const shareFacebook = document.getElementById('modalShareFacebook');
+  const shareWhatsapp = document.getElementById('modalShareWhatsapp');
   const shareCopy = document.getElementById('modalShareCopy');
   const shareNote = document.getElementById('modalShareNote');
+  if (shareWhatsapp) shareWhatsapp.onclick = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${article.title} — ${shareUrl}`)}`, '_blank', 'noopener');
+  };
   if (shareTwitter) shareTwitter.onclick = () => {
     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
   };
@@ -1049,6 +1085,8 @@ async function openArticleModal(slug, historyMode = 'push') {
   modal.classList.add('is-open');
   document.body.classList.add('modal-open');
   if (panel) panel.scrollTop = 0;
+  const progressBar = document.getElementById('modalReadingProgress');
+  if (progressBar) progressBar.style.transform = 'scaleX(0)';
 
   // L'indirizzo nella barra segue l'articolo aperto
   if (historyMode === 'push') {
