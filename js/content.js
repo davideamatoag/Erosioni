@@ -267,6 +267,8 @@ function renderInline(text) {
     // Sottolineato [u] e Barrato [s] dalla barra strumenti del pannello
     .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
     .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
+    // Barrato nativo dell'editor (pulsante S della barra del pannello)
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
     // Interlinea usata su una PARTE di paragrafo: vale per quelle righe
     .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
     // [riga-vuota] finito in mezzo a un paragrafo: scompare, non si legge
@@ -425,6 +427,7 @@ function stripMarkdown(md) {
     .replace(/^>\s*/gm, '')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
     .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();

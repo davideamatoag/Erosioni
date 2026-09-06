@@ -203,6 +203,20 @@
     }
   });
 
+  // ---------------- Riga vuota ----------------
+  // [riga-vuota] su una riga sua: spazio verticale visibile nell'articolo.
+  CMS.registerEditorComponent({
+    id: 'riga-vuota',
+    label: 'Riga vuota (spazio verticale)',
+    fields: [{ name: 'spazio', label: '', widget: 'hidden', default: '' }],
+    pattern: /\[riga-vuota\]/,
+    fromBlock: function () { return {}; },
+    toBlock: function () { return '[riga-vuota]'; },
+    toPreview: function () {
+      return '<div style="height:1.2em;border-left:2px dashed rgba(196,112,90,0.5);margin:0 0 28px" title="Riga vuota"></div>';
+    }
+  });
+
   // ---------------- Anteprima fedele al sito ----------------
   // Carica i font del sito nel riquadro di anteprima...
   CMS.registerPreviewStyle(
@@ -546,6 +560,24 @@
     ultimaSelezione = null;
   }
 
+  // Riga vuota: inserisce [riga-vuota] nel punto in cui si trova il
+  // cursore (va tenuta su una riga tutta sua): nell'articolo diventa
+  // uno spazio verticale visibile tra i paragrafi.
+  function inserisciRigaVuota() {
+    var sel = window.getSelection();
+    var ed = sel && sel.rangeCount ? dentroEditor(sel.anchorNode)
+                                   : (ultimaSelezione && ultimaSelezione.editor);
+    if (!ed) return;
+    if (ed.tagName === 'TEXTAREA') {
+      ed.focus();
+      ed.setRangeText('\n\n[riga-vuota]\n\n', ed.selectionStart, ed.selectionEnd, 'end');
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      ed.focus();
+      document.execCommand('insertText', false, '[riga-vuota]');
+    }
+  }
+
   // ---------------- Costruzione della barra ----------------
   function costruisciBarra() {
     var bar = document.createElement('div');
@@ -615,6 +647,10 @@
 
     // Nota a piè di pagina
     bar.appendChild(pulsanteIcona('↩ Nota', 'Trasforma il testo selezionato in una nota a piè di pagina: verrà numerata e spostata in fondo all\'articolo', applicaNota));
+    bar.appendChild(separatore());
+
+    // Riga vuota (spazio verticale tra i paragrafi)
+    bar.appendChild(pulsanteIcona('⏎ Riga vuota', 'Inserisce una riga vuota: nell\'articolo diventa uno spazio verticale visibile tra i paragrafi. Va tenuta su una riga tutta sua.', inserisciRigaVuota));
 
     // Niente blur della selezione quando si clicca la barra
     bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
@@ -627,20 +663,38 @@
   }
 
   // ---------------- Aggancio sotto la barra nativa ----------------
-  // Cerca il campo "Testo dell'articolo" e infila la barra subito sopra
-  // l'area di scrittura: diventa a tutti gli effetti la seconda riga
-  // della barra degli strumenti dell'editor.
+  // L'editor markdown del pannello è Lexical: un div.lexical-root
+  // contenteditable dentro un contenitore .text-editor, con la barra
+  // nativa (B, I, link...) subito sopra. La nostra barra si infila tra
+  // le due: diventa a tutti gli effetti la seconda riga dei comandi.
   function trovaEditorArticolo() {
-    var etichette = document.querySelectorAll('label, span, div, p');
-    for (var i = 0; i < etichette.length; i++) {
-      var el = etichette[i];
-      if (el.childElementCount === 0 && /^Testo dell.articolo/.test(el.textContent.trim())) {
-        var cont = el.parentNode;
-        while (cont && cont !== document.body) {
-          var ed = cont.querySelector('[contenteditable="true"], textarea');
-          if (ed) return { contenitore: cont, editor: ed };
-          cont = cont.parentNode;
-        }
+    // 1) Editor visuale (Lexical)
+    var editor = document.querySelector('.text-editor .lexical-root[contenteditable="true"]');
+    if (editor) {
+      var cont = editor.closest('.text-editor');
+      if (cont) return { contenitore: cont, editor: editor };
+    }
+    // 2) Modalità codice: textarea dentro lo stesso contenitore
+    var ta = document.querySelector('.text-editor textarea');
+    if (ta) {
+      var cont2 = ta.closest('.text-editor');
+      if (cont2) return { contenitore: cont2, editor: ta };
+    }
+    // 3) Ripiego: cerca l'etichetta "Testo dell'articolo" (la più
+    //    specifica, cioè quella con meno testo) e risali al suo campo
+    var migliore = null;
+    document.querySelectorAll('label, span, div, p').forEach(function (el) {
+      var t = el.textContent.trim();
+      if (/^Testo dell.articolo/.test(t) && !el.querySelector('[contenteditable="true"], textarea')) {
+        if (!migliore || t.length < migliore.textContent.trim().length) migliore = el;
+      }
+    });
+    if (migliore) {
+      var c = migliore.parentNode;
+      while (c && c !== document.body) {
+        var ed = c.querySelector('[contenteditable="true"], textarea');
+        if (ed) return { contenitore: c, editor: ed };
+        c = c.parentNode;
       }
     }
     return null;
