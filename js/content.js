@@ -30,6 +30,26 @@ function capitalize(str) {
   return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
 
+// Aggiorna i meta tag social (Open Graph/Twitter) della pagina: così quando
+// un articolo o una voce di portfolio viene condiviso, l'anteprima mostra
+// titolo, descrizione e immagine giusti invece di quelli generici del sito.
+function setSocialMeta(title, description, image) {
+  const set = (selector, attr, value) => {
+    let el = document.head.querySelector(selector);
+    if (!el) {
+      el = document.createElement('meta');
+      if (selector.includes('property=')) el.setAttribute('property', selector.match(/property="([^"]+)"/)[1]);
+      else el.setAttribute('name', selector.match(/name="([^"]+)"/)[1]);
+      document.head.appendChild(el);
+    }
+    el.setAttribute(attr, value);
+  };
+  set('meta[property="og:title"]', 'content', title);
+  set('meta[name="twitter:card"]', 'content', 'summary_large_image');
+  if (description) set('meta[property="og:description"]', 'content', description);
+  if (image) set('meta[property="og:image"]', 'content', optimizeImage(image, 1200));
+}
+
 // Indirizzo breve e stabile di una voce di portfolio, derivato dal titolo
 // (usato per la pagina dedicata: voce.html?slug=nome-voce)
 function portfolioSlug(title) {
@@ -254,7 +274,7 @@ function renderInline(text) {
     .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
     .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
-      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" alt="${alt}">`)
+      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" data-full="${url.trim().replace(/"/g, '&quot;')}" alt="${alt}">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
@@ -269,6 +289,17 @@ function renderMarkdown(md) {
   // Le righe vuote CONSECUTIVE non vengono buttate via: ogni riga vuota
   // oltre la prima diventa uno spaziatore visibile (.riga-vuota), così
   // gli spazi inseriti dal pannello si vedono anche nell'articolo finale.
+  //
+  // NOTE A PIÈ DI PAGINA: [nota]testo della nota[/nota] scritto nel punto
+  // del testo a cui si riferisce diventa un numerino in apice cliccabile;
+  // tutte le note vengono raccolte automaticamente in fondo all'articolo,
+  // numerate in ordine di apparizione, con rimando avanti e indietro.
+  const note = [];
+  md = (md || '').replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, (m, testo) => {
+    note.push(testo.trim());
+    return `{{NOTA_${note.length}}}`;
+  });
+
   const pieces = md.split(/(\n\s*\n+)/);
   const blocks = [];
   pieces.forEach((piece, i) => {
@@ -279,12 +310,18 @@ function renderMarkdown(md) {
       for (let k = 0; k < extra; k++) blocks.push('[riga-vuota]');
     }
   });
-  return blocks.map(block => {
+  let html = blocks.map(block => {
     if (block === '[riga-vuota]') return '<p class="riga-vuota" aria-hidden="true"></p>';
     const trimmed = block.trim();
     const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (soloImmagine) {
-      return `<img class="article-inline-img" src="${optimizeImage(soloImmagine[2].trim(), 1000)}" alt="${soloImmagine[1]}">`;
+      // Il testo tra parentesi quadre diventa la DIDASCALIA sotto la foto.
+      const alt = soloImmagine[1].trim();
+      const url = soloImmagine[2].trim();
+      const img = `<img class="article-inline-img" src="${optimizeImage(url, 1000)}" data-full="${url.replace(/"/g, '&quot;')}" alt="${alt.replace(/"/g, '&quot;')}">`;
+      return alt
+        ? `<figure class="article-figure">${img}<figcaption>${renderInline(alt)}</figcaption></figure>`
+        : img;
     }
     const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
     if (stileBlocco) {
@@ -317,10 +354,24 @@ function renderMarkdown(md) {
     }
     return `<p>${renderInline(trimmed).replace(/\n/g, '<br>')}</p>`;
   }).join('\n');
+
+  // Sostituisci i segnaposto con i rimandi numerati e aggiungi la sezione
+  // "Note" in fondo all'articolo
+  if (note.length) {
+    html = html.replace(/\{\{NOTA_(\d+)\}\}/g, (m, n) =>
+      `<sup class="nota-rif" id="rif-${n}"><a href="#nota-${n}">${n}</a></sup>`);
+    html += `\n<section class="note-articolo"><h2 class="note-titolo">Note</h2><ol>` +
+      note.map((t, i) =>
+        `<li id="nota-${i + 1}"><span class="nota-testo">${renderInline(t)}</span> <a class="nota-back" href="#rif-${i + 1}" aria-label="Torna al punto del testo">&#8617;</a></li>`
+      ).join('') +
+      `</ol></section>`;
+  }
+  return html;
 }
 
 function stripMarkdown(md) {
   return (md || '')
+    .replace(/\[nota\][\s\S]*?\[\/nota\]/g, '') // le note non finiscono nei riassunti
     .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco)(=[^\]]*)?\]/g, '')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -389,6 +440,11 @@ async function renderArticlePage() {
   }
 
   document.title = `${article.title} — Erosioni`;
+  setSocialMeta(
+    `${article.title} — Erosioni`,
+    computeExcerpt(article.body, 160),
+    hasImage(article.image) ? article.image : null
+  );
   document.getElementById('articleTitle').textContent = article.title;
   document.getElementById('articleExcerpt').textContent = computeExcerpt(article.body, 170);
   document.getElementById('articleMetaDate').textContent = formatDateIt(article.date);
@@ -432,14 +488,37 @@ async function renderArticlePage() {
   bodyEl.innerHTML = renderMarkdown(article.body || '');
   applyArticleBodyStyle(bodyEl, article, settings);
 
-  // Dissolvenza lenta anche per le immagini inserite nel corpo del testo
-  bodyEl.querySelectorAll('.article-inline-img').forEach((img) => {
+  // Dissolvenza lenta anche per le immagini inserite nel corpo del testo,
+  // che diventano cliccabili: si aprono a tutto schermo nel lightbox e si
+  // scorrono con le frecce (tastiera incluse), come nella galleria portfolio.
+  const bodyImgs = [...bodyEl.querySelectorAll('.article-inline-img')];
+  const lightboxItems = bodyImgs.map((img) => ({
+    tipo: 'foto',
+    file: img.dataset.full || img.src,
+    titolo: img.alt || ''
+  }));
+  bodyImgs.forEach((img, i) => {
     if (img.complete) {
       img.classList.add('is-loaded');
     } else {
       img.onload = () => img.classList.add('is-loaded');
     }
+    img.classList.add('is-zoomable');
+    img.addEventListener('click', () => openPfLightbox(lightboxItems, i));
   });
+
+  // Barra di avanzamento lettura in cima alla pagina
+  const progress = document.getElementById('readingProgress');
+  if (progress) {
+    const aggiornaProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const quota = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      progress.style.transform = `scaleX(${quota})`;
+    };
+    window.addEventListener('scroll', aggiornaProgress, { passive: true });
+    window.addEventListener('resize', aggiornaProgress);
+    aggiornaProgress();
+  }
 
   // Autore (nome e bio dalle impostazioni del sito)
   const nameEl = document.getElementById('authorName');
@@ -451,8 +530,12 @@ async function renderArticlePage() {
   const pageUrl = window.location.href;
   const shareTwitter = document.getElementById('shareTwitter');
   const shareFacebook = document.getElementById('shareFacebook');
+  const shareWhatsapp = document.getElementById('shareWhatsapp');
   const shareCopy = document.getElementById('shareCopy');
   const shareNote = document.getElementById('shareNote');
+  if (shareWhatsapp) shareWhatsapp.addEventListener('click', () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${article.title} — ${pageUrl}`)}`, '_blank', 'noopener');
+  });
   if (shareTwitter) shareTwitter.addEventListener('click', () => {
     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
   });
@@ -778,6 +861,11 @@ async function renderVocePage() {
   }
 
   document.title = `${item.title} — Portfolio — Erosioni`;
+  setSocialMeta(
+    `${item.title} — Portfolio — Erosioni`,
+    (item.description || '').trim() || `Portfolio di Davide Amato — ${capitalize(item.category)}.`,
+    hasImage(item.image) ? item.image : null
+  );
 
   const media = getPortfolioMedia(item);
   const foto = media.filter(m => m.tipo === 'foto').length;

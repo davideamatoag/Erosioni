@@ -1148,3 +1148,140 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   font-size: 0.95rem;
   padding: 24px 0;
 }
+
+/* ---------------- Note a piè di pagina ---------------- */
+/* Rimando numerato nel testo */
+.nota-rif {
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  line-height: 0;
+  margin: 0 1px;
+}
+.nota-rif a {
+  color: var(--terracotta);
+  text-decoration: none;
+  border: none;
+  transition: color 0.2s ease;
+}
+.nota-rif a:hover { color: var(--oro); }
+
+/* Sezione in fondo all'articolo */
+.note-articolo {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(232, 226, 217, 0.16);
+}
+.note-titolo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sabbia);
+  margin: 0 0 18px;
+}
+.note-articolo ol {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.note-articolo li {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--sabbia);
+  margin: 0;
+}
+.note-articolo li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--terracotta);
+}
+.note-articolo li:target { color: var(--calce); }
+.nota-back {
+  color: var(--terracotta);
+  text-decoration: none;
+  margin-left: 6px;
+  font-size: 0.85em;
+  transition: color 0.2s ease;
+}
+.nota-back:hover { color: var(--oro); }
+
+/* Tendina di lettura (sfondo chiaro): varianti */
+.article-modal-panel .note-articolo { border-top-color: rgba(43, 39, 35, 0.16); }
+.article-modal-panel .note-titolo { color: #6B6157; }
+.article-modal-panel .note-articolo li { color: #6B6157; }
+.article-modal-panel .note-articolo li:target { color: #2B2723; }
+.article-modal-panel .nota-rif a { color: #A65A43; }
+.article-modal-panel .nota-rif a:hover { color: #8F6132; }
+.article-modal-panel .nota-back { color: #A65A43; }
+.article-modal-panel .nota-back:hover { color: #8F6132; }
+
+/* ============ MIGLIORIE PAGINA ARTICOLO ============ */
+
+/* Barra di avanzamento lettura: linea sottile terracotta in cima,
+   si riempie mentre si scorre l'articolo */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--terracotta);
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: 150;
+  pointer-events: none;
+}
+
+/* Capolettera: la prima lettera del primo paragrafo diventa
+   un'iniziale editoriale in Playfair terracotta */
+#articleBody > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 3.6em;
+  line-height: 0.82;
+  color: var(--terracotta);
+  float: left;
+  padding: 0.06em 0.12em 0 0;
+}
+
+/* Testo giustificato con sillabazione automatica (solo schermi
+   abbastanza larghi: su mobile il giustificato crea "fiumi" bianchi) */
+@media (min-width: 720px) {
+  #articleBody p { text-align: justify; }
+}
+#articleBody p, #articleBody li { hyphens: auto; -webkit-hyphens: auto; }
+
+/* Foto nel testo con didascalia: il testo tra parentesi quadre
+   dell'immagine finisce sotto la foto, in stile editoriale */
+.article-figure { margin: 40px 0; }
+.article-figure .article-inline-img { margin: 0; }
+.article-figure figcaption {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--sabbia);
+  text-align: center;
+}
+.article-modal-panel .article-figure figcaption { color: #6B6157; }
+
+/* Le foto nel testo si aprono a tutto schermo al clic */
+.article-inline-img.is-zoomable { cursor: zoom-in; }
+
+/* Note a piè di pagina: quando ci si arriva da un rimando, la nota
+   (o il numerino nel testo, tornando indietro) si illumina un attimo */
+.note-articolo li:target,
+.nota-rif:target {
+  background: rgba(212, 165, 116, 0.16);
+  border-radius: 4px;
+  box-shadow: 0 0 0 6px rgba(212, 165, 116, 0.16);
+}
+.article-modal-panel .note-articolo li:target,
+.article-modal-panel .nota-rif:target {
+  background: rgba(166, 90, 67, 0.14);
+  box-shadow: 0 0 0 6px rgba(166, 90, 67, 0.14);
+}
