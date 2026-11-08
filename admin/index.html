@@ -651,6 +651,12 @@
 
     // Riga vuota (spazio verticale tra i paragrafi)
     bar.appendChild(pulsanteIcona('⏎ Riga vuota', 'Inserisce una riga vuota: nell\'articolo diventa uno spazio verticale visibile tra i paragrafi. Va tenuta su una riga tutta sua.', inserisciRigaVuota));
+    bar.appendChild(separatore());
+
+    // Importa un file Word: apre il convertitore in una nuova scheda
+    bar.appendChild(pulsanteIcona('📄 Word', 'Importa un articolo da un file Word (.docx): lo converte nel formato del blog, note incluse. Si apre in una nuova scheda.', function () {
+      window.open('importa.html', '_blank');
+    }));
 
     // Niente blur della selezione quando si clicca la barra
     bar.addEventListener('mousedown', function (e) { e.preventDefault(); });

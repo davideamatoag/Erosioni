@@ -87,6 +87,7 @@ collections:
             fields:
               - { label: "Slug (usato nell'indirizzo, es. montagna, senza spazi o accenti)", name: "slug", widget: "string" }
               - { label: "Titolo", name: "title", widget: "string" }
+              - { label: "Sottotitolo (facoltativo — se lo lasci vuoto, sotto il titolo non compare nulla)", name: "sottotitolo", widget: "string", required: false }
               - label: "Categoria"
                 name: "category"
                 widget: "select"

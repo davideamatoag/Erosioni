@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importa da Word — Erosioni</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #F5F0E8; color: #2B2723;
+  }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  .sotto { color: #6B6157; margin: 0 0 28px; font-size: 0.95rem; }
+  .zona {
+    border: 2px dashed rgba(166,90,67,0.5); border-radius: 12px;
+    padding: 44px 24px; text-align: center; cursor: pointer;
+    background: rgba(255,255,255,0.55); transition: background .15s;
+  }
+  .zona:hover, .zona.trascina { background: rgba(166,90,67,0.08); }
+  .zona strong { color: #A65A43; }
+  .zona small { display: block; margin-top: 8px; color: #6B6157; }
+  #risultato { display: none; margin-top: 28px; }
+  .barra-azioni { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  button.copia {
+    font: inherit; font-size: 0.95rem; cursor: pointer;
+    background: #A65A43; color: #fff; border: 0; border-radius: 8px;
+    padding: 10px 22px;
+  }
+  button.copia:hover { background: #8f4c38; }
+  .stat { font-size: 0.85rem; color: #6B6157; font-family: ui-monospace, monospace; }
+  textarea {
+    width: 100%; min-height: 420px; resize: vertical;
+    font: 14px/1.6 ui-monospace, 'SF Mono', Menlo, monospace;
+    border: 1px solid rgba(43,39,35,0.25); border-radius: 8px;
+    padding: 16px; background: #fff; color: #2B2723;
+  }
+  .avviso {
+    display: none; margin: 0 0 14px; padding: 12px 16px;
+    background: rgba(166,90,67,0.1); border-left: 3px solid #A65A43;
+    border-radius: 0 8px 8px 0; font-size: 0.9rem;
+  }
+  ol.aiuto { margin: 28px 0 0; padding-left: 22px; color: #6B6157; font-size: 0.95rem; line-height: 1.9; }
+  ol.aiuto b { color: #2B2723; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Importa un articolo da Word</h1>
+  <p class="sotto">Carica il file <code>.docx</code>: il testo viene convertito nel formato del blog (titoli, grassetto, corsivo e note a piè di pagina incluse).</p>
+
+  <div class="zona" id="zona">
+    <strong>Scegli il file Word</strong> oppure trascinalo qui
+    <small>La conversione avviene tutta nel tuo browser: il file non viene caricato da nessuna parte.</small>
+    <input type="file" id="file" accept=".docx" hidden>
+  </div>
+
+  <div class="avviso" id="avviso"></div>
+
+  <div id="risultato">
+    <div class="barra-azioni">
+      <button class="copia" id="copia">Copia il testo</button>
+      <span class="stat" id="stat"></span>
+    </div>
+    <textarea id="testo" spellcheck="false"></textarea>
+  </div>
+
+  <ol class="aiuto">
+    <li><b>Converti</b> il file con il tasto qui sopra.</li>
+    <li><b>Copia</b> il risultato.</li>
+    <li>Nel pannello di amministrazione, apri (o crea) l'articolo e <b>incolla</b> il testo nel campo «Testo dell'articolo».</li>
+    <li>Le <b>note</b> di Word diventano automaticamente note a piè di pagina numerate. Le <b>immagini</b> vanno caricate a parte (Cloudinary), come sempre.</li>
+  </ol>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script>
+(function () {
+  var zona = document.getElementById('zona');
+  var input = document.getElementById('file');
+  var risultato = document.getElementById('risultato');
+  var testo = document.getElementById('testo');
+  var stat = document.getElementById('stat');
+  var avviso = document.getElementById('avviso');
+  var copia = document.getElementById('copia');
+
+  zona.addEventListener('click', function () { input.click(); });
+  zona.addEventListener('dragover', function (e) { e.preventDefault(); zona.classList.add('trascina'); });
+  zona.addEventListener('dragleave', function () { zona.classList.remove('trascina'); });
+  zona.addEventListener('drop', function (e) {
+    e.preventDefault(); zona.classList.remove('trascina');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) converti(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', function () {
+    if (input.files && input.files[0]) converti(input.files[0]);
+  });
+
+  copia.addEventListener('click', function () {
+    testo.select();
+    navigator.clipboard.writeText(testo.value).then(function () {
+      copia.textContent = 'Copiato ✓';
+      setTimeout(function () { copia.textContent = 'Copia il testo'; }, 2000);
+    });
+  });
+
+  function segnala(msg) {
+    avviso.style.display = 'block';
+    avviso.innerHTML = msg;
+  }
+
+  function converti(file) {
+    if (!/\.docx$/i.test(file.name)) {
+      segnala('Il file deve essere in formato <b>.docx</b> (Word).');
+      return;
+    }
+    avviso.style.display = 'none';
+    var reader = new FileReader();
+    reader.onload = function () {
+      mammoth.convertToHtml(
+        { arrayBuffer: reader.result },
+        {
+          // Le immagini non possono essere caricate dal browser sul sito:
+          // diventano un segnaposto da sostituire con l'URL di Cloudinary.
+          convertImage: mammoth.images.imgElement(function () {
+            return { src: 'URL-IMMAGINE-CLOUDINARY' };
+          })
+        }
+      ).then(function (res) {
+        var esito = htmlVersoMarkdown(res.value);
+        testo.value = esito.markdown;
+        risultato.style.display = 'block';
+        stat.textContent = esito.note + ' note · ' + esito.immagini + ' immagini · ' +
+          esito.markdown.length + ' caratteri';
+        var messaggi = [];
+        if (esito.immagini > 0) {
+          messaggi.push('Il documento contiene <b>' + esito.immagini + ' immagini</b>: nel testo trovi il segnaposto <code>URL-IMMAGINE-CLOUDINARY</code> da sostituire dopo averle caricate su Cloudinary.');
+        }
+        if (res.messages && res.messages.length) {
+          var ignorate = res.messages.filter(function (m) { return m.type === 'warning'; });
+          if (ignorate.length) messaggi.push('Alcuni elementi non convertibili sono stati semplificati (' + ignorate.length + ' avvisi).');
+        }
+        if (messaggi.length) segnala(messaggi.join('<br>'));
+        risultato.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }).catch(function (err) {
+        segnala('Non sono riuscito a leggere il file: ' + err.message);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------------- HTML -> markdown del blog ----------------
+  function htmlVersoMarkdown(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // 1) Raccoglie le definizioni delle note di Word
+    //    (mammoth: <li id="footnote-1">...testo... <a href="#footnote-ref-1">↑</a></li>)
+    var note = {};
+    var contenitoreNote = null;
+    doc.querySelectorAll('li[id^="footnote-"]').forEach(function (li) {
+      var n = li.id.replace('footnote-', '');
+      var cl = li.cloneNode(true);
+      cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function (a) { a.remove(); });
+      note[n] = inline(cl).trim();
+      if (!contenitoreNote) contenitoreNote = li.closest('ol, ul, div');
+    });
+    if (contenitoreNote && contenitoreNote.parentNode) contenitoreNote.parentNode.removeChild(contenitoreNote);
+    doc.querySelectorAll('hr').forEach(function (hr) { hr.remove(); });
+
+    var nImmagini = 0;
+
+    // 2) Conversione ricorsiva del contenuto in linea
+    function inline(nodo) {
+      var out = '';
+      nodo.childNodes.forEach(function (el) {
+        if (el.nodeType === 3) { out += el.textContent; return; }
+        if (el.nodeType !== 1) return;
+        var tag = el.tagName.toLowerCase();
+        if (tag === 'sup') {
+          var rif = el.querySelector('a[href^="#footnote-"]');
+          if (rif) {
+            var n = rif.getAttribute('href').replace('#footnote-', '');
+            out += '[nota]' + (note[n] || '') + '[/nota]';
+            return;
+          }
+        }
+        if (tag === 'a') {
+          var href = el.getAttribute('href') || '';
+          if (href.indexOf('#footnote-') === 0) {
+            var n2 = href.replace('#footnote-', '');
+            out += '[nota]' + (note[n2] || '') + '[/nota]';
+          } else if (href.indexOf('#footnote-ref-') !== 0) {
+            out += '[' + inline(el) + '](' + href + ')';
+          }
+          return;
+        }
+        if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
+        if (tag === 'em' || tag === 'i') { out += '_' + inline(el) + '_'; return; }
+        if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
+        if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
+        if (tag === 'br') { out += '\n'; return; }
+        if (tag === 'img') {
+          nImmagini++;
+          var alt = (el.getAttribute('alt') || '').trim();
+          out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+          return;
+        }
+        out += inline(el);
+      });
+      return out;
+    }
+
+    // 3) Conversione dei blocchi
+    function blocco(el) {
+      var tag = el.tagName.toLowerCase();
+      var contenuto = inline(el).replace(/[ \t]+\n/g, '\n').trim();
+      if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
+      if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
+      if (tag === 'blockquote') {
+        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+      }
+      if (tag === 'ul') {
+        return Array.prototype.map.call(el.children, function (li) {
+          return '- ' + inline(li).trim();
+        }).join('\n');
+      }
+      if (tag === 'ol') {
+        return Array.prototype.map.call(el.children, function (li, i) {
+          return (i + 1) + '. ' + inline(li).trim();
+        }).join('\n');
+      }
+      return contenuto;
+    }
+
+    var blocchi = [];
+    doc.body.childNodes.forEach(function (el) {
+      if (el.nodeType !== 1) return;
+      var b = blocco(el);
+      if (b) blocchi.push(b);
+    });
+
+    var markdown = blocchi.join('\n\n');
+    // Se in Word due corsivi si toccano ("fine_ _inizio"), lo spazio tra
+    // essi verrebbe letto come un corsivo a sé e romperebbe i corsivi
+    // seguenti: lo riduciamo a un normale spazio.
+    markdown = markdown.replace(/_\s+_/g, ' ');
+
+    return {
+      markdown: markdown,
+      note: Object.keys(note).length,
+      immagini: nImmagini
+    };
+  }
+})();
+</script>
+</body>
+</html>
