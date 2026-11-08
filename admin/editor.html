@@ -292,10 +292,24 @@
         </div>
         <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">Scarica l'articolo dal JSON remoto e riempie i campi.</p>
       </div>
+
+      <div class="field">
+        <label>Pubblicazione su GitHub</label>
+        <input type="password" id="githubToken" placeholder="Token GitHub (ghp_...)">
+        <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=Erosioni%20Editor" target="_blank" rel="noopener">Genera token</a>
+          con permesso <code>repo</code>, incollalo qui, poi premi "Pubblica".
+          Il token resta nel tuo browser, non viene inviato altrove.
+        </p>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="saveToken" style="width:auto;"> Salva token nel browser
+        </label>
+      </div>
     </div>
 
     <div class="actions-bar">
-      <button class="btn-primary" onclick="exportJSON()">Esporta JSON</button>
+      <button class="btn-primary" onclick="publishToGitHub()">Pubblica su GitHub</button>
+      <button class="btn-secondary" onclick="exportJSON()">Esporta JSON</button>
       <button class="btn-secondary" onclick="copyBody()">Copia solo testo</button>
       <button class="btn-secondary" onclick="clearAll()">Svuota</button>
       <span class="status" id="status"></span>
@@ -729,6 +743,117 @@ document.getElementById('wordFile').addEventListener('change', function () {
   if (this.files && this.files[0]) importaWord(this.files[0]);
 });
 
+// ==================== PUBBLICAZIONE GITHUB ====================
+// Base64 helpers per Unicode (GitHub API richiede Base64 standard)
+function b64EncodeUnicode(str) {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+    return String.fromCharCode('0x' + p1);
+  }));
+}
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(atob(str).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+
+async function publishToGitHub() {
+  const token = document.getElementById('githubToken').value.trim();
+  if (!token) {
+    alert('Inserisci il token GitHub.\n\n1. Vai su https://github.com/settings/tokens/new\n2. Seleziona il permesso "repo"\n3. Copia il token e incollalo qui.');
+    return;
+  }
+  if (document.getElementById('saveToken').checked) {
+    localStorage.setItem('erosioni_github_token', token);
+  } else {
+    localStorage.removeItem('erosioni_github_token');
+  }
+
+  const slug = document.getElementById('inpSlug').value.trim();
+  if (!slug) {
+    alert('Inserisci uno slug per l\'articolo (es. la-rinascita-dell-ontologia).');
+    return;
+  }
+  const title = document.getElementById('inpTitle').value.trim() || slug;
+  const status = document.getElementById('status');
+  status.textContent = 'Connessione a GitHub...';
+
+  try {
+    const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/content/articoli.json';
+
+    // 1. Leggi il file attuale
+    const getRes = await fetch(apiUrl, {
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (!getRes.ok) throw new Error('Impossibile leggere articoli.json (' + getRes.status + '). Verifica il token.');
+    const fileData = await getRes.json();
+
+    // 2. Decodifica e modifica
+    const currentContent = b64DecodeUnicode(fileData.content);
+    const data = JSON.parse(currentContent);
+
+    const article = {
+      slug: slug,
+      title: document.getElementById('inpTitle').value || '',
+      sottotitolo: document.getElementById('inpSubtitle').value || '',
+      category: document.getElementById('inpCategory').value,
+      date: document.getElementById('inpDate').value || new Date().toISOString().slice(0,10),
+      image: document.getElementById('inpImage').value || '',
+      font: document.getElementById('inpFont').value,
+      colore: document.getElementById('inpColore').value,
+      body: document.getElementById('inpBody').value || ''
+    };
+
+    const articles = data.articles || [];
+    const existingIdx = articles.findIndex(function(a) { return a.slug === slug; });
+    const isNew = existingIdx < 0;
+
+    if (!isNew) {
+      if (!confirm('L\'articolo "' + (articles[existingIdx].title || slug) + '" esiste già. Sovrascriverlo?')) {
+        status.textContent = '';
+        return;
+      }
+      articles[existingIdx] = article;
+    } else {
+      articles.unshift(article);
+    }
+    data.articles = articles;
+
+    // 3. Codifica e salva
+    status.textContent = 'Salvataggio in corso...';
+    const newContent = JSON.stringify(data, null, 2);
+    const encoded = b64EncodeUnicode(newContent);
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: (isNew ? 'Aggiunge' : 'Aggiorna') + ' articolo: ' + title + ' via editor',
+        content: encoded,
+        sha: fileData.sha
+      })
+    });
+
+    if (!putRes.ok) {
+      var errData = await putRes.json().catch(function() { return {}; });
+      throw new Error(errData.message || 'Errore ' + putRes.status);
+    }
+
+    status.textContent = 'Pubblicato! Attendi 1-2 minuti per GitHub Pages.';
+    setTimeout(function() { status.textContent = ''; }, 6000);
+
+  } catch (err) {
+    status.textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
 // ==================== PREVIEW ====================
 function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -833,6 +958,13 @@ async function loadExisting() {
 }
 
 // ==================== INIT ====================
+// Carica token GitHub salvato
+var savedToken = localStorage.getItem('erosioni_github_token');
+if (savedToken) {
+  document.getElementById('githubToken').value = savedToken;
+  document.getElementById('saveToken').checked = true;
+}
+
 ['inpSlug','inpTitle','inpSubtitle','inpCategory','inpDate','inpImage','inpFont','inpColore','inpBody'].forEach(id => {
   document.getElementById(id).addEventListener('input', updatePreview);
 });
