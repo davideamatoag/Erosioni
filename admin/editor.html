@@ -257,21 +257,24 @@
 
       <div class="field">
         <label>Toolbar</label>
-        <div class="toolbar">
-          <button type="button" onclick="wrap('**','**')" title="Grassetto"><b>B</b></button>
-          <button type="button" onclick="wrap('*','*')" title="Corsivo"><i>I</i></button>
-          <button type="button" onclick="wrap('~~','~~')" title="Barrato"><s>S</s></button>
-          <button type="button" onclick="wrap('## ')" title="Titolo">H2</button>
-          <button type="button" onclick="wrap('### ')" title="Sottotitolo">H3</button>
+        <div class="toolbar" id="toolbar">
+          <button type="button" data-action="bold" title="Grassetto"><b>B</b></button>
+          <button type="button" data-action="italic" title="Corsivo"><i>I</i></button>
+          <button type="button" data-action="strike" title="Barrato"><s>S</s></button>
+          <button type="button" data-action="h2" title="Titolo">H2</button>
+          <button type="button" data-action="h3" title="Sottotitolo">H3</button>
           <span class="toolbar-sep"></span>
-          <button type="button" onclick="insertNote()" title="Nota a piè di pagina">📝 Nota</button>
-          <button type="button" onclick="insertColor()" title="Colore testo">🎨 Colore</button>
-          <button type="button" onclick="insertFont()" title="Font">🔤 Font</button>
-          <button type="button" onclick="insertInterlinea()" title="Interlinea">📐 Interlinea</button>
+          <button type="button" data-action="note" title="Nota a piè di pagina">📝 Nota</button>
+          <button type="button" data-action="color" title="Colore testo">🎨 Colore</button>
+          <button type="button" data-action="font" title="Font">🔤 Font</button>
+          <button type="button" data-action="interlinea" title="Interlinea">📐 Interlinea</button>
           <span class="toolbar-sep"></span>
-          <button type="button" onclick="wrap('> ')" title="Citazione">❝ Citaz.</button>
-          <button type="button" onclick="insertEmptyLine()" title="Riga vuota extra">⬜ Riga</button>
-          <button type="button" onclick="insertImage()" title="Immagine inline">🖼️ Img</button>
+          <button type="button" data-action="quote" title="Citazione">❝ Citaz.</button>
+          <button type="button" data-action="empty" title="Riga vuota extra">⬜ Riga</button>
+          <button type="button" data-action="image" title="Immagine inline">🖼️ Img</button>
+          <span class="toolbar-sep"></span>
+          <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">📄 Word</button>
+          <input type="file" id="wordFile" accept=".docx" hidden>
           <small>Seleziona testo e premi un pulsante</small>
         </div>
       </div>
@@ -318,6 +321,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
 // ==================== RENDERING (identico al sito) ====================
 const MONTHS_IT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
@@ -444,9 +448,17 @@ function renderMarkdown(md) {
 }
 
 // ==================== EDITOR ACTIONS ====================
+let savedSel = { start: 0, end: 0 };
+
+// Salva la selezione della textarea prima che i pulsanti prendano il focus
+document.getElementById('toolbar').addEventListener('mousedown', function(e) {
+  const ta = document.getElementById('inpBody');
+  savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
+});
+
 function wrap(before, after) {
   const ta = document.getElementById('inpBody');
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const s = savedSel.start, e = savedSel.end;
   const val = ta.value;
   const selected = val.slice(s, e);
   const replacement = before + selected + (after || '');
@@ -458,7 +470,7 @@ function wrap(before, after) {
 }
 function insertAtCursor(text) {
   const ta = document.getElementById('inpBody');
-  const s = ta.selectionStart;
+  const s = savedSel.start;
   ta.value = ta.value.slice(0, s) + text + ta.value.slice(s);
   ta.selectionStart = ta.selectionEnd = s + text.length;
   ta.focus();
@@ -474,7 +486,7 @@ function insertColor() {
   const scelta = prompt(`Scegli colore: ${colori.join(', ')}`);
   if (!scelta || !colori.includes(scelta)) return;
   const ta = document.getElementById('inpBody');
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const s = savedSel.start, e = savedSel.end;
   const sel = ta.value.slice(s, e) || 'testo colorato';
   insertAtCursor(`[colore=${scelta}]${sel}[/colore]`);
 }
@@ -483,7 +495,7 @@ function insertFont() {
   const scelta = prompt(`Scegli font: ${fonts.join(', ')}`);
   if (!scelta || !fonts.includes(scelta)) return;
   const ta = document.getElementById('inpBody');
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const s = savedSel.start, e = savedSel.end;
   const sel = ta.value.slice(s, e) || 'testo';
   insertAtCursor(`[font=${scelta}]${sel}[/font]`);
 }
@@ -491,7 +503,7 @@ function insertInterlinea() {
   const valore = prompt('Interlinea (es. 1.6, 1.8, 2):', '1.6');
   if (!valore || isNaN(parseFloat(valore))) return;
   const ta = document.getElementById('inpBody');
-  const s = ta.selectionStart, e = ta.selectionEnd;
+  const s = savedSel.start, e = savedSel.end;
   const sel = ta.value.slice(s, e) || 'testo con interlinea';
   insertAtCursor(`[interlinea=${valore}]${sel}[/interlinea]`);
 }
@@ -504,6 +516,218 @@ function insertImage() {
   const alt = prompt('Didascalia (facoltativa):') || '';
   insertAtCursor(`\n\n![${alt}](${url})\n\n`);
 }
+
+// Toolbar event delegation
+document.getElementById('toolbar').addEventListener('click', function(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  switch (action) {
+    case 'bold': wrap('**','**'); break;
+    case 'italic': wrap('*','*'); break;
+    case 'strike': wrap('~~','~~'); break;
+    case 'h2': wrap('## '); break;
+    case 'h3': wrap('### '); break;
+    case 'quote': wrap('> '); break;
+    case 'note': insertNote(); break;
+    case 'color': insertColor(); break;
+    case 'font': insertFont(); break;
+    case 'interlinea': insertInterlinea(); break;
+    case 'empty': insertEmptyLine(); break;
+    case 'image': insertImage(); break;
+  }
+});
+
+// ==================== IMPORTAZIONE WORD ====================
+// Converte un file .docx in markdown del blog (note, corsivi, citazioni, immagini)
+function htmlVersoMarkdown(html) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // 1) Raccoglie le definizioni delle note di Word
+  var note = {};
+  var contenitoreNote = null;
+  doc.querySelectorAll('li[id^="footnote-"]').forEach(function (li) {
+    var n = li.id.replace('footnote-', '');
+    var cl = li.cloneNode(true);
+    cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function (a) { a.remove(); });
+    note[n] = inline(cl).trim();
+    if (!contenitoreNote) contenitoreNote = li.closest('ol, ul, div');
+  });
+  if (contenitoreNote && contenitoreNote.parentNode) contenitoreNote.parentNode.removeChild(contenitoreNote);
+  doc.querySelectorAll('hr').forEach(function (hr) { hr.remove(); });
+
+  var nImmagini = 0;
+
+  // 2) Conversione ricorsiva del contenuto in linea
+  function inline(nodo) {
+    var out = '';
+    nodo.childNodes.forEach(function (el) {
+      if (el.nodeType === 3) { out += el.textContent; return; }
+      if (el.nodeType !== 1) return;
+      var tag = el.tagName.toLowerCase();
+      if (tag === 'sup') {
+        var rif = el.querySelector('a[href^="#footnote-"]');
+        if (rif) {
+          var n = rif.getAttribute('href').replace('#footnote-', '');
+          out += '[nota]' + (note[n] || '') + '[/nota]';
+          return;
+        }
+      }
+      if (tag === 'a') {
+        var href = el.getAttribute('href') || '';
+        if (href.indexOf('#footnote-') === 0) {
+          var n2 = href.replace('#footnote-', '');
+          out += '[nota]' + (note[n2] || '') + '[/nota]';
+        } else if (href.indexOf('#footnote-ref-') !== 0) {
+          out += '[' + inline(el) + '](' + href + ')';
+        }
+        return;
+      }
+      if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
+      // Usiamo * per i corsivi: così gli underscore presenti nel testo
+      // (es. nei titoli dei libri) non interferiscono con il markdown.
+      if (tag === 'em' || tag === 'i') { out += '*' + inline(el) + '*'; return; }
+      if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
+      if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
+      if (tag === 'br') { out += '\n'; return; }
+      if (tag === 'img') {
+        nImmagini++;
+        var alt = (el.getAttribute('alt') || '').trim();
+        out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+        return;
+      }
+      out += inline(el);
+    });
+    return out;
+  }
+
+  // Rileva se un paragrafo ha un rientro significativo (probabile citazione)
+  function haRientro(el) {
+    var stile = (el.getAttribute('style') || '').toLowerCase();
+    var m = stile.match(/margin-left\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+    if (m) {
+      var val = parseFloat(m[1]);
+      var unit = m[2];
+      if (unit === 'pt' && val > 18) return true;
+      if (unit === 'px' && val > 24) return true;
+      if (unit === 'em' || unit === 'rem') return val > 1.5;
+      if (unit === 'cm' && val > 0.6) return true;
+      if (unit === 'mm' && val > 6) return true;
+      if (unit === 'in' && val > 0.25) return true;
+    }
+    var ti = stile.match(/text-indent\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+    if (ti) {
+      var v = parseFloat(ti[1]);
+      var u = ti[2];
+      if (u === 'pt' && v > 18) return true;
+      if (u === 'px' && v > 24) return true;
+      if (u === 'em' || u === 'rem') return v > 1.5;
+      if (u === 'cm' && v > 0.6) return true;
+      if (u === 'mm' && v > 6) return true;
+      if (u === 'in' && v > 0.25) return true;
+    }
+    return false;
+  }
+
+  // 3) Conversione dei blocchi
+  function blocco(el) {
+    var tag = el.tagName.toLowerCase();
+    var contenuto = inline(el).replace(/[ \t]+\n/g, '\n').trim();
+    if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
+    if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
+    if (tag === 'blockquote') {
+      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    }
+    if (tag === 'p' && haRientro(el) && contenuto) {
+      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    }
+    if (tag === 'ul') {
+      return Array.prototype.map.call(el.children, function (li) {
+        return '- ' + inline(li).trim();
+      }).join('\n');
+    }
+    if (tag === 'ol') {
+      return Array.prototype.map.call(el.children, function (li, i) {
+        return (i + 1) + '. ' + inline(li).trim();
+      }).join('\n');
+    }
+    return contenuto;
+  }
+
+  var blocchi = [];
+  doc.body.childNodes.forEach(function (el) {
+    if (el.nodeType !== 1) return;
+    var b = blocco(el);
+    if (b) blocchi.push(b);
+  });
+
+  var markdown = blocchi.join('\n\n');
+  // Se in Word due corsivi si toccano ("fine_ _inizio"), riduciamo a spazio normale
+  markdown = markdown.replace(/_\s+_/g, ' ');
+
+  return {
+    markdown: markdown,
+    note: Object.keys(note).length,
+    immagini: nImmagini
+  };
+}
+
+function importaWord(file) {
+  if (!/\.docx$/i.test(file.name)) {
+    alert('Il file deve essere in formato .docx (Word).');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function () {
+    mammoth.convertToHtml(
+      { arrayBuffer: reader.result },
+      {
+        convertImage: mammoth.images.imgElement(function () {
+          return { src: 'URL-IMMAGINE-CLOUDINARY' };
+        })
+      }
+    ).then(function (res) {
+      var esito = htmlVersoMarkdown(res.value);
+
+      // Estrae titolo dal primo H1/H2, sottotitolo dal primo H3
+      var temp = document.createElement('div');
+      temp.innerHTML = res.value;
+      var h1 = temp.querySelector('h1, h2');
+      var h3 = temp.querySelector('h3');
+      if (h1 && !document.getElementById('inpTitle').value) {
+        document.getElementById('inpTitle').value = h1.textContent.trim();
+      }
+      if (h3 && !document.getElementById('inpSubtitle').value) {
+        document.getElementById('inpSubtitle').value = h3.textContent.trim();
+      }
+
+      // Inserisce il testo nel body (append se già presente)
+      var ta = document.getElementById('inpBody');
+      if (ta.value.trim()) {
+        ta.value += '\n\n' + esito.markdown;
+      } else {
+        ta.value = esito.markdown;
+      }
+
+      updatePreview();
+      var msg = 'Importato: ' + esito.note + ' note, ' + esito.immagini + ' immagini';
+      if (esito.immagini > 0) msg += '. Sostituisci URL-IMMAGINE-CLOUDINARY con gli URL reali.';
+      document.getElementById('status').textContent = msg;
+      setTimeout(function () { document.getElementById('status').textContent = ''; }, 4000);
+    }).catch(function (err) {
+      alert('Errore lettura file: ' + err.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Gestione pulsante Importa Word
+document.getElementById('btnImportWord').addEventListener('click', function () {
+  document.getElementById('wordFile').click();
+});
+document.getElementById('wordFile').addEventListener('change', function () {
+  if (this.files && this.files[0]) importaWord(this.files[0]);
+});
 
 // ==================== PREVIEW ====================
 function escapeHtml(str) {
