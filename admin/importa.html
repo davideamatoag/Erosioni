@@ -175,7 +175,7 @@
     function inline(nodo) {
       var out = '';
       nodo.childNodes.forEach(function (el) {
-        if (el.nodeType === 3) { out += el.textContent; return; }
+        if (el.nodeType === 3) { out += escapaTesto(el.textContent); return; }
         if (el.nodeType !== 1) return;
         var tag = el.tagName.toLowerCase();
         if (tag === 'sup') {
@@ -197,7 +197,9 @@
           return;
         }
         if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
-        if (tag === 'em' || tag === 'i') { out += '_' + inline(el) + '_'; return; }
+        // Usiamo * per i corsivi: così gli underscore presenti nel testo
+        // (es. nei titoli dei libri) non interferiscono con il markdown.
+        if (tag === 'em' || tag === 'i') { out += '*' + inline(el) + '*'; return; }
         if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
         if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
         if (tag === 'br') { out += '\n'; return; }
@@ -221,6 +223,11 @@
       if (tag === 'blockquote') {
         return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
       }
+      // Citazioni formattate in Word solo con rientro (non come "Citazione"):
+      // mammoth le converte in <p> con margin-left / text-indent.
+      if (tag === 'p' && haRientro(el) && contenuto) {
+        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+      }
       if (tag === 'ul') {
         return Array.prototype.map.call(el.children, function (li) {
           return '- ' + inline(li).trim();
@@ -232,6 +239,36 @@
         }).join('\n');
       }
       return contenuto;
+    }
+
+    // Rileva se un paragrafo ha un rientro significativo (probabile citazione)
+    function haRientro(el) {
+      var stile = (el.getAttribute('style') || '').toLowerCase();
+      var m = stile.match(/margin-left\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+      if (m) {
+        var val = parseFloat(m[1]);
+        var unit = m[2];
+        // Soglia: più di ~1.5em o equivalente
+        if (unit === 'pt' && val > 18) return true;
+        if (unit === 'px' && val > 24) return true;
+        if (unit === 'em' || unit === 'rem') return val > 1.5;
+        if (unit === 'cm' && val > 0.6) return true;
+        if (unit === 'mm' && val > 6) return true;
+        if (unit === 'in' && val > 0.25) return true;
+      }
+      // text-indent positivo grande
+      var ti = stile.match(/text-indent\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+      if (ti) {
+        var v = parseFloat(ti[1]);
+        var u = ti[2];
+        if (u === 'pt' && v > 18) return true;
+        if (u === 'px' && v > 24) return true;
+        if (u === 'em' || u === 'rem') return v > 1.5;
+        if (u === 'cm' && v > 0.6) return true;
+        if (u === 'mm' && v > 6) return true;
+        if (u === 'in' && v > 0.25) return true;
+      }
+      return false;
     }
 
     var blocchi = [];

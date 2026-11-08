@@ -287,6 +287,9 @@ function renderInline(text) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // L'underscore escapato (es. nei titoli dei libri) diventa un semplice
+    // trattino basso visibile, non un delimitatore di corsivo.
+    .replace(/\\_/g, '_')
     // il pannello scrive il corsivo anche con i trattini bassi: _così_
     .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '<em>$1</em>');
 }
@@ -495,7 +498,10 @@ async function renderArticlePage() {
     hasImage(article.image) ? article.image : null
   );
   document.getElementById('articleTitle').textContent = article.title;
-  document.getElementById('articleExcerpt').textContent = computeExcerpt(article.body, 170);
+  // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
+  const excerptEl = document.getElementById('articleExcerpt');
+  excerptEl.textContent = (article.sottotitolo || '').trim();
+  excerptEl.hidden = !excerptEl.textContent;
   document.getElementById('articleMetaDate').textContent = formatDateIt(article.date);
   document.getElementById('articleMetaCategory').textContent = categoryLabel(article.category);
   document.getElementById('articleMetaReadTime').textContent = `${computeReadingTime(article.body)} min`;
@@ -1070,7 +1076,10 @@ async function openArticleModal(slug, historyMode = 'push') {
   document.getElementById('modalArticleMeta').textContent =
     `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body)} min di lettura`;
   document.getElementById('modalArticleTitle').textContent = article.title;
-  document.getElementById('modalArticleExcerpt').textContent = computeExcerpt(article.body, 170);
+  // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
+  const modalExcerptEl = document.getElementById('modalArticleExcerpt');
+  modalExcerptEl.textContent = (article.sottotitolo || '').trim();
+  modalExcerptEl.hidden = !modalExcerptEl.textContent;
 
   const heroImg = document.getElementById('modalArticleImg');
   if (hasImage(article.image)) {
