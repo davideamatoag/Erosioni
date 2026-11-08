@@ -575,11 +575,11 @@ async function renderArticlePage() {
     aggiornaProgress();
   }
 
-  // Autore (nome e bio dalle impostazioni del sito)
+  // Autore (solo nome, dalla pagina dedicata)
   const nameEl = document.getElementById('authorName');
   const bioEl = document.getElementById('authorBio');
   if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
+  if (bioEl) bioEl.textContent = '';
 
   // Condivisione
   const pageUrl = window.location.href;
@@ -632,10 +632,6 @@ async function renderArticlePage() {
       openArticleModal(article.slug);
     });
   }
-
-  // Rimuove la bio dell'autore dalla sidebar (solo nome)
-  const bioEl = document.getElementById('authorBio');
-  if (bioEl) bioEl.textContent = '';
 
   // Articoli correlati
   const latestPanel = document.getElementById('latestArticlesList');
