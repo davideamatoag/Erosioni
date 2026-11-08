@@ -246,13 +246,106 @@
   align-items: start;
 }
 
+/* Wrapper chiaro per il contenuto dell'articolo sulla pagina dedicata:
+   mantiene il body nero ma usa una card chiara per il testo */
+.article-light-card {
+  background: #F5F0E8;
+  border-radius: 14px;
+  padding: 48px 56px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.article-light-card .article-body p,
+.article-light-card .article-body h2,
+.article-light-card .article-body h3,
+.article-light-card .article-body ul,
+.article-light-card .article-body ol,
+.article-light-card .article-body blockquote {
+  color: #2B2723;
+}
+.article-light-card .article-body a {
+  color: #A65A43;
+  border-bottom-color: rgba(166, 90, 67, 0.35);
+}
+.article-light-card .article-body a:hover {
+  color: #8f4c38;
+}
+.article-light-card .article-body blockquote {
+  background: rgba(166, 90, 67, 0.06);
+  color: #5A5249;
+}
+.article-light-card .nota-rif a { color: #A65A43; }
+.article-light-card .note-articolo {
+  border-top-color: rgba(43, 39, 35, 0.12);
+}
+.article-light-card .note-titolo { color: #2B2723; }
+.article-light-card .nota-back { color: #A65A43; }
+
 .article-body { padding-bottom: 8px; }
+
+/* Navigazione prev/next nella pagina dedicata */
+.article-prev-next {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(43, 39, 35, 0.12);
+}
+.article-prev-next a {
+  display: block;
+  max-width: 48%;
+  text-decoration: none;
+  color: #2B2723;
+  transition: color 0.2s ease;
+}
+.article-prev-next a:hover { color: #A65A43; }
+.article-prev-next a[href] .nav-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #A65A43;
+  margin-bottom: 6px;
+}
+.article-prev-next a[href] .nav-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 500;
+}
+.article-prev-next a:not([href]) {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Pulsante "Apri a tendina" nella sidebar */
+.btn-open-modal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--calce);
+  background: transparent;
+  border: 1px solid rgba(168, 159, 148, 0.45);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-open-modal:hover {
+  background: rgba(196, 112, 90, 0.12);
+  border-color: var(--terracotta);
+}
 
 .article-body p {
   font-size: 1.06rem;
-  line-height: 1.9;
+  line-height: 1.95;
   color: var(--calce);
-  margin: 0 0 28px;
+  margin: 0 0 36px;
 }
 
 .article-body h2 {
@@ -367,14 +460,16 @@
 .article-inline-img.is-loaded { opacity: 1; }
 
 .article-body blockquote {
-  margin: 40px 0;
-  padding-left: 28px;
-  border-left: 2px solid var(--terracotta);
+  margin: 48px 0;
+  padding: 16px 28px;
+  border-left: 4px solid var(--terracotta);
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--sabbia);
+  background: rgba(196, 112, 90, 0.06);
+  border-radius: 0 8px 8px 0;
 }
 
 .article-body a {
@@ -1227,12 +1322,13 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 4px;
   background: var(--terracotta);
   transform: scaleX(0);
   transform-origin: left center;
   z-index: 150;
   pointer-events: none;
+  box-shadow: 0 0 8px rgba(196, 112, 90, 0.45);
 }
 
 /* Capolettera: la prima lettera del primo paragrafo diventa
@@ -1293,12 +1389,13 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
    man mano che si scorre. Posizione e altezza le calcola il JS. */
 .modal-reading-progress {
   position: fixed;
-  width: 3px;
+  width: 5px;
   height: 0;
   background: #A65A43;
   border-radius: 3px;
   z-index: 6;
   pointer-events: none;
+  box-shadow: 0 0 10px rgba(166, 90, 67, 0.5);
 }
 
 /* Capolettera anche nella tendina (terracotta scuro per il fondo chiaro) */

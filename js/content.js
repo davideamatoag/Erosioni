@@ -607,6 +607,36 @@ async function renderArticlePage() {
     } catch (e) { /* clipboard non disponibile: nessun problema bloccante */ }
   });
 
+  // Navigazione prev/next
+  const prevNextEl = document.getElementById('articlePrevNext');
+  if (prevNextEl) {
+    const idx = articles.findIndex(a => a.slug === article.slug);
+    const prev = articles[idx + 1];
+    const next = articles[idx - 1];
+    prevNextEl.innerHTML = `
+      <a href="${prev ? 'articolo.html?slug=' + encodeURIComponent(prev.slug) : '#'}" ${prev ? '' : 'style="visibility:hidden"'}>
+        <span class="nav-label">&larr; Precedente</span>
+        <span class="nav-title">${prev ? prev.title : ''}</span>
+      </a>
+      <a href="${next ? 'articolo.html?slug=' + encodeURIComponent(next.slug) : '#'}" ${next ? '' : 'style="visibility:hidden"'} style="text-align:right;">
+        <span class="nav-label">Successivo &rarr;</span>
+        <span class="nav-title">${next ? next.title : ''}</span>
+      </a>
+    `;
+  }
+
+  // Pulsante "Apri a tendina"
+  const btnOpenModal = document.getElementById('btnOpenModal');
+  if (btnOpenModal) {
+    btnOpenModal.addEventListener('click', () => {
+      openArticleModal(article.slug);
+    });
+  }
+
+  // Rimuove la bio dell'autore dalla sidebar (solo nome)
+  const bioEl = document.getElementById('authorBio');
+  if (bioEl) bioEl.textContent = '';
+
   // Articoli correlati
   const latestPanel = document.getElementById('latestArticlesList');
   if (latestPanel) {
