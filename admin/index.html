@@ -658,6 +658,11 @@
       window.open('importa.html', '_blank');
     }));
 
+    // Editor visuale avanzato: preview live, toolbar custom, esportazione JSON
+    bar.appendChild(pulsanteIcona('✏️ Editor', 'Apri l\'editor visuale avanzato con anteprima live del sito e pulsanti per note, colori, font e interlinea.', function () {
+      window.open('editor.html', '_blank');
+    }));
+
     // Niente blur della selezione quando si clicca la barra
     bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
     document.addEventListener('click', function (e) {
