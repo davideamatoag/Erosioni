@@ -1,1491 +1,430 @@
-// ==========================================================
-// content.js — legge content/articoli.json, content/portfolio.json,
-// content/scatti.json e content/impostazioni.json e costruisce
-// dinamicamente le sezioni del sito. Questo è ciò che rende il
-// pannello di amministrazione (Decap CMS) utile: un articolo o una
-// voce pubblicati da lì compaiono qui automaticamente, senza
-// toccare l'HTML.
-// ==========================================================
+/**
+ * content.js — Core rendering engine per il blog Erosioni
+ * Versione locale: 20261108j
+ */
 
-const CATEGORY_LABELS = {
-  recensioni: 'Recensioni',
-  cinema: 'Cinema',
-  politica: 'Politica',
-  riflessioni: 'Riflessioni',
-};
+(function() {
+  'use strict';
 
-const MONTHS_IT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+  const REPO_OWNER = 'davideamatoag';
+  const REPO_NAME  = 'Erosioni';
+  const BRANCH     = 'main';
+  const USE_GH     = true;
 
-function formatDateIt(isoDate) {
-  const d = new Date(isoDate + 'T00:00:00');
-  if (isNaN(d)) return isoDate;
-  return `${d.getDate()} ${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`;
-}
+  /* ---------- Cache-busting ---------- */
+  const CB = '?v=20261108j';
 
-function categoryLabel(cat) {
-  return CATEGORY_LABELS[cat] || cat;
-}
+  /* ---------- Stato ---------- */
+  let articles = [], portfolio = [], settings = {}, scatti = [];
+  let currentArticle = null;
 
-function capitalize(str) {
-  return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
-}
-
-// Aggiorna i meta tag social (Open Graph/Twitter) della pagina: così quando
-// un articolo o una voce di portfolio viene condiviso, l'anteprima mostra
-// titolo, descrizione e immagine giusti invece di quelli generici del sito.
-function setSocialMeta(title, description, image, url) {
-  const set = (selector, attr, value) => {
-    let el = document.head.querySelector(selector);
-    if (!el) {
-      el = document.createElement('meta');
-      if (selector.includes('property=')) el.setAttribute('property', selector.match(/property="([^"]+)"/)[1]);
-      else el.setAttribute('name', selector.match(/name="([^"]+)"/)[1]);
-      document.head.appendChild(el);
-    }
-    el.setAttribute(attr, value);
-  };
-  set('meta[property="og:title"]', 'content', title);
-  set('meta[name="twitter:card"]', 'content', 'summary_large_image');
-  if (description) set('meta[property="og:description"]', 'content', description);
-  if (image) {
-    // Assicura URL assoluto per WhatsApp/Facebook
-    const imgUrl = image.startsWith('http') ? image : 'https://davideamatoag.github.io/Erosioni/' + image.replace(/^\//, '');
-    set('meta[property="og:image"]', 'content', imgUrl);
-  }
-  if (url) set('meta[property="og:url"]', 'content', url);
-}
-
-// Indirizzo breve e stabile di una voce di portfolio, derivato dal titolo
-// (usato per la pagina dedicata: voce.html?slug=nome-voce)
-function portfolioSlug(title) {
-  return (title || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-// Se l'immagine viene da Cloudinary, inserisce automaticamente formato e
-// qualità "auto" e un limite di larghezza — così anche una foto pesante
-// caricata dal telefono arriva al visitatore già ottimizzata, senza dover
-// comprimere nulla a mano prima di caricarla. Le immagini che non vengono
-// da Cloudinary (es. quelle segnaposto nel repository) restano invariate.
-function optimizeImage(url, width) {
-  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
-  const marker = '/upload/';
-  const i = url.indexOf(marker) + marker.length;
-  const already = /\/upload\/[a-z0-9_,]*\b(f_auto|q_auto)\b/.test(url);
-  if (already) return url;
-  const transform = `f_auto,q_auto:good,w_${width || 1600}/`;
-  return url.slice(0, i) + transform + url.slice(i);
-}
-
-function hasImage(url) {
-  return !!(url && url.trim());
-}
-
-// Piccola cache: gli articoli vengono scaricati una sola volta per
-// visita, così la tendina dell'articolo si apre all'istante.
-let articlesCache = null;
-
-async function fetchArticles() {
-  if (articlesCache) return articlesCache;
-  const res = await fetch('content/articoli.json', { cache: 'no-store' });
-  const data = await res.json();
-  articlesCache = (data.articles || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
-  return articlesCache;
-}
-
-let settingsCache = null;
-async function fetchSettings() {
-  if (settingsCache) return settingsCache;
-  try {
-    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
-    settingsCache = await res.json();
-  } catch (e) {
-    settingsCache = {};
-  }
-  return settingsCache;
-}
-
-async function fetchPortfolio() {
-  const res = await fetch('content/portfolio.json', { cache: 'no-store' });
-  const data = await res.json();
-  return data.items || [];
-}
-
-function articleCardHtml(a) {
-  return `
-    <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
-      <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
-      <h3 class="article-title">${a.title}</h3>
-    </a>`;
-}
-
-function archiveItemHtml(a) {
-  return `
-    <a class="archive-item" data-article-slug="${a.slug}" data-category="${a.category}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="archive-thumb" style="background-image:url('${optimizeImage(a.image, 200)}')"></div>
-      <div class="archive-body">
-        <p class="archive-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
-        <h3 class="archive-title">${a.title}</h3>
-      </div>
-    </a>`;
-}
-
-// ---------------- Foto di sfondo (modificabili dal pannello) ----------------
-// Hero, newsletter e footer possono avere una foto caricata dal pannello:
-// viene sempre stesa sotto un velo scuro "pietra" per restare leggibile.
-async function renderSiteImages() {
-  const heroEl = document.querySelector('.hero');
-  const newsletterEl = document.querySelector('.newsletter');
-  const footerEl = document.querySelector('.site-footer');
-  if (!heroEl && !newsletterEl && !footerEl) return;
-
-  try {
-    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
-    const data = await res.json();
-
-    if (heroEl) {
-      if (data.hero_image) {
-        const heroUrl = optimizeImage(data.hero_image, 2600);
-        const revealTimeout = setTimeout(() => heroEl.classList.add('is-loaded'), 5000);
-        const preload = new Image();
-        preload.onload = () => {
-          clearTimeout(revealTimeout);
-          heroEl.style.backgroundImage =
-            `linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('${heroUrl}')`;
-          heroEl.classList.add('is-loaded');
-        };
-        preload.onerror = () => {
-          clearTimeout(revealTimeout);
-          heroEl.classList.add('is-loaded');
-        };
-        preload.src = heroUrl;
-      } else {
-        heroEl.classList.add('is-loaded'); // nessuna foto impostata: mostra subito
-      }
-    }
-    if (newsletterEl && data.newsletter_image) {
-      newsletterEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(26,24,22,0.78) 0%, rgba(26,24,22,0.88) 100%), url('${optimizeImage(data.newsletter_image, 2600)}')`;
-    }
-    if (footerEl && data.footer_image) {
-      footerEl.style.backgroundImage =
-        `linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('${optimizeImage(data.footer_image, 2200)}')`;
-    }
-  } catch (e) {
-    if (heroEl) heroEl.classList.add('is-loaded');
-  }
-}
-
-// ---------------- HOMEPAGE: "Strati sedimentari" ----------------
-// L'ultimo articolo in grande, poi gli altri come strati asimmetrici
-// che si alternano a sinistra e destra, con la data verticale ai margini.
-async function renderHomeLayers() {
-  const featuredEl = document.getElementById('homeFeatured');
-  const layersEl = document.getElementById('articlesLayers');
-  if (!featuredEl && !layersEl) return;
-
-  const articles = await fetchArticles();
-  if (!articles.length) return;
-
-  const [latest, ...rest] = articles;
-
-  if (featuredEl && latest) {
-    featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
-    featuredEl.setAttribute('data-article-slug', latest.slug);
-    featuredEl.querySelector('.home-featured-media').style.backgroundImage =
-      `url('${optimizeImage(latest.image, 1400)}')`;
-    document.getElementById('homeFeaturedMeta').textContent =
-      `${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}`;
-    document.getElementById('homeFeaturedTitle').textContent = latest.title;
-    document.getElementById('homeFeaturedExcerpt').textContent = computeExcerpt(latest.body, 150);
+  /* ---------- Helper fetch ---------- */
+  async function fetchJSON(path) {
+    const url = USE_GH
+      ? `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${path}`
+      : path;
+    const r = await fetch(url + CB, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${path}: ${r.status}`);
+    return r.json();
   }
 
-  if (layersEl) {
-    layersEl.innerHTML = rest.slice(0, 4).map((a, i) => `
-      <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-        <span class="layer-date">${formatDateIt(a.date)}</span>
-        <div class="layer-media" data-parallax>
-          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 1200)}')"></div>
-        </div>
-        <div class="layer-info">
-          <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
-          <h3 class="layer-title">${a.title}</h3>
-          <p class="layer-excerpt">${computeExcerpt(a.body, 130)}</p>
-          <span class="layer-cta">Leggi &rarr;</span>
-        </div>
-      </a>`).join('');
-  }
-
-  window.initScrollReveal && window.initScrollReveal();
-  window.initParallax && window.initParallax();
-}
-
-// ---------------- PAGINA ARTICOLI: in evidenza + successivi + archivio ----------------
-async function renderArticoliPage() {
-  const featuredEl = document.getElementById('featuredArticle');
-  if (!featuredEl) return;
-  const articles = await fetchArticles();
-  if (!articles.length) return;
-
-  const [latest, ...rest] = articles;
-
-  featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
-  featuredEl.setAttribute('data-article-slug', latest.slug);
-  featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
-    <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
-    <h2 class="featured-title">${latest.title}</h2>`;
-
-  const row3 = document.getElementById('articlesRow3');
-  if (row3) row3.innerHTML = rest.slice(0, 3).map(articleCardHtml).join('');
-
-  const archiveList = document.getElementById('archiveList');
-  if (archiveList) {
-    archiveList.innerHTML = articles.map(archiveItemHtml).join('');
-    window.initArchiveFilters && window.initArchiveFilters();
-  }
-  window.initScrollReveal && window.initScrollReveal();
-}
-
-// ---------------- PAGINA SINGOLO ARTICOLO ----------------
-// Converte gli attributi di [stile=...] / [stile-blocco=...] in classi CSS.
-// attr tipo "c:oro,f:classico" -> classi "t-oro t-font-classico"
-// (o "blocco-oro blocco-font-classico" per i paragrafi interi).
-function stileClassi(attrs, perBlocco) {
-  const COLORI = ['avorio', 'sabbia', 'oro', 'terracotta'];
-  const FONT = ['elegante', 'classico', 'macchina'];
-  const classi = [];
-  (attrs || '').split(',').forEach((parte) => {
-    const [chiave, valore] = parte.split(':');
-    if (chiave === 'c' && COLORI.includes(valore)) classi.push((perBlocco ? 'blocco-' : 't-') + valore);
-    if (chiave === 'f' && FONT.includes(valore)) classi.push((perBlocco ? 'blocco-font-' : 't-font-') + valore);
-  });
-  return classi.join(' ');
-}
-
-function renderInline(text) {
-  return text
-    // Sottolineato [u] e Barrato [s] dalla barra strumenti del pannello
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
-    .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
-    // Barrato nativo dell'editor (pulsante S della barra del pannello)
-    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
-    // Interlinea usata su una PARTE di paragrafo: vale per quelle righe
-    .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
-    // [riga-vuota] finito in mezzo a un paragrafo: scompare, non si legge
-    .replace(/\[riga-vuota\]/g, '')
-    .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
-      const classi = stileClassi(attrs, false);
-      return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
-    })
-    // Formattazione fine dal pannello: [colore=oro]parola[/colore] e
-    // [font=classico]parola[/font] — inserite dai pulsanti dell'editor,
-    // mai scritte a mano. Vedi admin/index.html.
-    .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
-    .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
-      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" data-full="${url.trim().replace(/"/g, '&quot;')}" alt="${alt}">`)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    // L'underscore escapato (es. nei titoli dei libri) diventa un semplice
-    // trattino basso visibile, non un delimitatore di corsivo.
-    .replace(/\\_/g, '_')
-    // il pannello scrive il corsivo anche con i trattini bassi: _così_
-    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '<em>$1</em>');
-}
-
-function renderMarkdown(md) {
-  // Piccolo motore markdown minimale: paragrafi, ## sottotitoli, > citazioni,
-  // ![immagini](url) (a blocco intero o dentro al testo), più **grassetto**,
-  // *corsivo* e [link](url).
-  // Le righe vuote CONSECUTIVE non vengono buttate via: ogni riga vuota
-  // oltre la prima diventa uno spaziatore visibile (.riga-vuota), così
-  // gli spazi inseriti dal pannello si vedono anche nell'articolo finale.
-  //
-  // NOTE A PIÈ DI PAGINA: [nota]testo della nota[/nota] scritto nel punto
-  // del testo a cui si riferisce diventa un numerino in apice cliccabile;
-  // tutte le note vengono raccolte automaticamente in fondo all'articolo,
-  // numerate in ordine di apparizione, con rimando avanti e indietro.
-  const note = [];
-  md = (md || '').replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, (m, testo) => {
-    note.push(testo.trim());
-    return `{{NOTA_${note.length}}}`;
-  });
-
-  // NOTE INCOLLATE DA WORD / GOOGLE DOCS: i rimandi arrivano nella forma
-  // [[1]](#_ftn1) e le note in fondo come [[1]](#_ftnref1) testo della nota
-  // (Word usa #_ftn1 anche per le definizioni). Vengono convertite nel
-  // nostro sistema: numerini in apice + sezione "Note" elegante in fondo.
-  const noteImportate = {};
-  // 1) Definizioni Google Docs: [[n]](#_ftnrefN) testo
-  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^\n]+)/g, (m, n, testo) => {
-    noteImportate[n] = testo.trim();
-    return '';
-  });
-  // 2) Definizioni Word: stesso marcatore dei rimandi, ma a inizio blocco
-  //    e seguito dal testo della nota
-  md = md.replace(/(^|\n\s*\n)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^\n]+)/g, (m, sep, n, testo) => {
-    noteImportate[n] = testo.trim();
-    return sep;
-  });
-  // 3) Rimandi rimasti nel testo → numerini in apice collegati alle note
-  md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, (m, n) => {
-    note.push(noteImportate[n] || `Nota ${n}.`);
-    return `{{NOTA_${note.length}}}`;
-  });
-  // Le definizioni delle note erano in fondo: tolgo la scia di righe
-  // vuote che lasciano, altrimenti tra testo e note resta un vuoto enorme
-  md = md.replace(/\s+$/, '');
-
-  const pieces = md.split(/(\n\s*\n+)/);
-  const blocks = [];
-  pieces.forEach((piece, i) => {
-    if (i % 2 === 0) {
-      if (piece.trim()) blocks.push(piece);
-    } else {
-      // Le righe vuote di troppo attorno a un TITOLO non diventano
-      // spaziatori: il titolo ha già il suo margine, e l'editor ne
-      // aggiunge sempre una quando si inserisce un heading.
-      const precedente = blocks.length ? blocks[blocks.length - 1].trim() : '';
-      const successivo = (pieces[i + 1] || '').trim();
-      if (/^#{1,3}\s/.test(precedente) || /^#{1,3}\s/.test(successivo)) return;
-      const extra = piece.split('\n').length - 3; // newline oltre la separazione normale
-      for (let k = 0; k < extra; k++) blocks.push('[riga-vuota]');
-    }
-  });
-  let html = blocks.map(block => {
-    if (block === '[riga-vuota]') return '<p class="riga-vuota" aria-hidden="true"></p>';
-    const trimmed = block.trim();
-    const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if (soloImmagine) {
-      // Il testo tra parentesi quadre diventa la DIDASCALIA sotto la foto.
-      const alt = soloImmagine[1].trim();
-      const url = soloImmagine[2].trim();
-      const img = `<img class="article-inline-img" src="${optimizeImage(url, 1000)}" data-full="${url.replace(/"/g, '&quot;')}" alt="${alt.replace(/"/g, '&quot;')}">`;
-      return alt
-        ? `<figure class="article-figure">${img}<figcaption>${renderInline(alt)}</figcaption></figure>`
-        : img;
-    }
-    // Interlinea su un intero paragrafo: [interlinea=1.6]testo[/interlinea]
-    const interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
-    if (interlinea) {
-      return `<p style="line-height:${interlinea[1]}">${renderInline(interlinea[2]).replace(/\n/g, '<br>')}</p>`;
-    }
-    const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
-    if (stileBlocco) {
-      const classi = stileClassi(stileBlocco[1], true);
-      const contenuto = renderInline(stileBlocco[2]).replace(/\n/g, '<br>');
-      return classi ? `<p class="${classi}">${contenuto}</p>` : `<p>${contenuto}</p>`;
-    }
-    const blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
-    if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g, '<br>')}</p>`;
-    const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
-    if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g, '<br>')}</p>`;
-    const citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
-    if (citazione) return `<p class="citazione-lunga">${renderInline(citazione[1]).replace(/\n/g, '<br>')}</p>`;
-    if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
-    if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
-    if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
-    if (/^[-•] /.test(trimmed)) {
-      const items = trimmed.split('\n')
-        .map((l) => l.trim())
-        .filter((l) => /^[-•] /.test(l))
-        .map((l) => `<li>${renderInline(l.slice(2))}</li>`)
-        .join('');
-      return `<ul>${items}</ul>`;
-    }
-    if (/^\d+\. /.test(trimmed)) {
-      const items = trimmed.split('\n')
-        .map((l) => l.trim())
-        .filter((l) => /^\d+\. /.test(l))
-        .map((l) => `<li>${renderInline(l.replace(/^\d+\. /, ''))}</li>`)
-        .join('');
-      return `<ol>${items}</ol>`;
-    }
-    return `<p>${renderInline(trimmed).replace(/\n/g, '<br>')}</p>`;
-  }).join('\n');
-
-  // Sostituisci i segnaposto con i rimandi numerati e aggiungi la sezione
-  // "Note" in fondo all'articolo
-  if (note.length) {
-    html = html.replace(/\{\{NOTA_(\d+)\}\}/g, (m, n) =>
-      `<sup class="nota-rif" id="rif-${n}"><a href="#nota-${n}">${n}</a></sup>`);
-    html += `\n<section class="note-articolo"><h2 class="note-titolo">Note</h2><ol>` +
-      note.map((t, i) =>
-        `<li id="nota-${i + 1}"><span class="nota-testo">${renderInline(t)}</span> <a class="nota-back" href="#rif-${i + 1}" aria-label="Torna al punto del testo">&#8617;</a></li>`
-      ).join('') +
-      `</ol></section>`;
-  }
-  return html;
-}
-
-function stripMarkdown(md) {
-  return (md || '')
-    .replace(/\[nota\][\s\S]*?\[\/nota\]/g, '') // le note non finiscono nei riassunti
-    .replace(/^\s*\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)\s+[^\n]+$/gm, '') // definizioni note Word/Docs
-    .replace(/\[\[\d+\]\]\(#_ftn(?:ref)?\d+\)/g, '') // rimandi note Word/Docs
-    .replace(/\[riga-vuota\]/g, '')
-    .replace(/\[\/?(colore|font|blocco|blocco-font|stile|stile-blocco|u|s|interlinea)(=[^\]]*)?\]/g, '')
-    .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/^#+\s*/gm, '')
-    .replace(/^>\s*/gm, '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/~~([^~]+)~~/g, '$1')
-    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function computeExcerpt(md, maxLen) {
-  const plain = stripMarkdown(md);
-  const firstBlock = (md || '').split(/\n\s*\n/)[0] || '';
-  const source = stripMarkdown(firstBlock) || plain;
-  if (source.length <= maxLen) return source;
-  return source.slice(0, maxLen).replace(/\s+\S*$/, '') + '\u2026';
-}
-
-// Font e colore del corpo articolo, scelti dal pannello: si traducono
-// in classi CSS (vedi style-3.css). "predefinito" non aggiunge nulla.
-function applyArticleBodyStyle(el, article, settings) {
-  if (!el) return;
-  el.classList.remove(
-    'body-font-elegante', 'body-font-classico', 'body-font-macchina',
-    'body-colore-avorio', 'body-colore-sabbia', 'body-colore-oro', 'body-colore-terracotta'
-  );
-  // Vince la scelta fatta sul singolo articolo; se è "predefinito"
-  // si usa il default generale scelto nelle Impostazioni del sito.
-  const pick = (perArticle, perSite) =>
-    (perArticle && perArticle !== 'predefinito') ? perArticle
-      : (perSite && perSite !== 'predefinito' ? perSite : null);
-  const font = pick(article.font, settings && settings.default_font);
-  const colore = pick(article.colore, settings && settings.default_colore);
-  if (font) el.classList.add(`body-font-${font}`);
-  if (colore) el.classList.add(`body-colore-${colore}`);
-}
-
-function computeReadingTime(md) {
-  const words = stripMarkdown(md).split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 200));
-}
-
-function relatedCardHtml(a) {
-  return `
-    <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 700)}')"></div>
-      <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
-      <h3 class="article-title">${a.title}</h3>
-    </a>`;
-}
-
-async function renderArticlePage() {
-  const bodyEl = document.getElementById('articleBody');
-  if (!bodyEl) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const slug = params.get('slug');
-  const articles = await fetchArticles();
-  const article = articles.find(a => a.slug === slug) || articles[0];
-
-  if (!article) {
-    bodyEl.innerHTML = '<p>Articolo non trovato.</p>';
-    return;
-  }
-
-  document.title = `${article.title} — Erosioni`;
-  const articleUrl = 'https://davideamatoag.github.io/Erosioni/articolo.html?slug=' + encodeURIComponent(article.slug);
-  setSocialMeta(
-    `${article.title} — Erosioni`,
-    computeExcerpt(article.body, 160),
-    hasImage(article.image) ? article.image : null,
-    articleUrl
-  );
-  document.getElementById('articleTitle').textContent = article.title;
-  // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
-  const excerptEl = document.getElementById('articleExcerpt');
-  excerptEl.textContent = (article.sottotitolo || '').trim();
-  excerptEl.hidden = !excerptEl.textContent;
-  document.getElementById('articleMetaDate').textContent = formatDateIt(article.date);
-  document.getElementById('articleMetaCategory').textContent = categoryLabel(article.category);
-  document.getElementById('articleMetaReadTime').textContent = `${computeReadingTime(article.body)} min`;
-
-  const heroImg = document.getElementById('articleHeroImg');
-  const heroFrame = document.getElementById('articleHeroFrame');
-  const revealEls = document.querySelectorAll('.article-reveal');
-  revealEls.forEach((el) => el.classList.remove('is-loaded'));
-
-  function revealNow() {
-    revealEls.forEach((el) => el.classList.add('is-loaded'));
-  }
-
-  if (!hasImage(article.image)) {
-    heroFrame.style.display = 'none';
-    revealNow(); // niente foto da aspettare: mostra subito il testo
-  } else {
-    heroFrame.style.display = '';
-    const fullUrl = optimizeImage(article.image, 2000);
-    heroImg.alt = article.title;
-
-    const revealTimeout = setTimeout(revealNow, 5000); // rete di sicurezza
-
-    // Precarica la foto per intero: testo e foto compaiono insieme SOLO
-    // quando è completamente arrivata, non prima.
-    const preload = new Image();
-    preload.onload = () => {
-      clearTimeout(revealTimeout);
-      heroImg.src = fullUrl;
-      revealNow();
-    };
-    preload.onerror = () => {
-      clearTimeout(revealTimeout);
-      revealNow(); // la foto non c'è/non carica: mostra comunque il testo
-    };
-    preload.src = fullUrl;
-  }
-  const settings = await fetchSettings();
-  bodyEl.innerHTML = renderMarkdown(article.body || '');
-  applyArticleBodyStyle(bodyEl, article, settings);
-
-  // Dissolvenza lenta anche per le immagini inserite nel corpo del testo,
-  // che diventano cliccabili: si aprono a tutto schermo nel lightbox e si
-  // scorrono con le frecce (tastiera incluse), come nella galleria portfolio.
-  const bodyImgs = [...bodyEl.querySelectorAll('.article-inline-img')];
-  const lightboxItems = bodyImgs.map((img) => ({
-    tipo: 'foto',
-    file: img.dataset.full || img.src,
-    titolo: img.alt || ''
-  }));
-  bodyImgs.forEach((img, i) => {
-    if (img.complete) {
-      img.classList.add('is-loaded');
-    } else {
-      img.onload = () => img.classList.add('is-loaded');
-    }
-    img.classList.add('is-zoomable');
-    img.addEventListener('click', () => openPfLightbox(lightboxItems, i));
-  });
-
-  // Barra di avanzamento lettura in cima alla pagina
-  const progress = document.getElementById('readingProgress');
-  if (progress) {
-    const aggiornaProgress = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const quota = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-      progress.style.transform = `scaleX(${quota})`;
-    };
-    window.addEventListener('scroll', aggiornaProgress, { passive: true });
-    window.addEventListener('resize', aggiornaProgress);
-    aggiornaProgress();
-  }
-
-  // Autore (nome, bio e foto dalle impostazioni)
-  const nameEl = document.getElementById('authorName');
-  const bioEl = document.getElementById('authorBio');
-  const imgEl = document.getElementById('authorImage');
-  if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
-  else if (bioEl) bioEl.textContent = '';
-  if (imgEl && settings.author_image) {
-    imgEl.src = settings.author_image;
-    imgEl.alt = settings.author_name || 'Autore';
-    imgEl.style.display = 'block';
-  } else if (imgEl) {
-    imgEl.style.display = 'none';
-  }
-
-  // Condivisione
-  const pageUrl = window.location.href;
-  const shareTwitter = document.getElementById('shareTwitter');
-  const shareFacebook = document.getElementById('shareFacebook');
-  const shareWhatsapp = document.getElementById('shareWhatsapp');
-  const shareCopy = document.getElementById('shareCopy');
-  const shareNote = document.getElementById('shareNote');
-  if (shareWhatsapp) shareWhatsapp.addEventListener('click', () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${article.title} — ${pageUrl}`)}`, '_blank', 'noopener');
-  });
-  if (shareTwitter) shareTwitter.addEventListener('click', () => {
-    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
-  });
-  if (shareFacebook) shareFacebook.addEventListener('click', () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, '_blank', 'noopener');
-  });
-  if (shareCopy) shareCopy.addEventListener('click', async () => {
+  /* ---------- Caricamento dati ---------- */
+  async function loadAllData() {
     try {
-      await navigator.clipboard.writeText(pageUrl);
-      if (shareNote) {
-        shareNote.hidden = false;
-        setTimeout(() => { shareNote.hidden = true; }, 2500);
-      }
-    } catch (e) { /* clipboard non disponibile: nessun problema bloccante */ }
-  });
+      articles  = await fetchJSON('content/articoli.json');
+      portfolio = await fetchJSON('content/portfolio.json');
+      settings  = await fetchJSON('content/impostazioni.json');
+      try { scatti = await fetchJSON('content/scatti.json'); } catch(e) { scatti = []; }
+    } catch(e) {
+      console.error('Errore caricamento dati:', e);
+    }
+  }
 
-  // Navigazione prev/next
-  const prevNextEl = document.getElementById('articlePrevNext');
-  if (prevNextEl) {
-    const idx = articles.findIndex(a => a.slug === article.slug);
-    const prev = articles[idx + 1];
-    const next = articles[idx - 1];
-    prevNextEl.innerHTML = `
-      <a href="${prev ? 'articolo.html?slug=' + encodeURIComponent(prev.slug) : '#'}" ${prev ? '' : 'style="visibility:hidden"'}>
-        <span class="nav-label">&larr; Precedente</span>
-        <span class="nav-title">${prev ? prev.title : ''}</span>
-      </a>
-      <a href="${next ? 'articolo.html?slug=' + encodeURIComponent(next.slug) : '#'}" ${next ? '' : 'style="visibility:hidden"'} style="text-align:right;">
-        <span class="nav-label">Successivo &rarr;</span>
-        <span class="nav-title">${next ? next.title : ''}</span>
-      </a>
+  /* ---------- Social Meta ---------- */
+  function setSocialMeta(article) {
+    const baseUrl = 'https://davideamatoag.github.io/Erosioni';
+    const title = article ? article.title : (settings.site_title || 'Erosioni');
+    const desc  = article ? (article.excerpt || '') : (settings.site_description || '');
+    const image = article ? article.image : (settings.site_image || '');
+    const url   = article ? `${baseUrl}/articoli/${article.slug}.html` : baseUrl;
+
+    document.title = title + (article ? ' — Erosioni' : '');
+
+    const metaTags = {
+      'description': desc,
+      'og:title': title,
+      'og:description': desc,
+      'og:image': image ? (image.startsWith('http') ? image : baseUrl + '/' + image) : '',
+      'og:url': url,
+      'og:type': article ? 'article' : 'website',
+      'twitter:card': 'summary_large_image',
+      'twitter:title': title,
+      'twitter:description': desc,
+      'twitter:image': image ? (image.startsWith('http') ? image : baseUrl + '/' + image) : '',
+    };
+
+    Object.entries(metaTags).forEach(([prop, content]) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[property="${prop}"], meta[name="${prop}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(prop.startsWith('og:') ? 'property' : 'name', prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    });
+  }
+
+  /* ---------- Render articoli ---------- */
+  function renderArticles(containerId, limit) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    const list = limit ? articles.slice(0, limit) : articles;
+    list.forEach((article, index) => {
+      const card = document.createElement('article');
+      card.className = 'article-card';
+      card.style.animationDelay = `${index * 0.08}s`;
+      card.innerHTML = `
+        <a href="articoli/${article.slug}.html" class="card-image-link" data-slug="${article.slug}">
+          <img src="${article.image}" alt="${article.title}" loading="lazy">
+        </a>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-category">${article.category}</span>
+            <span class="card-date">${article.date}</span>
+          </div>
+          <h3 class="card-title"><a href="articoli/${article.slug}.html" data-slug="${article.slug}">${article.title}</a></h3>
+          <p class="card-excerpt">${article.excerpt}</p>
+          <a href="articoli/${article.slug}.html" class="read-more" data-slug="${article.slug}">Leggi →</a>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    /* Intercetta click per apertura modale */
+    container.querySelectorAll('a[data-slug]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        openArticleModal(link.dataset.slug);
+      });
+    });
+  }
+
+  /* ---------- Shortcode parser ---------- */
+  function parseShortcodes(html) {
+    /* [nota]...[/nota] */
+    html = html.replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, '<span class="nota">$1</span>');
+    /* [colore #hex]...[/colore] */
+    html = html.replace(/\[colore\s+([#\w]+)\]([\s\S]*?)\[\/colore\]/g, '<span style="color:$1">$2</span>');
+    /* [font nome]...[/font] */
+    html = html.replace(/\[font\s+([\w-]+)\]([\s\S]*?)\[\/font\]/g, '<span style="font-family:$1">$2</span>');
+    /* [interlinea N]...[/interlinea] */
+    html = html.replace(/\[interlinea\s+(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>');
+    /* [riga-vuota] */
+    html = html.replace(/\[riga-vuota\]/g, '<div style="height:1.5em"></div>');
+    /* [blocco]...[/blocco] */
+    html = html.replace(/\[blocco\]([\s\S]*?)\[\/blocco\]/g, '<div class="blocco">$1</div>');
+    /* [blocco-font nome]...[/blocco-font] */
+    html = html.replace(/\[blocco-font\s+([\w-]+)\]([\s\S]*?)\[\/blocco-font\]/g, '<div style="font-family:$1">$1</div>');
+    /* [citazione]...[/citazione] */
+    html = html.replace(/\[citazione\]([\s\S]*?)\[\/citazione\]/g, '<blockquote class="citazione-lunga">$1</blockquote>');
+    return html;
+  }
+
+  /* ---------- Modal articolo ---------- */
+  function openArticleModal(slug) {
+    const article = articles.find(a => a.slug === slug);
+    if (!article) return;
+    currentArticle = article;
+
+    const modal = document.getElementById('articleModal');
+    const backdrop = modal.querySelector('.article-modal-backdrop');
+    const grain = modal.querySelector('.article-modal-grain');
+    const content = modal.querySelector('.article-modal-content');
+
+    /* Sfondo dinamico */
+    if (article.image) {
+      backdrop.style.backgroundImage = `url('${article.image}')`;
+      backdrop.classList.add('has-image');
+    } else {
+      backdrop.style.backgroundImage = '';
+      backdrop.classList.remove('has-image');
+    }
+
+    /* Meta social */
+    setSocialMeta(article);
+
+    /* Contenuto */
+    const bodyHtml = parseShortcodes(article.content);
+    content.innerHTML = `
+      <button class="modal-close" onclick="closeArticleModal()">&times;</button>
+      <div class="article-top">
+        <div class="container">
+          <a href="#" class="article-back" onclick="closeArticleModal(); return false;">&larr; Torna agli articoli</a>
+          <div class="article-top-grid">
+            <div>
+              <h1 class="article-page-title">${article.title}</h1>
+              <p class="article-excerpt">${article.excerpt}</p>
+            </div>
+            <div class="article-top-meta">
+              <div><span class="meta-label">Data</span><span class="meta-value">${article.date}</span></div>
+              <div><span class="meta-label">Categoria</span><span class="meta-value">${article.category}</span></div>
+              ${article.reading_time ? `<div><span class="meta-label">Tempo di lettura</span><span class="meta-value">${article.reading_time}</span></div>` : ''}
+            </div>
+          </div>
+          <hr class="article-top-divider">
+        </div>
+      </div>
+      <div class="container">
+        <div class="article-body">${bodyHtml}</div>
+        
+        <div class="share-bar">
+          <span class="share-label">Condividi</span>
+          <button class="share-btn" onclick="shareArticle('twitter')" title="Twitter">𝕏</button>
+          <button class="share-btn" onclick="shareArticle('facebook')" title="Facebook">f</button>
+          <button class="share-btn" onclick="shareArticle('whatsapp')" title="WhatsApp">📱</button>
+          <button class="share-btn" onclick="shareArticle('copy')" title="Copia link">🔗</button>
+        </div>
+
+        ${renderAuthorBio()}
+        ${renderPrevNext(article)}
+      </div>
+    `;
+
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    /* Progresso lettura */
+    setupReadingProgress(modal);
+  }
+
+  function closeArticleModal() {
+    const modal = document.getElementById('articleModal');
+    const backdrop = modal.querySelector('.article-modal-backdrop');
+    backdrop.style.backgroundImage = '';
+    backdrop.classList.remove('has-image');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    setSocialMeta(null);
+    currentArticle = null;
+  }
+
+  /* ---------- Bio autore ---------- */
+  function renderAuthorBio() {
+    const bio = settings.author_bio || '';
+    const img = settings.author_image || '';
+    if (!bio && !img) return '';
+    return `
+      <div class="author-bio-section">
+        ${img ? `<img class="author-image" src="${img}" alt="${settings.author_name || 'Autore'}">` : ''}
+        <div class="author-bio-text">
+          ${bio ? `<p><strong>${settings.author_name || 'Autore'}</strong> — ${bio}</p>` : ''}
+        </div>
+      </div>
     `;
   }
 
-  // Pulsante "Apri a tendina"
-  const btnOpenModal = document.getElementById('btnOpenModal');
-  if (btnOpenModal) {
-    btnOpenModal.addEventListener('click', () => {
-      openArticleModal(article.slug);
-    });
-  }
-
-  // Articoli correlati
-  const latestPanel = document.getElementById('latestArticlesList');
-  if (latestPanel) {
-    const others = articles.filter(a => a.slug !== article.slug).slice(0, 3);
-    latestPanel.innerHTML = others.map(relatedCardHtml).join('');
-  }
-}
-
-// ---------------- PAGINA PORTFOLIO: "Sala di proiezione" ----------------
-function getVideoEmbedUrl(link) {
-  if (!link) return null;
-  const yt = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  const vimeo = link.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
-  return null;
-}
-
-// Restituisce l'elenco dei contenuti (foto/video) di una voce di portfolio.
-// Se la voce usa il nuovo campo "media" del pannello, usa quello; altrimenti
-// ricade sulla singola immagine/video della scheda (compatibilità con le
-// voci già esistenti).
-function getPortfolioMedia(item) {
-  // Campo "foto": selezione multipla dal pannello, elenco semplice di URL
-  const fotoMultiple = (item.foto || [])
-    .filter(f => f && String(f).trim())
-    .map(f => ({ tipo: 'foto', file: String(f).trim(), titolo: '' }));
-  // Campo "media": elementi singoli con tipo (foto/video) e didascalia
-  const lista = (item.media || [])
-    .filter(m => m && m.file && m.file.trim())
-    .map(m => ({
-      tipo: m.tipo === 'video' ? 'video' : 'foto',
-      file: m.file.trim(),
-      titolo: (m.titolo || '').trim()
-    }));
-  const tutti = fotoMultiple.concat(lista);
-  if (tutti.length) return tutti;
-  // Compatibilità con le voci senza galleria
-  if (hasImage(item.image)) {
-    return [{ tipo: item.medium === 'video' ? 'video' : 'foto', file: item.image, titolo: item.title || '' }];
-  }
-  return [];
-}
-
-// ---------------- Galleria portfolio: tendina + lightbox ----------------
-// Aprendo una voce del portfolio si vede una griglia di miniature (stesso
-// spirito della griglia "I miei scatti"); cliccando una miniatura si apre il
-// contenuto a grandezza naturale con frecce per scorrere avanti/indietro.
-
-let pfLightboxItems = [];
-let pfLightboxIndex = 0;
-
-function pfLightboxHtml() {
-  return `
-  <div class="pf-lightbox" id="pfLightbox" aria-hidden="true">
-    <div class="pf-lightbox-backdrop" data-pf-lb-close></div>
-    <button type="button" class="pf-lightbox-close" id="pfLightboxClose" aria-label="Chiudi">&times;</button>
-    <button type="button" class="pf-lightbox-nav pf-lightbox-nav--prev" id="pfLightboxPrev" aria-label="Contenuto precedente">
-      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </button>
-    <figure class="pf-lightbox-figure">
-      <div class="pf-lightbox-stage" id="pfLightboxStage"></div>
-      <figcaption class="pf-lightbox-caption" id="pfLightboxCaption"></figcaption>
-    </figure>
-    <button type="button" class="pf-lightbox-nav pf-lightbox-nav--next" id="pfLightboxNext" aria-label="Contenuto successivo">
-      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
-    </button>
-    <span class="pf-lightbox-counter" id="pfLightboxCounter"></span>
-  </div>`;
-}
-
-function showPfLightboxItem(index) {
-  if (!pfLightboxItems.length) return;
-  pfLightboxIndex = (index + pfLightboxItems.length) % pfLightboxItems.length;
-  const m = pfLightboxItems[pfLightboxIndex];
-  const stage = document.getElementById('pfLightboxStage');
-  if (m.tipo === 'video') {
-    stage.innerHTML = `<video src="${m.file}" controls autoplay playsinline></video>`;
-  } else {
-    stage.innerHTML = `<img src="${optimizeImage(m.file, 2200)}" alt="${m.titolo.replace(/"/g, '&quot;') || 'Foto del portfolio'}">`;
-  }
-  const caption = document.getElementById('pfLightboxCaption');
-  caption.textContent = m.titolo || '';
-  caption.hidden = !m.titolo;
-  document.getElementById('pfLightboxCounter').textContent = `${pfLightboxIndex + 1} / ${pfLightboxItems.length}`;
-  const multi = pfLightboxItems.length > 1;
-  document.getElementById('pfLightboxPrev').style.display = multi ? '' : 'none';
-  document.getElementById('pfLightboxNext').style.display = multi ? '' : 'none';
-  document.getElementById('pfLightboxCounter').style.display = multi ? '' : 'none';
-}
-
-function openPfLightbox(items, index) {
-  let lb = document.getElementById('pfLightbox');
-  if (!lb) {
-    document.body.insertAdjacentHTML('beforeend', pfLightboxHtml());
-    lb = document.getElementById('pfLightbox');
-    lb.querySelectorAll('[data-pf-lb-close]').forEach(el => el.addEventListener('click', closePfLightbox));
-    document.getElementById('pfLightboxClose').addEventListener('click', closePfLightbox);
-    document.getElementById('pfLightboxPrev').addEventListener('click', () => showPfLightboxItem(pfLightboxIndex - 1));
-    document.getElementById('pfLightboxNext').addEventListener('click', () => showPfLightboxItem(pfLightboxIndex + 1));
-    document.addEventListener('keydown', (e) => {
-      if (!lb.classList.contains('is-open')) return;
-      if (e.key === 'Escape') closePfLightbox();
-      if (e.key === 'ArrowLeft') showPfLightboxItem(pfLightboxIndex - 1);
-      if (e.key === 'ArrowRight') showPfLightboxItem(pfLightboxIndex + 1);
-    });
-  }
-  pfLightboxItems = items;
-  showPfLightboxItem(index);
-  lb.classList.add('is-open');
-  lb.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('modal-open');
-}
-
-function closePfLightbox() {
-  const lb = document.getElementById('pfLightbox');
-  if (!lb) return;
-  lb.classList.remove('is-open');
-  lb.setAttribute('aria-hidden', 'true');
-  document.getElementById('pfLightboxStage').innerHTML = '';
-  // Se sotto c'è ancora la galleria aperta, il blocco dello scroll resta
-  const pm = document.getElementById('portfolioModal');
-  if (!pm || !pm.classList.contains('is-open')) {
-    document.body.classList.remove('modal-open');
-  }
-}
-
-// Scheda di anteprima di un video caricato su Cloudinary: si ottiene
-// chiedendo il primo fotogramma come immagine.
-function videoPoster(url) {
-  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return null;
-  return url.replace('/upload/', '/upload/so_0,f_auto,q_auto,w_800/').replace(/\.[a-zA-Z0-9]+$/, '.jpg');
-}
-
-function openPortfolioGallery(item, media) {
-  const modal = document.getElementById('portfolioModal');
-  if (!modal) return;
-  modal.querySelector('.portfolio-modal-panel').classList.add('portfolio-modal-panel--gallery');
-  const mediaEl = document.getElementById('portfolioModalMedia');
-
-  const foto = media.filter(m => m.tipo === 'foto').length;
-  const video = media.filter(m => m.tipo === 'video').length;
-  const parti = [];
-  if (foto) parti.push(`${foto} foto`);
-  if (video) parti.push(`${video} video`);
-  document.getElementById('portfolioModalTag').textContent =
-    `${capitalize(item.category)} · ${parti.join(' + ')}`;
-  document.getElementById('portfolioModalTitle').textContent = item.title;
-
-  const descEl = document.getElementById('portfolioModalDesc');
-  const hasDesc = item.description && item.description.trim();
-  descEl.textContent = hasDesc ? item.description.trim() : '';
-  descEl.hidden = !hasDesc;
-
-  document.getElementById('portfolioModalExternal').hidden = true;
-
-  mediaEl.innerHTML = `
-    <div class="pf-gallery-grid">
-      ${media.map((m, i) => `
-      <button type="button" class="pf-thumb" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
-        ${m.tipo === 'video'
-          ? (videoPoster(m.file)
-              ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
-              : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
-            + '<span class="pf-thumb-play" aria-hidden="true"></span>'
-          : `<img src="${optimizeImage(m.file, 800)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
-        ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
-      </button>`).join('')}
-    </div>`;
-
-  mediaEl.querySelectorAll('.pf-thumb').forEach(btn => {
-    btn.addEventListener('click', () => openPfLightbox(media, Number(btn.dataset.i)));
-  });
-
-  modal.classList.add('is-open');
-  document.body.classList.add('modal-open');
-}
-
-function openPortfolioModal(item) {
-  const modal = document.getElementById('portfolioModal');
-  if (!modal) return;
-
-  // Se la voce ha una galleria di contenuti (campo "media" del pannello),
-  // mostra la griglia di miniature con lightbox; altrimenti la vista singola.
-  const galleria = (item.media || []).filter(m => m && m.file && m.file.trim())
-    .concat((item.foto || []).filter(f => f && String(f).trim()));
-  if (galleria.length) {
-    openPortfolioGallery(item, getPortfolioMedia(item));
-    return;
-  }
-
-  const mediaEl = document.getElementById('portfolioModalMedia');
-  modal.querySelector('.portfolio-modal-panel').classList.remove('portfolio-modal-panel--gallery');
-  const embedUrl = item.medium === 'video' ? getVideoEmbedUrl(item.link) : null;
-
-  mediaEl.innerHTML = embedUrl
-    ? `<iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
-    : hasImage(item.image)
-      ? `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">`
-      : `<div class="masonry-media--empty" style="width:100%;height:100%;"></div>`;
-
-  document.getElementById('portfolioModalTag').textContent =
-    `${capitalize(item.category)} · ${item.medium === 'video' ? 'Video' : 'Foto'}`;
-  document.getElementById('portfolioModalTitle').textContent = item.title;
-
-  const descEl = document.getElementById('portfolioModalDesc');
-  const hasDesc = item.description && item.description.trim();
-  descEl.textContent = hasDesc ? item.description.trim() : '';
-  descEl.hidden = !hasDesc;
-
-  const externalEl = document.getElementById('portfolioModalExternal');
-  externalEl.hidden = false;
-  const externalHref = item.link && item.link.trim() ? item.link.trim() : item.image;
-  externalEl.href = externalHref;
-  externalEl.textContent = item.medium === 'video' && embedUrl ? 'Apri su YouTube/Vimeo'
-    : item.medium === 'video' ? 'Guarda il video'
-    : 'Apri la foto originale';
-
-  modal.classList.add('is-open');
-  document.body.classList.add('modal-open');
-}
-
-function closePortfolioModal() {
-  const modal = document.getElementById('portfolioModal');
-  if (!modal) return;
-  modal.classList.remove('is-open');
-  document.getElementById('portfolioModalMedia').innerHTML = '';
-  document.body.classList.remove('modal-open');
-}
-
-function initPortfolioModal() {
-  const modal = document.getElementById('portfolioModal');
-  if (!modal || modal.dataset.wired) return;
-  modal.dataset.wired = 'true';
-
-  modal.querySelectorAll('[data-modal-close]').forEach(el => el.addEventListener('click', closePortfolioModal));
-  document.getElementById('portfolioModalClose').addEventListener('click', closePortfolioModal);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('is-open')) closePortfolioModal();
-  });
-}
-
-async function renderPortfolioPage() {
-  const list = document.getElementById('portfolioWorks');
-  if (!list) return;
-  const items = await fetchPortfolio();
-
-  list.innerHTML = items.map((item, idx) => {
-    const isLead = idx === 0;
-    const isVideo = item.medium === 'video';
-    const hasDesc = item.description && item.description.trim();
-    const galleria = (item.media || []).filter(m => m && m.file && m.file.trim());
-    const nFoto = galleria.filter(m => m.tipo !== 'video').length;
-    const nVideo = galleria.filter(m => m.tipo === 'video').length;
-    const tag = galleria.length
-      ? [nFoto ? `${nFoto} foto` : '', nVideo ? `${nVideo} video` : ''].filter(Boolean).join(' + ')
-      : (isVideo ? 'Video' : 'Foto');
+  /* ---------- Prev / Next ---------- */
+  function renderPrevNext(article) {
+    const idx = articles.findIndex(a => a.slug === article.slug);
+    const prev = articles[idx - 1];
+    const next = articles[idx + 1];
+    if (!prev && !next) return '';
     return `
-    <button type="button" class="work-row${isLead ? ' work-row--lead' : (idx % 2 ? ' work-row--reverse' : '')}" data-idx="${idx}" aria-label="Apri il progetto: ${item.title}">
-      <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
-      <span class="work-media">
-        ${hasImage(item.image)
-          ? `<img src="${optimizeImage(item.image, isLead ? 2000 : 1200)}" alt="${item.title}" loading="lazy">`
-          : `<span class="work-media work-media--empty"><span>Immagine in arrivo</span></span>`}
-        ${isVideo && !galleria.length ? '<span class="work-play" aria-hidden="true"></span>' : ''}
-      </span>
-      <span class="work-info">
-        <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${tag}</span>
-        <span class="work-title" style="display:block;">${item.title}</span>
-        ${hasDesc ? `<span class="work-desc">${item.description.trim()}</span>` : ''}
-        <span class="work-cta" style="display:inline-block;">${galleria.length ? 'Sfoglia la galleria' : (isVideo ? 'Guarda il video' : 'Guarda il progetto')} &rarr;</span>
-      </span>
-    </button>`;
-  }).join('');
-
-  list.querySelectorAll('.work-row').forEach(el => {
-    el.addEventListener('click', () => {
-      const item = items[Number(el.dataset.idx)];
-      window.location.href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
-    });
-  });
-
-  window.initScrollReveal && window.initScrollReveal();
-}
-
-// ---------------- PAGINA VOCE PORTFOLIO (voce.html) ----------------
-// Ogni voce del portfolio ha una pagina dedicata: intestazione con
-// descrizione e informazioni (data, luogo, categoria), poi la galleria
-// di foto e video in grande; cliccando un contenuto si apre il lightbox.
-
-async function renderVocePage() {
-  const root = document.getElementById('voceRoot');
-  if (!root) return;
-
-  const slug = new URLSearchParams(window.location.search).get('slug');
-  const items = await fetchPortfolio();
-  const item = items.find(i => portfolioSlug(i.title) === slug);
-
-  if (!item) {
-    document.getElementById('voceTitle').textContent = 'Voce non trovata';
-    document.getElementById('voceTag').textContent = '';
-    document.getElementById('voceDesc').hidden = true;
-    document.getElementById('voceMeta').hidden = true;
-    document.getElementById('voceGallery').innerHTML =
-      '<p class="voce-empty">Questa voce non esiste (o è stata rinominata). <a href="portfolio.html">Torna al portfolio</a>.</p>';
-    return;
+      <div class="article-prev-next">
+        ${prev ? `<a href="articoli/${prev.slug}.html" data-slug="${prev.slug}"><div class="nav-label">← Precedente</div><div class="nav-title">${prev.title}</div></a>` : '<div></div>'}
+        ${next ? `<a href="articoli/${next.slug}.html" data-slug="${next.slug}" style="text-align:right"><div class="nav-label">Successivo →</div><div class="nav-title">${next.title}</div></a>` : '<div></div>'}
+      </div>
+    `;
   }
 
-  document.title = `${item.title} — Portfolio — Erosioni`;
-  const portfolioUrl = 'https://davideamatoag.github.io/Erosioni/voce.html?slug=' + encodeURIComponent(item.slug);
-  setSocialMeta(
-    `${item.title} — Portfolio — Erosioni`,
-    (item.description || '').trim() || `Portfolio di Davide Amato — ${capitalize(item.category)}.`,
-    hasImage(item.image) ? item.image : null,
-    portfolioUrl
-  );
-
-  const media = getPortfolioMedia(item);
-  const foto = media.filter(m => m.tipo === 'foto').length;
-  const video = media.filter(m => m.tipo === 'video').length;
-  const parti = [];
-  if (foto) parti.push(`${foto} foto`);
-  if (video) parti.push(`${video} video`);
-
-  document.getElementById('voceTag').textContent = capitalize(item.category);
-  document.getElementById('voceTitle').textContent = item.title;
-
-  const descEl = document.getElementById('voceDesc');
-  const hasDesc = item.description && item.description.trim();
-  descEl.textContent = hasDesc ? item.description.trim() : '';
-  descEl.hidden = !hasDesc;
-
-  // Informazioni aggiuntive: data, luogo, categoria, contenuti
-  const meta = document.getElementById('voceMeta');
-  const blocchi = [];
-  if (item.date) blocchi.push(['Data', formatDateIt(item.date)]);
-  if (item.luogo && item.luogo.trim()) blocchi.push(['Luogo', item.luogo.trim()]);
-  blocchi.push(['Categoria', capitalize(item.category)]);
-  if (parti.length) blocchi.push(['Contenuti', parti.join(' + ')]);
-  meta.innerHTML = blocchi.map(([label, value]) =>
-    `<div class="meta-block"><span class="meta-label">${label}</span><span class="meta-value">${value}</span></div>`
-  ).join('');
-
-  // Galleria grande a tutta larghezza
-  const gallery = document.getElementById('voceGallery').querySelector('.container');
-  if (media.length) {
-    gallery.innerHTML = `
-      <div class="voce-gallery-grid">
-        ${media.map((m, i) => `
-        <button type="button" class="pf-thumb voce-thumb${i === 0 ? ' voce-thumb--lead' : ''}" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
-          ${m.tipo === 'video'
-            ? (videoPoster(m.file)
-                ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
-                : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
-              + '<span class="pf-thumb-play" aria-hidden="true"></span>'
-            : `<img src="${optimizeImage(m.file, 1400)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
-          ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
-        </button>`).join('')}
-      </div>`;
-    gallery.querySelectorAll('.voce-thumb').forEach(btn => {
-      btn.addEventListener('click', () => openPfLightbox(media, Number(btn.dataset.i)));
-    });
-  } else if (hasImage(item.image)) {
-    // Voce senza galleria: mostra almeno la copertina in grande
-    gallery.innerHTML = `
-      <div class="voce-cover">
-        <img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">
-      </div>`;
-  }
-
-  window.initScrollReveal && window.initScrollReveal();
-  document.querySelectorAll('.article-reveal').forEach(el => el.classList.add('is-loaded'));
-}
-
-// ==========================================================
-// TENDINA ARTICOLO — l'articolo si apre in una finestra
-// "bianco caldo" sopra la pagina (sfondo sfocato), senza
-// cambiare pagina. Mentre la tendina è aperta l'indirizzo nella
-// barra del browser diventa ?slug=...: il link si può copiare
-// e condividere, e il pulsante "indietro" richiude la tendina.
-// La pagina dedicata articolo.html?slug=... resta comunque
-// raggiungibile per i link diretti/condivisi.
-// ==========================================================
-
-// true quando l'apertura della tendina ha AGGIUNTO una voce nella
-// cronologia (click su una scheda): in quel caso la chiusura torna
-// indietro nella cronologia invece di riscrivere l'indirizzo.
-let articleModalPushed = false;
-
-function articleUrl(slug) {
-  return `${window.location.pathname}?slug=${encodeURIComponent(slug)}`;
-}
-
-function initArticleModal() {
-  const modal = document.getElementById('articleModal');
-  if (!modal || modal.dataset.wired) return;
-  modal.dataset.wired = 'true';
-
-  modal.querySelectorAll('[data-article-modal-close]').forEach((el) =>
-    el.addEventListener('click', () => closeArticleModal()));
-  document.getElementById('articleModalClose').addEventListener('click', () => closeArticleModal());
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeArticleModal();
-  });
-
-  // Barra di avanzamento lettura della tendina: bordo verticale appena
-  // fuori dal lato sinistro del pannello, che si riempie scorrendo.
-  const panel = modal.querySelector('.article-modal-panel');
-  const progress = document.getElementById('modalReadingProgress');
-  if (panel && progress) {
-    const aggiornaProgressModal = () => {
-      const rect = panel.getBoundingClientRect();
-      const max = panel.scrollHeight - panel.clientHeight;
-      const quota = max > 0 ? Math.min(1, panel.scrollTop / max) : 0;
-      progress.style.left = `${rect.left - 4}px`;
-      progress.style.top = `${rect.top}px`;
-      progress.style.height = `${quota * rect.height}px`;
-    };
-    panel.addEventListener('scroll', aggiornaProgressModal, { passive: true });
-    window.addEventListener('resize', aggiornaProgressModal);
-    modal._aggiornaProgress = aggiornaProgressModal;
-  }
-
-  // Rimandi alle note DENTRO la tendina: niente navigazione con #
-  // (cambierebbe l'indirizzo e chiuderebbe la tendina); si scorre
-  // dolcemente dentro il pannello e la nota si illumina.
-  if (panel) {
-    panel.addEventListener('click', (e) => {
-      const a = e.target.closest('a[href^="#nota-"], a[href^="#rif-"]');
-      if (!a) return;
-      e.preventDefault();
-      const target = panel.querySelector(a.getAttribute('href'));
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      panel.querySelectorAll('.nota-flash').forEach((el) => el.classList.remove('nota-flash'));
-      target.classList.add('nota-flash');
-      setTimeout(() => target.classList.remove('nota-flash'), 1800);
-    });
-  }
-
-  // Il form commenti dentro la tendina (placeholder come l'altro)
-  const modalCommentForm = document.getElementById('modalCommentForm');
-  const modalCommentNote = document.getElementById('modalCommentNote');
-  if (modalCommentForm) {
-    modalCommentForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      modalCommentForm.reset();
-      if (modalCommentNote) modalCommentNote.hidden = false;
-    });
-  }
-}
-
-// historyMode:
-//  'push'    — click su una scheda: nuova voce in cronologia
-//  'replace' — apertura automatica da link ?slug=...: l'indirizzo c'è già
-//  'none'    — navigazione avanti/indietro: la voce è già quella giusta
-async function openArticleModal(slug, historyMode = 'push') {
-  const modal = document.getElementById('articleModal');
-  if (!modal) return; // pagina senza tendina: si naviga normalmente
-  initArticleModal();
-
-  const articles = await fetchArticles();
-  const article = articles.find((a) => a.slug === slug);
-  if (!article) return;
-
-  const panel = modal.querySelector('.article-modal-panel');
-
-  // Sfondo dinamico della tendina: foto di copertina con forte sfocatura
-  const backdrop = modal.querySelector('.article-modal-backdrop');
-  if (backdrop) {
-    if (hasImage(article.image)) {
-      backdrop.style.setProperty('--modal-bg-image', `url('${optimizeImage(article.image, 800)}')`);
-      backdrop.classList.add('has-image');
-    } else {
-      backdrop.style.removeProperty('--modal-bg-image');
-      backdrop.classList.remove('has-image');
+  /* ---------- Condivisione ---------- */
+  function shareArticle(platform) {
+    if (!currentArticle) return;
+    const baseUrl = 'https://davideamatoag.github.io/Erosioni';
+    const url = `${baseUrl}/articoli/${currentArticle.slug}.html`;
+    const text = currentArticle.title;
+    
+    switch(platform) {
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url).then(() => alert('Link copiato!'));
+        break;
     }
   }
 
-  // Meta in una riga sola: DATA · CATEGORIA · TEMPO DI LETTURA
-  document.getElementById('modalArticleMeta').textContent =
-    `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body)} min di lettura`;
-  document.getElementById('modalArticleTitle').textContent = article.title;
-  // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
-  const modalExcerptEl = document.getElementById('modalArticleExcerpt');
-  modalExcerptEl.textContent = (article.sottotitolo || '').trim();
-  modalExcerptEl.hidden = !modalExcerptEl.textContent;
-
-  const heroImg = document.getElementById('modalArticleImg');
-  if (hasImage(article.image)) {
-    heroImg.hidden = false;
-    heroImg.alt = article.title;
-    heroImg.src = optimizeImage(article.image, 1600);
-  } else {
-    heroImg.hidden = true;
-    heroImg.removeAttribute('src');
+  /* ---------- Progresso lettura ---------- */
+  function setupReadingProgress(container) {
+    const bar = container.querySelector('.modal-reading-progress');
+    if (!bar) return;
+    const content = container.querySelector('.article-body');
+    if (!content) return;
+    
+    container.addEventListener('scroll', () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = content.offsetHeight - container.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      bar.style.width = Math.min(progress, 100) + '%';
+    });
   }
 
-  const settings = await fetchSettings();
-  const bodyEl = document.getElementById('modalArticleBody');
-  bodyEl.innerHTML = renderMarkdown(article.body || '');
-  applyArticleBodyStyle(bodyEl, article, settings);
-
-  // Tasto "Pagina intera": porta alla pagina dedicata (sfondo scuro)
-  const fullPageLink = document.getElementById('modalFullPageLink');
-  if (fullPageLink) fullPageLink.href = `articolo.html?slug=${encodeURIComponent(article.slug)}`;
-
-  // Dissolvenza lenta anche per le immagini nel corpo, che diventano
-  // cliccabili: si aprono a tutto schermo nel lightbox (come nella
-  // pagina dedicata e nella galleria portfolio)
-  const modalImgs = [...bodyEl.querySelectorAll('.article-inline-img')];
-  const modalLightboxItems = modalImgs.map((img) => ({
-    tipo: 'foto',
-    file: img.dataset.full || img.src,
-    titolo: img.alt || ''
-  }));
-  modalImgs.forEach((img, i) => {
-    if (img.complete) img.classList.add('is-loaded');
-    else img.onload = () => img.classList.add('is-loaded');
-    img.classList.add('is-zoomable');
-    img.addEventListener('click', () => openPfLightbox(modalLightboxItems, i));
-  });
-
-  // Autore dalle impostazioni del sito
-  const nameEl = document.getElementById('modalAuthorName');
-  const bioEl = document.getElementById('modalAuthorBio');
-  if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
-
-  // Condivisione: punta sempre alla pagina dedicata, così il link
-  // copiato/condiviso resta valido e apribile da chiunque.
-  const shareUrl = new URL(`articolo.html?slug=${encodeURIComponent(article.slug)}`, window.location.href).href;
-  const shareTwitter = document.getElementById('modalShareTwitter');
-  const shareFacebook = document.getElementById('modalShareFacebook');
-  const shareWhatsapp = document.getElementById('modalShareWhatsapp');
-  const shareCopy = document.getElementById('modalShareCopy');
-  const shareNote = document.getElementById('modalShareNote');
-  if (shareWhatsapp) shareWhatsapp.onclick = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${article.title} — ${shareUrl}`)}`, '_blank', 'noopener');
-  };
-  if (shareTwitter) shareTwitter.onclick = () => {
-    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}`, '_blank', 'noopener');
-  };
-  if (shareFacebook) shareFacebook.onclick = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener');
-  };
-  if (shareCopy) shareCopy.onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      if (shareNote) {
-        shareNote.hidden = false;
-        setTimeout(() => { shareNote.hidden = true; }, 2500);
-      }
-    } catch (e) { /* clipboard non disponibile */ }
-  };
-
-  // Articoli correlati dentro la tendina: cliccandone uno il
-  // contenuto della finestra si sostituisce (vedi delega globale).
-  const relatedEl = document.getElementById('modalRelatedList');
-  if (relatedEl) {
-    const others = articles.filter((a) => a.slug !== article.slug).slice(0, 3);
-    relatedEl.innerHTML = others.map(relatedCardHtml).join('');
+  /* ---------- Torna su ---------- */
+  function setupBackToTop() {
+    const btn = document.querySelector('.back-to-top');
+    if (!btn) return;
+    window.addEventListener('scroll', () => {
+      btn.classList.toggle('visible', window.scrollY > 600);
+    });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
-  modal.classList.add('is-open');
-  document.body.classList.add('modal-open');
-  if (panel) panel.scrollTop = 0;
-  // Azzera e riposiziona il bordo di avanzamento (dopo che la tendina è visibile)
-  requestAnimationFrame(() => {
-    if (modal._aggiornaProgress) modal._aggiornaProgress();
-  });
+  /* ---------- Render pagina articolo dedicata ---------- */
+  function renderArticlePage() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+    if (!slug) return;
+    
+    const article = articles.find(a => a.slug === slug);
+    if (!article) return;
+    currentArticle = article;
 
-  // L'indirizzo nella barra segue l'articolo aperto
-  if (historyMode === 'push') {
-    history.pushState({ erosioniArticle: article.slug }, '', articleUrl(article.slug));
-    articleModalPushed = true;
-  } else if (historyMode === 'replace') {
-    history.replaceState({ erosioniArticle: article.slug }, '', articleUrl(article.slug));
-    articleModalPushed = false;
-  } else {
-    // 'none': la voce di cronologia corrente è già quella dell'articolo
-    articleModalPushed = true;
-  }
-}
+    const container = document.getElementById('articleContainer');
+    if (!container) return;
 
-// fromHistory: la chiusura arriva dal pulsante indietro/avanti del
-// browser — l'indirizzo è già cambiato, basta chiudere la finestra.
-function closeArticleModal(fromHistory) {
-  const modal = document.getElementById('articleModal');
-  if (!modal || !modal.classList.contains('is-open')) return;
-  modal.classList.remove('is-open');
-  document.body.classList.remove('modal-open');
+    setSocialMeta(article);
 
-  // Pulisce lo sfondo dinamico
-  const backdrop = modal.querySelector('.article-modal-backdrop');
-  if (backdrop) {
-    backdrop.style.removeProperty('--modal-bg-image');
-    backdrop.classList.remove('has-image');
-  }
-
-  if (fromHistory) {
-    articleModalPushed = false;
-    return;
-  }
-  if (articleModalPushed) {
-    // la voce ?slug= l'abbiamo aggiunta noi: torniamo indietro
-    articleModalPushed = false;
-    history.back();
-  } else {
-    // aperta da un link diretto: ripulisce l'indirizzo senza navigare
-    history.replaceState({}, '', window.location.pathname);
-  }
-}
-
-// Avanti/indietro del browser mentre la tendina è aperta:
-// se la voce di cronologia porta un articolo, lo mostra; altrimenti chiude.
-window.addEventListener('popstate', (e) => {
-  const modal = document.getElementById('articleModal');
-  if (!modal || !modal.classList.contains('is-open')) return;
-  const slug = e.state && e.state.erosioniArticle;
-  if (slug) {
-    openArticleModal(slug, 'none');
-  } else {
-    // Se l'indirizzo porta ancora ?slug=... (es. è cambiato solo il #
-    // dopo un clic su una nota), la tendina resta aperta com'è.
-    const slugNellUrl = new URLSearchParams(window.location.search).get('slug');
-    if (slugNellUrl) return;
-    closeArticleModal(true);
-  }
-});
-
-// Delega globale: qualunque scheda articolo (home, archivio,
-// correlati) apre la tendina invece di cambiare pagina.
-document.addEventListener('click', (e) => {
-  const link = e.target.closest('[data-article-slug]');
-  if (!link) return;
-  if (!document.getElementById('articleModal')) return; // fallback: pagina dedicata
-  e.preventDefault();
-  openArticleModal(link.getAttribute('data-article-slug'));
-});
-
-// Link diretto: se qualcuno arriva su index/articoli/portfolio con
-// ?slug=... nell'indirizzo, la tendina si apre da sola appena la pagina
-// è pronta. Sulla pagina dedicata articolo.html no: lì l'articolo è
-// già mostrato dalla pagina stessa.
-async function openArticleFromUrl() {
-  const slug = new URLSearchParams(window.location.search).get('slug');
-  if (!slug || !document.getElementById('articleModal')) return;
-  if (document.getElementById('articleBody')) return; // pagina articolo dedicata
-  openArticleModal(slug, 'replace');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  renderSiteImages();
-  renderHomeLayers();
-  renderHomeViaggi();
-  renderHomePortfolio();
-  renderArticoliPage();
-  renderArticlePage();
-  renderPortfolioPage();
-  renderVocePage();
-  renderScattiGrid();
-  openArticleFromUrl();
-});
-
-// ---------------- HOMEPAGE: "Viaggi" (Sezione 3) ----------------
-// Timeline dei viaggi: mostra SOLO le voci del portfolio con categoria
-// "viaggi", collegate alla pagina di ciascuna voce.
-async function renderHomeViaggi() {
-  const timeline = document.getElementById('homeViaggi');
-  if (!timeline) return;
-  const items = await fetchPortfolio();
-  const viaggi = items.filter(i => i.category === 'viaggi');
-  if (!viaggi.length) {
-    timeline.innerHTML = '<p class="section-empty">Nuovi viaggi in arrivo.</p>';
-    return;
-  }
-
-  const conData = viaggi.filter(i => i.date);
-  const senzaData = viaggi.filter(i => !i.date);
-  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
-  const ordinati = conData.concat(senzaData);
-
-  timeline.innerHTML = ordinati.map((item) => {
-    const year = item.date ? item.date.slice(0, 4) : '';
-    const desc = (item.description || '').trim();
-    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
-    return `
-      <a class="travel-node" href="${href}">
-        ${year ? `<span class="travel-year-bg" aria-hidden="true">${year}</span>` : ''}
-        <h3>${item.title}</h3>
-        ${year ? `<p class="travel-year">${year}</p>` : ''}
-        ${desc ? `<p class="travel-desc">${desc}</p>` : ''}
-        <span class="travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></span>
-      </a>`;
-  }).join('');
-}
-
-// ---------------- HOMEPAGE: "Dal portfolio" (Sezione 4) ----------------
-// Mostra le due voci più recenti tra EVENTI e LAVORI (i viaggi hanno la
-// loro sezione dedicata), collegate alla pagina di ciascuna voce.
-async function renderHomePortfolio() {
-  const list = document.querySelector('#portfolio .formation-list');
-  if (!list) return;
-  const items = await fetchPortfolio();
-  const filtrate = items.filter(i => i.category !== 'viaggi');
-  if (!filtrate.length) {
-    list.innerHTML = '<p class="section-empty">Nuovi progetti in arrivo.</p>';
-    return;
-  }
-
-  const conData = filtrate.filter(i => i.date);
-  const senzaData = filtrate.filter(i => !i.date);
-  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
-  const latest = conData.concat(senzaData).slice(0, 2);
-
-  list.innerHTML = latest.map((item, idx) => {
-    const galleria = getPortfolioMedia(item);
-    const nFoto = galleria.filter(m => m.tipo === 'foto').length;
-    const nVideo = galleria.filter(m => m.tipo === 'video').length;
-    const parti = [];
-    if (nFoto) parti.push(`${nFoto} foto`);
-    if (nVideo) parti.push(`${nVideo} video`);
-    const tag = parti.length ? parti.join(' + ')
-      : (item.medium === 'video' ? 'Video' : 'Foto');
-    const desc = (item.description || '').trim();
-    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
-    return `
-      <div class="formation-block${idx % 2 ? ' formation-block--reverse' : ''}">
-        <a class="formation-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1600) : ''}');" aria-label="Apri: ${item.title}"></a>
-        <div class="formation-copy">
-          <p class="article-meta">${capitalize(item.category)} &middot; ${tag}</p>
-          <h3>${item.title}</h3>
-          ${desc ? `<p class="formation-desc">${desc}</p>` : ''}
-          <a class="btn-outline" href="${href}">Apri la voce</a>
+    const bodyHtml = parseShortcodes(article.content);
+    container.innerHTML = `
+      <div class="article-top">
+        <div class="container">
+          <a href="index.html" class="article-back">&larr; Torna agli articoli</a>
+          <div class="article-top-grid">
+            <div>
+              <h1 class="article-page-title">${article.title}</h1>
+              <p class="article-excerpt">${article.excerpt}</p>
+            </div>
+            <div class="article-top-meta">
+              <div><span class="meta-label">Data</span><span class="meta-value">${article.date}</span></div>
+              <div><span class="meta-label">Categoria</span><span class="meta-value">${article.category}</span></div>
+              ${article.reading_time ? `<div><span class="meta-label">Tempo di lettura</span><span class="meta-value">${article.reading_time}</span></div>` : ''}
+            </div>
+          </div>
+          <hr class="article-top-divider">
         </div>
-      </div>`;
-  }).join('');
-}
+      </div>
+      <div class="container">
+        <div class="article-body">${bodyHtml}</div>
+        
+        <div class="share-bar">
+          <span class="share-label">Condividi</span>
+          <button class="share-btn" onclick="shareArticle('twitter')" title="Twitter">𝕏</button>
+          <button class="share-btn" onclick="shareArticle('facebook')" title="Facebook">f</button>
+          <button class="share-btn" onclick="shareArticle('whatsapp')" title="WhatsApp">📱</button>
+          <button class="share-btn" onclick="shareArticle('copy')" title="Copia link">🔗</button>
+        </div>
 
-// ---------------- HOMEPAGE: "I miei scatti" — Galleria minerale ----------------
-// Griglia masonry con una selezione casuale ma stabile per tutta la
-// giornata (cambia una volta al giorno) tra le foto caricate nel pannello.
+        ${renderAuthorBio()}
+        ${renderPrevNext(article)}
+        
+        <div style="text-align:center;margin-top:48px">
+          <button class="article-back" onclick="openArticleModal('${article.slug}')">Apri a tendina ↗</button>
+        </div>
+      </div>
+    `;
 
-function seededRandom(seed) {
-  let s = seed >>> 0;
-  return function () {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    setupReadingProgress(document);
+  }
+
+  /* ---------- Render portfolio ---------- */
+  function renderPortfolio(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    portfolio.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'portfolio-item';
+      card.style.animationDelay = `${index * 0.1}s`;
+      card.innerHTML = `
+        <img src="${item.image}" alt="${item.title}" loading="lazy">
+        <div class="portfolio-overlay">
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  /* ---------- Render scatti ---------- */
+  function renderScatti(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    scatti.forEach((scatto, index) => {
+      const item = document.createElement('div');
+      item.className = 'scatto-item';
+      item.style.animationDelay = `${index * 0.08}s`;
+      item.innerHTML = `
+        <img src="${scatto.image}" alt="${scatto.title}" loading="lazy">
+        <div class="scatto-caption">
+          <h4>${scatto.title}</h4>
+          <p>${scatto.description}</p>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  /* ---------- Slugify ---------- */
+  function slugify(text) {
+    return text.toString().toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  }
+
+  /* ---------- Export ---------- */
+  window.Erosioni = {
+    loadAllData,
+    renderArticles,
+    renderPortfolio,
+    renderScatti,
+    renderArticlePage,
+    openArticleModal,
+    closeArticleModal,
+    shareArticle,
+    setupBackToTop,
+    setupReadingProgress,
+    parseShortcodes,
+    slugify,
+    get articles() { return articles; },
+    get portfolio() { return portfolio; },
+    get settings() { return settings; },
+    get currentArticle() { return currentArticle; },
   };
-}
 
-function todaySeed() {
-  const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-}
-
-function seededShuffle(arr, seed) {
-  const rand = seededRandom(seed);
-  const out = arr.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
-async function renderScattiGrid() {
-  const grid = document.getElementById('scattiGrid');
-  if (!grid) return;
-
-  let shots = [];
-  try {
-    const res = await fetch('content/scatti.json', { cache: 'no-store' });
-    const data = await res.json();
-    shots = (data.shots || []).filter((shot) => hasImage(shot.image));
-  } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
-
-  if (!shots.length) {
-    grid.innerHTML = Array.from({ length: 6 }, () =>
-      `<button type="button" class="shot shot--empty" disabled></button>`).join('');
-    return;
-  }
-
-  const shuffled = seededShuffle(shots, todaySeed()).slice(0, 9);
-
-  grid.innerHTML = shuffled.map((shot) => {
-    const title = (shot.title || '').trim();
-    return `
-    <button type="button" class="shot" data-full="${optimizeImage(shot.image, 2200)}" data-title="${title.replace(/"/g, '&quot;')}" aria-label="Apri lo scatto a grandezza originale${title ? `: ${title}` : ''}">
-      <img class="shot-img" src="${optimizeImage(shot.image, 800)}" alt="${title || 'Scatto fotografico'}" loading="lazy">
-      ${title ? `<span class="shot-overlay"><span class="shot-title">${title}</span></span>` : ''}
-    </button>`;
-  }).join('');
-
-  grid.querySelectorAll('.shot[data-full]').forEach((btn) => {
-    btn.addEventListener('click', () => openShotModal(btn.dataset.full, btn.dataset.title));
+  /* ---------- Init ---------- */
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadAllData();
+    if (document.getElementById('articlesGrid')) renderArticles('articlesGrid');
+    if (document.getElementById('portfolioGrid')) renderPortfolio('portfolioGrid');
+    if (document.getElementById('scattiGrid')) renderScatti('scattiGrid');
+    if (document.getElementById('articleContainer')) renderArticlePage();
+    setupBackToTop();
+    setSocialMeta(null);
   });
-  initShotModal();
 
-  window.initScrollReveal && window.initScrollReveal();
-}
-
-// ---------------- TENDINA per vedere uno scatto a grandezza originale ----------------
-function openShotModal(url, title) {
-  const modal = document.getElementById('shotModal');
-  if (!modal) return;
-  document.getElementById('shotModalImg').src = url;
-  const captionEl = document.getElementById('shotModalCaption');
-  if (captionEl) {
-    captionEl.textContent = title || '';
-    captionEl.hidden = !title;
-  }
-  modal.classList.add('is-open');
-  document.body.classList.add('modal-open');
-}
-
-function closeShotModal() {
-  const modal = document.getElementById('shotModal');
-  if (!modal) return;
-  modal.classList.remove('is-open');
-  document.getElementById('shotModalImg').src = '';
-  document.body.classList.remove('modal-open');
-}
-
-function initShotModal() {
-  const modal = document.getElementById('shotModal');
-  if (!modal || modal.dataset.wired) return;
-  modal.dataset.wired = 'true';
-
-  modal.querySelectorAll('[data-shot-modal-close]').forEach((el) => el.addEventListener('click', closeShotModal));
-  document.getElementById('shotModalClose').addEventListener('click', closeShotModal);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeShotModal();
-  });
-}
+})();
+/* __PLACEHOLDER__ */
