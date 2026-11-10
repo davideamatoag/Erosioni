@@ -60,11 +60,7 @@
   <div class="header-inner">
     <a href="#top" class="brand">Erosioni</a>
     <button class="nav-toggle" id="navToggle" aria-label="Apri il menu" aria-expanded="false">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <line x1="4" y1="6" x2="20" y2="6"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="18" x2="20" y2="18"/>
-      </svg>
+      <span></span><span></span><span></span>
     </button>
     <nav class="main-nav" id="mainNav">
       <a href="articoli.html">Articoli</a>
@@ -75,153 +71,221 @@
   </div>
 </header>
 
-<!-- MENU MOBILE OVERLAY -->
-<div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-<div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Chiudi menu">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <line x1="6" y1="6" x2="18" y2="18"/>
-      <line x1="18" y1="6" x2="6" y2="18"/>
-    </svg>
-  </button>
-  <nav class="mobile-nav-links">
-    <a href="articoli.html">Articoli</a>
-    <a href="portfolio.html">Portfolio</a>
-    <a href="bio.html">Bio</a>
-    <a href="contatti.html">Contatti</a>
-  </nav>
+<!-- HERO — "Lo strato superficiale" (fissa sullo sfondo) -->
+<section class="hero" id="top" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.72) 0%, rgba(26,24,22,0.5) 45%, rgba(26,24,22,0.82) 100%), url('images/hero.jpg');">
+  <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <span class="hero-spacer-top" aria-hidden="true"></span>
+    <h1 class="hero-title" id="heroTitle">Erosioni</h1>
+    <p class="hero-subtitle">Fotografia &middot; Filosofia &middot; Politica</p>
+    <!-- Linea di scroll: una fessura sottile che dal sottotitolo
+         scende fino al fondo dello schermo, invitando a scendere -->
+    <span class="scroll-line" aria-hidden="true"></span>
+  </div>
+</section>
+<div class="hero-spacer"></div>
+
+<!-- Tutto il resto della pagina scorre sopra la hero, come uno scavo -->
+<div class="curtain-content" id="curtainContent">
+
+<!-- ULTIMI ARTICOLI — "Strati sedimentari" -->
+<section class="section section--large" id="articoli">
+  <div class="container">
+    <p class="section-eyebrow">Sezione 1</p>
+    <h2 class="section-title">Articoli recenti</h2>
+
+    <a class="home-featured" id="homeFeatured" href="#">
+      <div class="home-featured-media"></div>
+      <div class="home-featured-info">
+        <p class="article-meta" id="homeFeaturedMeta"></p>
+        <h3 class="home-featured-title" id="homeFeaturedTitle"></h3>
+        <p class="home-featured-excerpt" id="homeFeaturedExcerpt"></p>
+        <span class="home-featured-cta">Leggi l'articolo &rarr;</span>
+      </div>
+    </a>
+
+    <div class="layers-list" id="articlesLayers"></div>
+
+    <div class="section-more">
+      <a class="btn-outline" href="articoli.html">Tutti gli articoli</a>
+    </div>
+  </div>
+</section>
+
+<hr class="strata" aria-hidden="true">
+
+<!-- I MIEI SCATTI — "Galleria minerale" -->
+<section class="section section--tight" id="scatti">
+  <div class="container">
+    <p class="section-eyebrow">Sezione 2</p>
+    <h2 class="section-title">I miei scatti</h2>
+    <div class="shots-masonry" id="scattiGrid"></div>
+  </div>
+</section>
+
+<!-- TENDINA SCATTO A GRANDEZZA ORIGINALE -->
+<div class="shot-modal" id="shotModal">
+  <div class="shot-modal-backdrop" data-shot-modal-close></div>
+  <div class="shot-modal-panel">
+    <button type="button" class="shot-modal-close" id="shotModalClose" aria-label="Chiudi">&times;</button>
+    <img class="shot-modal-img" id="shotModalImg" src="" alt="Scatto a grandezza originale">
+    <p class="shot-modal-caption" id="shotModalCaption" hidden></p>
+  </div>
 </div>
 
-<!-- HERO -->
-<section class="hero" id="top">
-  <div class="hero-media" id="heroMedia">
-    <img
-      src="https://res.cloudinary.com/plscorbg/image/upload/f_auto,q_auto:good,w_1920/v1786198205/75720024_yny7tm.jpg"
-      alt="Erosioni — blog di fotografia, filosofia e politica"
-      id="heroImg"
-      loading="eager"
-      decoding="async"
-    >
-  </div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <h1 class="hero-title" id="heroTitle">Erosioni</h1>
-    <p class="hero-subtitle" id="heroSubtitle">Blog di fotografia, filosofia e politica</p>
-    <div class="hero-cta">
-      <a href="articoli.html" class="btn-primary">Esplora gli articoli</a>
-      <a href="portfolio.html" class="btn-secondary">Portfolio foto/video</a>
-    </div>
-  </div>
-  <div class="scroll-indicator" id="scrollIndicator">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
+<!-- NEWSLETTER — "Sedimentazione" -->
+<section class="newsletter" id="newsletter" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.78) 0%, rgba(26,24,22,0.88) 100%), url('images/newsletter-bg.jpg');">
+  <div class="container">
+    <p class="newsletter-eyebrow">Sedimentazione</p>
+    <h2 class="newsletter-title">Ogni articolo è uno strato che si deposita. Lascia la tua email e resta aggiornato quando ne esce uno nuovo.</h2>
+    <form class="newsletter-form" id="newsletterForm">
+      <input type="email" name="email" placeholder="La tua email" required aria-label="Indirizzo email">
+      <button type="submit">Iscriviti</button>
+    </form>
+    <p class="newsletter-note" id="newsletterNote" hidden>Grazie! Controlla la tua casella per confermare.</p>
   </div>
 </section>
 
-<!-- SEZIONE ARTICOLI IN EVIDENZA -->
-<section class="featured-articles" id="featuredArticles">
-  <div class="section-header">
-    <h2 class="section-title">In evidenza</h2>
-    <a href="articoli.html" class="section-link">Tutti gli articoli →</a>
-  </div>
-  <div class="featured-grid" id="featuredGrid">
-    <!-- Popolato da JS -->
-  </div>
-</section>
-
-<!-- SEZIONE ULTIMI ARTICOLI -->
-<section class="latest-articles" id="latestArticles">
-  <div class="section-header">
-    <h2 class="section-title">Ultimi articoli</h2>
-    <a href="articoli.html" class="section-link">Archivio completo →</a>
-  </div>
-  <div class="articles-list" id="articlesList">
-    <!-- Popolato da JS -->
-  </div>
-</section>
-
-<!-- SEZIONE PORTFOLIO -->
-<section class="home-portfolio" id="homePortfolio">
-  <div class="section-header">
-    <h2 class="section-title">Portfolio</h2>
-    <a href="portfolio.html" class="section-link">Vedi tutto →</a>
-  </div>
-  <div class="portfolio-grid" id="portfolioGrid">
-    <!-- Popolato da JS -->
-  </div>
-</section>
-
-<!-- SEZIONE BIO -->
-<section class="home-bio" id="homeBio">
-  <div class="bio-inner">
-    <div class="bio-image" id="bioImage"></div>
-    <div class="bio-text">
-      <h2 class="section-title">Chi sono</h2>
-      <p id="bioIntro">Scrittore, fotografo e studioso. Esploro il rapporto tra immagine, pensiero e cambiamento sociale.</p>
-      <a href="bio.html" class="section-link">Leggi la bio completa →</a>
+<!-- VIAGGI — "Cartografia erosa" -->
+<section class="section section--tuff">
+  <div class="container">
+    <p class="section-eyebrow">Sezione 3</p>
+    <h2 class="section-title">Viaggi</h2>
+    <div class="travel-timeline" id="homeViaggi">
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2024</span>
+        <h3>Ragusa Ibla</h3>
+        <p class="travel-year">2024</p>
+        <p class="travel-desc">Paesaggi splendidi in un'estate calda.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-ragusa.jpg');"></div>
+      </div>
+      <div class="travel-node">
+        <span class="travel-year-bg" aria-hidden="true">2023</span>
+        <h3>Madonie</h3>
+        <p class="travel-year">2023</p>
+        <p class="travel-desc">Un viaggio con Panna sulle vette siciliane.</p>
+        <div class="travel-media" style="background-image:url('images/viaggio-madonie.jpg');"></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="site-footer" id="siteFooter">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <a href="#top" class="footer-logo">Erosioni</a>
-      <p class="footer-tagline">Blog di fotografia, filosofia e politica</p>
+<!-- DAL PORTFOLIO — "Formazioni rocciose" -->
+<section class="section" id="portfolio">
+  <div class="container">
+    <p class="section-eyebrow">Sezione 4</p>
+    <h2 class="section-title">Dal portfolio</h2>
+    <div class="formation-list">
+      <div class="formation-block">
+        <div class="formation-media" style="background-image:url('images/portfolio-pandarei.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Eventi &middot; Video</p>
+          <h3>Pandarei</h3>
+          <p>Recentemente ho lavorato alla festa organizzata dai ragazzi di Pandarei. Il video è ben riuscito e ho sperimentato con nuovi effetti e nuove tecniche di ripresa.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
+        </div>
+      </div>
+      <div class="formation-block formation-block--reverse">
+        <div class="formation-media" style="background-image:url('images/portfolio-tennis.jpg');"></div>
+        <div class="formation-copy">
+          <p class="article-meta">Lavori &middot; Video</p>
+          <h3>Circolo Tennis</h3>
+          <p>Ho avuto il piacere di realizzare un video per il circolo del tennis di Agrigento, in occasione di un torneo organizzato in memoria di Marco Chianetta.</p>
+          <a class="btn-outline" href="portfolio.html">Vai al portfolio</a>
+        </div>
+      </div>
     </div>
-    <div class="footer-links">
-      <a href="articoli.html">Articoli</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="bio.html">Bio</a>
-      <a href="contatti.html">Contatti</a>
-    </div>
+  </div>
+</section>
+
+<hr class="strata" aria-hidden="true">
+
+<!-- FOOTER — "Fondo roccioso" -->
+<footer class="site-footer" style="background-image: linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('images/footer-bg.jpg');">
+  <canvas class="footer-canvas" id="footerCanvas" aria-hidden="true"></canvas>
+  <div class="container">
+    <p class="footer-eyebrow">Fondo roccioso</p>
+    <a class="footer-email" href="mailto:davide.amatoag@gmail.com">davide.amatoag@gmail.com</a>
     <div class="footer-social">
-      <a href="https://instagram.com/davideamatoag" target="_blank" rel="noopener" aria-label="Instagram">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="2" width="20" height="20" rx="5"/>
-          <circle cx="12" cy="12" r="5"/>
-          <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
-        </svg>
-      </a>
-      <a href="https://x.com/davideamatoag" target="_blank" rel="noopener" aria-label="X/Twitter">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
-      </a>
-      <a href="https://youtube.com/@davideamatoag" target="_blank" rel="noopener" aria-label="YouTube">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-      </a>
+      <a href="contatti.html">Instagram</a>
+      <a href="contatti.html">YouTube</a>
+      <a href="contatti.html">LinkedIn</a>
     </div>
-    <p class="footer-copy">© 2025 Erosioni — Davide Amato</p>
+    <p class="footer-quote">&laquo;Le forme recingono una materia che altrimenti si dissolverebbe nel tutto&raquo; &mdash; Gy&ouml;rgy Luk&aacute;cs</p>
+    <p class="footer-brand">Erosioni</p>
+    <p class="footer-copy">&copy; <span id="year"></span> Davide Amato &middot; Tutti i diritti riservati</p>
   </div>
 </footer>
 
-<!-- MODAL ARTICOLO A TENDINA -->
-<div class="article-modal" id="articleModal" aria-hidden="true">
-  <div class="article-modal-backdrop" id="articleModalBackdrop"></div>
-  <div class="article-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalArticleTitle">
-    <button class="article-modal-close" id="articleModalClose" aria-label="Chiudi articolo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="6" y1="6" x2="18" y2="18"/>
-        <line x1="18" y1="6" x2="6" y2="18"/>
-      </svg>
+</div><!-- /.curtain-content -->
+
+<!-- TENDINA ARTICOLO — finestra "bianco caldo" su sfondo sfocato -->
+<div class="article-modal" id="articleModal">
+  <div class="article-modal-backdrop" data-article-modal-close></div>
+  <article class="article-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalArticleTitle">
+    <button type="button" class="article-modal-close" id="articleModalClose" aria-label="Chiudi l'articolo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
-    <div class="modal-reading-progress" id="modalReadingProgress"></div>
-    <div class="article-modal-inner" id="articleModalInner">
-      <!-- Popolato da JS -->
+    <a class="article-modal-fullpage" id="modalFullPageLink" href="#" title="Apri l'articolo nella pagina dedicata">Pagina intera &#8599;</a>
+    <div class="modal-reading-progress" id="modalReadingProgress" aria-hidden="true"></div>
+    <p class="article-modal-meta" id="modalArticleMeta"></p>
+    <h2 class="article-modal-title" id="modalArticleTitle"></h2>
+    <p class="article-modal-excerpt" id="modalArticleExcerpt"></p>
+    <img class="article-modal-hero" id="modalArticleImg" src="" alt="">
+    <div class="article-body" id="modalArticleBody"></div>
+
+    <hr class="article-modal-divider">
+
+    <div class="article-modal-author">
+      <p class="sidebar-label">Autore</p>
+      <p class="author-name" id="modalAuthorName">Davide Amato</p>
+      <p class="author-bio" id="modalAuthorBio"></p>
     </div>
-  </div>
+
+    <div class="article-modal-share">
+      <p class="sidebar-label">Condividi</p>
+      <div class="share-icons">
+        <button type="button" class="share-icon" id="modalShareTwitter" aria-label="Condividi su X">𝕏</button>
+        <button type="button" class="share-icon" id="modalShareFacebook" aria-label="Condividi su Facebook">f</button>
+        <button type="button" class="share-icon" id="modalShareWhatsapp" aria-label="Condividi su WhatsApp">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.87 9.87 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.03a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.12.82.83-3.04-.2-.31a8.08 8.08 0 0 1-1.24-4.28c0-4.47 3.64-8.11 8.12-8.11 4.47 0 8.11 3.64 8.11 8.11s-3.6 8.12-8.07 8.12zm4.45-6.08c-.24-.12-1.44-.71-1.66-.79-.22-.08-.39-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.53.06-.24-.12-1.03-.38-1.96-1.21-.72-.65-1.21-1.44-1.36-1.68-.14-.24-.01-.37.11-.5.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.31-.02-.43-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.43.06-.65.31-.22.24-.86.84-.86 2.05 0 1.21.88 2.37 1 2.53.12.16 1.72 2.63 4.18 3.69.58.25 1.04.4 1.4.52.59.19 1.12.16 1.54.1.47-.07 1.44-.59 1.64-1.16.2-.57.2-1.05.14-1.16-.06-.1-.22-.16-.46-.28z"/></svg>
+        </button>
+        <button type="button" class="share-icon" id="modalShareCopy" aria-label="Copia link">&#128279;</button>
+      </div>
+      <p class="share-note" id="modalShareNote" hidden>Link copiato!</p>
+    </div>
+
+    <hr class="article-modal-divider">
+
+    <h3 class="article-modal-related-heading">Articoli correlati</h3>
+    <div class="related-grid" id="modalRelatedList"></div>
+
+    <div class="comment-form-section article-modal-comments">
+      <h2>Lascia un commento</h2>
+      <form class="comment-form" id="modalCommentForm">
+        <div class="form-row">
+          <div>
+            <label for="modal-comment-name">Nome</label>
+            <input type="text" id="modal-comment-name" name="name" required>
+          </div>
+          <div>
+            <label for="modal-comment-email">Email</label>
+            <input type="email" id="modal-comment-email" name="email" required>
+          </div>
+        </div>
+        <div>
+          <label for="modal-comment-message">Commento</label>
+          <textarea id="modal-comment-message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit">Invia commento</button>
+        <p class="comment-note" id="modalCommentNote" hidden>Grazie per il tuo commento! Verrà pubblicato a breve.</p>
+      </form>
+    </div>
+  </article>
 </div>
 
-<!-- OVERLAY TENDINA (mobile backdrop) -->
-<div class="modal-overlay-tendina" id="modalOverlayTendina"></div>
-
 <script src="js/content.js?v=20261108j"></script>
-<script src="js/script.js?v=20261108j"></script>
 <script src="js/effects.js?v=20261108j"></script>
+<script src="js/script.js?v=20261108j"></script>
 </body>
 </html>

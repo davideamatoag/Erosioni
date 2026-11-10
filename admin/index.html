@@ -1,89 +1,737 @@
-<!DOCTYPE html>
-<html lang="it">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Erosioni</title>
-<link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#F5F0E8;--text:#2B2723;--accent:#A65A43;--muted:#6B6157;--surface:#FFFFFF;--border:#D8D0C4;--radius:12px;--shadow:0 4px 20px rgba(43,39,35,0.08);}
-*{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:40px 20px;line-height:1.6;}
-.container{max-width:960px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:40px;}
-h1{font-family:'Playfair Display',serif;font-size:2.2rem;margin:0 0 8px;font-weight:600;}
-.subtitle{color:var(--muted);margin-bottom:32px;font-size:0.95rem;}
-.field{margin-bottom:24px;}label{display:block;font-weight:500;margin-bottom:6px;font-size:0.9rem;}
-input[type="file"],input[type="text"],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.95rem;background:#FAFAF8;}
-textarea{min-height:180px;resize:vertical;line-height:1.7;font-family:'Space Mono',monospace;font-size:0.85rem;}
-.btn-primary{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-weight:600;cursor:pointer;font-size:1rem;transition:opacity .2s;}
-.btn-primary:hover{opacity:.85;}
-.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:10px 20px;border-radius:8px;font-weight:500;cursor:pointer;}
-.btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
-.preview{background:#FAFAF8;border:1px solid var(--border);border-radius:8px;padding:24px;margin-top:24px;min-height:120px;}
-.preview h2{font-family:'Playfair Display',serif;font-size:1.3rem;margin-top:0;}
-.note{font-size:0.82rem;color:var(--muted);margin-top:8px;}
-.status{margin-top:16px;font-size:0.9rem;color:var(--muted);}
-</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pannello di amministrazione — Erosioni</title>
 </head>
 <body>
-<div class="container">
-  <h1>Pannello Admin</h1>
-  <p class="subtitle">Gestisci articoli, portfolio e impostazioni del sito.</p>
+<!-- Non toccare: carica Sveltia CMS, il Content Manager che legge admin/config.yml
+     (stessa configurazione di prima, interfaccia più moderna) -->
+<script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
 
-  <div class="btn-group">
-    <a href="editor.html" class="btn-primary" style="text-decoration:none;display:inline-block;">✏️ Editor visuale</a>
-    <a href="importa.html" class="btn-secondary" style="text-decoration:none;display:inline-block;">📄 Importa da Word</a>
-  </div>
-
-  <div class="field">
-    <label for="jsonFile">Carica JSON sito</label>
-    <input type="file" id="jsonFile" accept=".json">
-    <p class="note">Carica articoli.json, portfolio.json, impostazioni.json o scatti.json.</p>
-  </div>
-
-  <div class="field">
-    <label for="jsonOutput">Contenuto JSON</label>
-    <textarea id="jsonOutput" placeholder="Il contenuto JSON apparirà qui..."></textarea>
-  </div>
-
-  <button class="btn-primary" id="btnDownload">Scarica JSON</button>
-  <p class="status" id="status"></p>
-
-  <div class="preview" id="preview">
-    <h2>Anteprima dati</h2>
-    <div id="previewBody">Carica un file per vedere l'anteprima.</div>
-  </div>
-</div>
-
+<!-- Editor components: i segnaposto [stile=...] compaiono nell'editor e
+     nell'anteprima già formattati (colore e font reali), e il CSS del sito
+     viene iniettato nel riquadro di anteprima: quello che vedi nel pannello
+     è (quasi) quello che vedranno i lettori. -->
 <script>
-document.getElementById('jsonFile').addEventListener('change', function(e){
-  var file=e.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(event){
-    var text=event.target.result;
-    document.getElementById('jsonOutput').value=text;
-    try{
-      var data=JSON.parse(text);
-      document.getElementById('previewBody').innerHTML='<pre style="white-space:pre-wrap;font-size:0.8rem;">'+JSON.stringify(data,null,2).substring(0,2000)+'...</pre>';
-      document.getElementById('status').textContent='File caricato: '+Object.keys(data).length+' chiavi';
-    }catch(err){
-      document.getElementById('status').textContent='Errore JSON: '+err.message;
-    }
-  };
-  reader.readAsText(file);
-});
+(function () {
+  var COLORI = [
+    { label: '— Nessuno —', value: 'nessuno' },
+    { label: 'Avorio chiaro', value: 'avorio' },
+    { label: 'Sabbia', value: 'sabbia' },
+    { label: 'Oro', value: 'oro' },
+    { label: 'Terracotta', value: 'terracotta' }
+  ];
+  var FONT = [
+    { label: '— Nessuno —', value: 'nessuno' },
+    { label: 'Elegante (Playfair Display)', value: 'elegante' },
+    { label: 'Classico (Georgia)', value: 'classico' },
+    { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
+  ];
 
-document.getElementById('btnDownload').addEventListener('click',function(){
-  var text=document.getElementById('jsonOutput').value;
-  if(!text){document.getElementById('status').textContent='Nessun contenuto da scaricare.'; return;}
-  var blob=new Blob([text],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a'); a.href=url; a.download='dati.json'; a.click();
-  URL.revokeObjectURL(url);
-  document.getElementById('status').textContent='Download avviato.';
-});
+  // Gli stessi identici valori usati dal sito (css/style-3.css)
+  var COLORI_CSS = {
+    avorio: '#F6F1E7',
+    sabbia: '#B4AB9F',
+    oro: '#D4A574',
+    terracotta: '#CD7A62'
+  };
+  var FONT_CSS = {
+    elegante: "'Playfair Display', Georgia, serif",
+    classico: "Georgia, 'Times New Roman', serif",
+    macchina: "'Space Mono', 'Courier New', monospace"
+  };
+
+  function attrString(o) {
+    var parti = [];
+    if (o.colore && o.colore !== 'nessuno') parti.push('c:' + o.colore);
+    if (o.font && o.font !== 'nessuno') parti.push('f:' + o.font);
+    return parti.join(',');
+  }
+  function parseAttr(str) {
+    var out = { colore: 'nessuno', font: 'nessuno' };
+    (str || '').split(',').forEach(function (p) {
+      var kv = p.split(':');
+      if (kv[0] === 'c') out.colore = kv[1];
+      if (kv[0] === 'f') out.font = kv[1];
+    });
+    return out;
+  }
+  function esc(t) {
+    return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function stileInline(o) {
+    var s = [];
+    if (o.colore && COLORI_CSS[o.colore]) s.push('color:' + COLORI_CSS[o.colore]);
+    if (o.font && FONT_CSS[o.font]) s.push('font-family:' + FONT_CSS[o.font]);
+    if (o.font === 'elegante') s.push('font-size:1.08em');
+    if (o.font === 'macchina') s.push('font-size:0.88em');
+    return s.join(';');
+  }
+  // Anteprima: il testo si vede DAVVERO con il colore e il font scelti
+  function anteprima(o) {
+    return '<span style="' + stileInline(o) + '">' + esc(o.testo) + '</span>';
+  }
+
+  CMS.registerEditorComponent({
+    id: 'stile-testo',
+    label: 'Stile testo',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
+      { name: 'testo', label: 'Testo da formattare', widget: 'string' }
+    ],
+    pattern: /\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/,
+    fromBlock: function (m) { var o = parseAttr(m[1]); o.testo = m[2]; return o; },
+    toBlock: function (o) {
+      var attr = attrString(o);
+      return attr ? '[stile=' + attr + ']' + (o.testo || '') + '[/stile]' : (o.testo || '');
+    },
+    toPreview: anteprima
+  });
+
+  CMS.registerEditorComponent({
+    id: 'stile-paragrafo',
+    label: 'Stile paragrafo',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
+      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
+    ],
+    pattern: /\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]/,
+    fromBlock: function (m) { var o = parseAttr(m[1]); o.testo = m[2]; return o; },
+    toBlock: function (o) {
+      var attr = attrString(o);
+      return attr ? '[stile-blocco=' + attr + ']' + (o.testo || '') + '[/stile-blocco]' : (o.testo || '');
+    },
+    toPreview: function (o) {
+      return '<p style="' + stileInline(o) + ';margin:0 0 28px">' + esc(o.testo).replace(/\n/g, '<br>') + '</p>';
+    }
+  });
+
+  // ---------------- Componenti legacy ----------------
+  // Per gli articoli scritti con i vecchi segnaposto [colore=...] e
+  // [font=...]: anche quelli si vedono formattati, non come codice grezzo.
+  function parseSemplice(m, chiave) {
+    var o = { colore: 'nessuno', font: 'nessuno', testo: m[2] };
+    o[chiave] = m[1];
+    return o;
+  }
+  CMS.registerEditorComponent({
+    id: 'colore-legacy',
+    label: 'Colore (formato precedente)',
+    fields: [
+      { name: 'colore', label: 'Colore', widget: 'select', options: COLORI, default: 'nessuno' },
+      { name: 'testo', label: 'Testo', widget: 'string' }
+    ],
+    pattern: /\[colore=([^\]]+)\]([\s\S]*?)\[\/colore\]/,
+    fromBlock: function (m) { return parseSemplice(m, 'colore'); },
+    toBlock: function (o) {
+      return o.colore && o.colore !== 'nessuno'
+        ? '[colore=' + o.colore + ']' + (o.testo || '') + '[/colore]' : (o.testo || '');
+    },
+    toPreview: anteprima
+  });
+  CMS.registerEditorComponent({
+    id: 'font-legacy',
+    label: 'Font (formato precedente)',
+    fields: [
+      { name: 'font', label: 'Font', widget: 'select', options: FONT, default: 'nessuno' },
+      { name: 'testo', label: 'Testo', widget: 'string' }
+    ],
+    pattern: /\[font=([^\]]+)\]([\s\S]*?)\[\/font\]/,
+    fromBlock: function (m) { return parseSemplice(m, 'font'); },
+    toBlock: function (o) {
+      return o.font && o.font !== 'nessuno'
+        ? '[font=' + o.font + ']' + (o.testo || '') + '[/font]' : (o.testo || '');
+    },
+    toPreview: anteprima
+  });
+
+  // ---------------- Note a piè di pagina ----------------
+  // [nota]...[/nota]: il sito numera tutte le note in ordine e le
+  // raccoglie in fondo all'articolo automaticamente.
+  CMS.registerEditorComponent({
+    id: 'nota',
+    label: 'Nota a piè di pagina',
+    fields: [
+      { name: 'testo', label: 'Testo della nota', widget: 'text' }
+    ],
+    pattern: /\[nota\]([\s\S]*?)\[\/nota\]/,
+    fromBlock: function (m) { return { testo: m[1] }; },
+    toBlock: function (o) { return '[nota]' + (o.testo || '') + '[/nota]'; },
+    toPreview: function (o) {
+      var stralcio = esc(o.testo).split(/\s+/).slice(0, 6).join(' ');
+      return '<sup style="color:#CD7A62;font-size:0.75em" title="' + esc(o.testo) + '">[nota: ' + stralcio + '&hellip;]</sup>';
+    }
+  });
+
+  // ---------------- Sottolineato, barrato, interlinea ----------------
+  // [u]...[/u] e [s]...[/s]: come U e S in Word. [interlinea=x]...[/interlinea]
+  // avvolge un intero paragrafo e ne regola l'altezza di riga.
+  CMS.registerEditorComponent({
+    id: 'sottolineato',
+    label: 'Sottolineato',
+    fields: [{ name: 'testo', label: 'Testo', widget: 'string' }],
+    pattern: /\[u\]([\s\S]*?)\[\/u\]/,
+    fromBlock: function (m) { return { testo: m[1] }; },
+    toBlock: function (o) { return '[u]' + (o.testo || '') + '[/u]'; },
+    toPreview: function (o) { return '<u>' + esc(o.testo) + '</u>'; }
+  });
+  CMS.registerEditorComponent({
+    id: 'barrato',
+    label: 'Barrato',
+    fields: [{ name: 'testo', label: 'Testo', widget: 'string' }],
+    pattern: /\[s\]([\s\S]*?)\[\/s\]/,
+    fromBlock: function (m) { return { testo: m[1] }; },
+    toBlock: function (o) { return '[s]' + (o.testo || '') + '[/s]'; },
+    toPreview: function (o) { return '<s>' + esc(o.testo) + '</s>'; }
+  });
+  CMS.registerEditorComponent({
+    id: 'interlinea',
+    label: 'Interlinea paragrafo',
+    fields: [
+      { name: 'valore', label: 'Interlinea', widget: 'select', options: ['1.3', '1.6', '1.9', '2.2'], default: '1.9' },
+      { name: 'testo', label: 'Testo del paragrafo', widget: 'text' }
+    ],
+    pattern: /\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/,
+    fromBlock: function (m) { return { valore: m[1], testo: m[2] }; },
+    toBlock: function (o) { return '[interlinea=' + (o.valore || '1.9') + ']' + (o.testo || '') + '[/interlinea]'; },
+    toPreview: function (o) {
+      return '<p style="line-height:' + esc(o.valore) + ';margin:0 0 28px">' + esc(o.testo).replace(/\n/g, '<br>') + '</p>';
+    }
+  });
+
+  // ---------------- Riga vuota ----------------
+  // [riga-vuota] su una riga sua: spazio verticale visibile nell'articolo.
+  CMS.registerEditorComponent({
+    id: 'riga-vuota',
+    label: 'Riga vuota (spazio verticale)',
+    fields: [{ name: 'spazio', label: '', widget: 'hidden', default: '' }],
+    pattern: /\[riga-vuota\]/,
+    fromBlock: function () { return {}; },
+    toBlock: function () { return '[riga-vuota]'; },
+    toPreview: function () {
+      return '<div style="height:1.2em;border-left:2px dashed rgba(196,112,90,0.5);margin:0 0 28px" title="Riga vuota"></div>';
+    }
+  });
+
+  // ---------------- Anteprima fedele al sito ----------------
+  // Carica i font del sito nel riquadro di anteprima...
+  CMS.registerPreviewStyle(
+    'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap'
+  );
+  // ...e gli stessi stili tipografici della pagina articolo
+  CMS.registerPreviewStyle(`
+    body {
+      background: #1A1816;
+      color: #E8E2D9;
+      font-family: 'Inter', Arial, sans-serif;
+      padding: 24px;
+    }
+    p {
+      font-size: 1.06rem;
+      line-height: 1.9;
+      color: #E8E2D9;
+      margin: 0 0 28px;
+    }
+    h1, h2, h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 500;
+      color: #E8E2D9;
+      letter-spacing: 0.01em;
+    }
+    h2 { font-size: 1.6rem; margin: 48px 0 20px; }
+    h3 { font-size: 1.25rem; margin: 40px 0 16px; }
+    strong { color: #F6F1E7; }
+    em { color: inherit; }
+    blockquote {
+      border-left: 2px solid #C4705A;
+      margin: 36px 0;
+      padding: 4px 0 4px 24px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: #B4AB9F;
+    }
+    ul, ol { margin: 0 0 28px; padding-left: 24px; }
+    li { font-size: 1.06rem; line-height: 1.9; color: #E8E2D9; margin-bottom: 8px; }
+    li::marker { color: #C4705A; }
+    img { max-width: 100%; height: auto; display: block; margin: 36px 0; }
+    a { color: #D4A574; }
+    hr { border: none; border-top: 1px solid rgba(232,226,217,0.18); margin: 40px 0; }
+  `, { raw: true });
+})();
+</script>
+
+<!-- ============================================================
+     BARRA STRUMENTI "tipo Word": una seconda riga agganciata
+     direttamente SOTTO la barra nativa dell'editor (quella con
+     B, I, link, immagine). Comandi: Sottolineato, Barrato,
+     Interlinea, Font, Colore, Nota. Selezioni il testo e clicchi:
+     lo stile si applica subito, senza dialoghi, e si combina
+     liberamente con grassetto, corsivo, elenchi, ecc.
+     ============================================================ -->
+<style>
+  #barra-stile {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+    padding: 3px 8px;
+    border-top: 1px solid rgba(128, 128, 128, 0.25);
+    background: rgba(128, 128, 128, 0.07);
+    color: CanvasText;
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    user-select: none;
+  }
+  #barra-stile .bs-gruppo { position: relative; }
+  #barra-stile .bs-btn {
+    background: transparent;
+    color: inherit;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    min-width: 0;
+    line-height: 1.4;
+  }
+  #barra-stile .bs-btn:hover { background: rgba(128, 128, 128, 0.18); }
+  #barra-stile .bs-btn.bs-icon { min-width: 30px; text-align: center; font-size: 14px; }
+  #barra-stile .bs-sep { width: 1px; height: 18px; background: rgba(128, 128, 128, 0.35); margin: 0 5px; }
+  #barra-stile .bs-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 190px;
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid rgba(128, 128, 128, 0.4);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+    z-index: 99999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  #barra-stile .bs-menu.aperto { display: block; }
+  #barra-stile .bs-opzione {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #barra-stile .bs-opzione:hover { background: rgba(128, 128, 128, 0.18); }
+  #barra-stile .bs-opzione.attiva { font-weight: 700; }
+</style>
+<script>
+(function () {
+  var COLORI = [
+    { label: 'Predefinito', value: 'nessuno' },
+    { label: 'Avorio chiaro', value: 'avorio' },
+    { label: 'Sabbia', value: 'sabbia' },
+    { label: 'Oro', value: 'oro' },
+    { label: 'Terracotta', value: 'terracotta' }
+  ];
+  var FONT = [
+    { label: 'Predefinito', value: 'nessuno' },
+    { label: 'Elegante (Playfair Display)', value: 'elegante' },
+    { label: 'Classico (Georgia)', value: 'classico' },
+    { label: 'Macchina da scrivere (Space Mono)', value: 'macchina' }
+  ];
+  var INTERLINEA = [
+    { label: 'Predefinita', value: 'nessuna' },
+    { label: 'Stretta (1.3)', value: '1.3' },
+    { label: 'Normale (1.6)', value: '1.6' },
+    { label: 'Ampia (1.9)', value: '1.9' },
+    { label: 'Molto ampia (2.2)', value: '2.2' }
+  ];
+
+  var scelta = { colore: 'nessuno', font: 'nessuno' };
+  // Ultima selezione vista dentro un editor di testo del pannello:
+  // la teniamo da parte perché cliccando i menù il focus si sposta.
+  var ultimaSelezione = null;
+
+  function dentroEditor(node) {
+    while (node) {
+      if (node.nodeType === 1) {
+        if (node.isContentEditable) return node;
+        if (node.tagName === 'TEXTAREA') return node;
+      }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function registraSelezione() {
+    var sel = window.getSelection();
+    if (sel && !sel.isCollapsed && sel.rangeCount) {
+      var ed = dentroEditor(sel.anchorNode);
+      if (ed) ultimaSelezione = { editor: ed, testo: sel.toString() };
+    }
+  }
+  document.addEventListener('mouseup', registraSelezione);
+  document.addEventListener('keyup', registraSelezione);
+
+  function testoPulito(testo) {
+    // Toglie eventuali stili già applicati alla selezione, così il nuovo
+    // stile SOSTITUISCE il vecchio invece di sommarsi in modo illeggibile.
+    return testo
+      .replace(/\[stile=[^\]]*\]/g, '')
+      .replace(/\[\/stile\]/g, '')
+      .replace(/\[colore=[^\]]*\]/g, '')
+      .replace(/\[\/colore\]/g, '')
+      .replace(/\[font=[^\]]*\]/g, '')
+      .replace(/\[\/font\]/g, '');
+  }
+
+  function attrCorrenti() {
+    var parti = [];
+    if (scelta.colore !== 'nessuno') parti.push('c:' + scelta.colore);
+    if (scelta.font !== 'nessuno') parti.push('f:' + scelta.font);
+    return parti.join(',');
+  }
+
+  // Se la selezione si trova DENTRO una coppia di marcatori (es.
+  // [stile=...]...[/stile], [u]...[/u], [interlinea=...]...[/interlinea]),
+  // la allarga per inglobare anche i marcatori: così il nuovo comando
+  // SOSTITUISCE il vecchio invece di annidarcisi dentro.
+  function espandiRangeSuMarcatori(range, ed, tags) {
+    var walker = document.createTreeWalker(ed, NodeFilter.SHOW_TEXT);
+    var nodi = [], n, pieno = '';
+    while ((n = walker.nextNode())) { nodi.push({ n: n, da: pieno.length }); pieno += n.nodeValue; }
+    function indiceDi(container, offset) {
+      for (var i = 0; i < nodi.length; i++) {
+        if (nodi[i].n === container) return nodi[i].da + offset;
+      }
+      return -1;
+    }
+    function posizioneDi(indice) {
+      for (var i = nodi.length - 1; i >= 0; i--) {
+        if (nodi[i].da <= indice && indice <= nodi[i].da + nodi[i].n.nodeValue.length) {
+          return { nodo: nodi[i].n, offset: indice - nodi[i].da };
+        }
+      }
+      return null;
+    }
+    var s = indiceDi(range.startContainer, range.startOffset);
+    var e = indiceDi(range.endContainer, range.endOffset);
+    if (s < 0 || e < 0) return;
+    var APERTURA = new RegExp('\\[(?:' + tags.join('|') + ')(?:=[^\\]]*)?\\]', 'g');
+    var CHIUSURA = new RegExp('\\[\\/(?:' + tags.join('|') + ')\\]', 'g');
+    var chiusure = tags.map(function (t) { return '[/' + t + ']'; });
+    var aperture = tags.map(function (t) { return '[' + t; });
+    function contieneAlcuna(str, lista) {
+      return lista.some(function (x) { return str.indexOf(x) !== -1; });
+    }
+    // L'apertura più vicina prima della selezione, senza chiusure in mezzo
+    var inizio = s, fine = e, m;
+    APERTURA.lastIndex = 0;
+    while ((m = APERTURA.exec(pieno)) && m.index < s) {
+      var tra = pieno.slice(m.index + m[0].length, s);
+      if (!contieneAlcuna(tra, chiusure)) inizio = m.index;
+    }
+    // La chiusura più vicina dopo la selezione, senza aperture in mezzo
+    CHIUSURA.lastIndex = 0;
+    while ((m = CHIUSURA.exec(pieno))) {
+      if (m.index >= e) {
+        var tra2 = pieno.slice(e, m.index);
+        if (!contieneAlcuna(tra2, aperture)) {
+          fine = m.index + m[0].length;
+          break;
+        }
+      }
+    }
+    if (inizio < s && fine > e) {
+      var ps = posizioneDi(inizio), pe = posizioneDi(fine);
+      if (ps && pe) { range.setStart(ps.nodo, ps.offset); range.setEnd(pe.nodo, pe.offset); }
+    }
+  }
+  function espandiRangeSuStili(range, ed) {
+    espandiRangeSuMarcatori(range, ed, ['stile', 'colore', 'font']);
+  }
+
+  // Recupera selezione corrente (o l'ultima salvata) e l'editor di destinazione
+  function selezioneCorrente() {
+    var sel = window.getSelection();
+    var viva = sel && !sel.isCollapsed && sel.rangeCount;
+    var testo = viva ? sel.toString() : (ultimaSelezione ? ultimaSelezione.testo : '');
+    if (!testo) return null;
+    var ed = viva ? dentroEditor(sel.anchorNode) : (ultimaSelezione && ultimaSelezione.editor);
+    if (!ed) return null;
+    return { sel: sel, viva: viva, testo: testo, ed: ed };
+  }
+
+  function sostituisciInTextarea(ed, nuovo) {
+    ed.focus();
+    ed.setRangeText(nuovo, ed.selectionStart, ed.selectionEnd, 'end');
+    ed.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function applicaStile() {
+    var c = selezioneCorrente();
+    if (!c) return;
+    if (c.ed.tagName === 'TEXTAREA') {
+      var pulitoT = testoPulito(c.testo);
+      var attrT = attrCorrenti();
+      sostituisciInTextarea(c.ed, attrT ? '[stile=' + attrT + ']' + pulitoT + '[/stile]' : pulitoT);
+    } else if (c.viva) {
+      var range = c.sel.getRangeAt(0);
+      espandiRangeSuStili(range, c.ed);
+      var pulito = testoPulito(range.toString());
+      var attr = attrCorrenti();
+      var nuovo = attr ? '[stile=' + attr + ']' + pulito + '[/stile]' : pulito;
+      c.sel.removeAllRanges();
+      c.sel.addRange(range);
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
+  function applicaNota() {
+    var c = selezioneCorrente();
+    if (!c) return;
+    // Niente note dentro le note: se la selezione ne contiene già, le apre
+    var pulito = c.testo.replace(/\[nota\]/g, '').replace(/\[\/nota\]/g, '');
+    var nuovo = '[nota]' + pulito + '[/nota]';
+    if (c.ed.tagName === 'TEXTAREA') {
+      sostituisciInTextarea(c.ed, nuovo);
+    } else {
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
+  // Sottolineato [u] e Barrato [s]: interruttori — se il testo è già
+  // sottolineato/barrato, il comando toglie il formato; altrimenti lo mette.
+  function applicaSemplice(tag) {
+    var c = selezioneCorrente();
+    if (!c) return;
+    var aperto = '[' + tag + ']', chiuso = '[/' + tag + ']';
+    function commuta(t) {
+      if (t.indexOf(aperto) === 0 && t.lastIndexOf(chiuso) === t.length - chiuso.length) {
+        return t.slice(aperto.length, t.length - chiuso.length); // toglie
+      }
+      return aperto + t + chiuso; // mette
+    }
+    if (c.ed.tagName === 'TEXTAREA') {
+      sostituisciInTextarea(c.ed, commuta(c.testo));
+    } else if (c.viva) {
+      var range = c.sel.getRangeAt(0);
+      espandiRangeSuMarcatori(range, c.ed, [tag]);
+      var nuovo = commuta(range.toString());
+      c.sel.removeAllRanges();
+      c.sel.addRange(range);
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
+  // Interlinea: avvolge la selezione (di norma un intero paragrafo) in
+  // [interlinea=x]...[/interlinea]. "Predefinita" toglie il comando.
+  function applicaInterlinea(valore) {
+    var c = selezioneCorrente();
+    if (!c) return;
+    function pulisci(t) {
+      return t.replace(/\[interlinea=[^\]]*\]/g, '').replace(/\[\/interlinea\]/g, '');
+    }
+    function avvolgi(t) {
+      var pulito = pulisci(t);
+      return valore === 'nessuna' ? pulito : '[interlinea=' + valore + ']' + pulito + '[/interlinea]';
+    }
+    if (c.ed.tagName === 'TEXTAREA') {
+      sostituisciInTextarea(c.ed, avvolgi(c.testo));
+    } else if (c.viva) {
+      var range = c.sel.getRangeAt(0);
+      espandiRangeSuMarcatori(range, c.ed, ['interlinea']);
+      var nuovo = avvolgi(range.toString());
+      c.sel.removeAllRanges();
+      c.sel.addRange(range);
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
+  // Riga vuota: inserisce [riga-vuota] nel punto in cui si trova il
+  // cursore (va tenuta su una riga tutta sua): nell'articolo diventa
+  // uno spazio verticale visibile tra i paragrafi.
+  function inserisciRigaVuota() {
+    var sel = window.getSelection();
+    var ed = sel && sel.rangeCount ? dentroEditor(sel.anchorNode)
+                                   : (ultimaSelezione && ultimaSelezione.editor);
+    if (!ed) return;
+    if (ed.tagName === 'TEXTAREA') {
+      ed.focus();
+      ed.setRangeText('\n\n[riga-vuota]\n\n', ed.selectionStart, ed.selectionEnd, 'end');
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      ed.focus();
+      document.execCommand('insertText', false, '[riga-vuota]');
+    }
+  }
+
+  // ---------------- Costruzione della barra ----------------
+  function costruisciBarra() {
+    var bar = document.createElement('div');
+    bar.id = 'barra-stile';
+
+    function pulsanteIcona(html, titolo, azione) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'bs-btn bs-icon';
+      b.innerHTML = html;
+      b.title = titolo;
+      b.setAttribute('aria-label', titolo);
+      b.addEventListener('click', azione);
+      return b;
+    }
+    function separatore() {
+      var s = document.createElement('span');
+      s.className = 'bs-sep';
+      return s;
+    }
+    function gruppo(etichetta, opzioni, alClick) {
+      var g = document.createElement('div');
+      g.className = 'bs-gruppo';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'bs-btn';
+      btn.textContent = etichetta + ' ▾';
+      var menu = document.createElement('div');
+      menu.className = 'bs-menu';
+      opzioni.forEach(function (op) {
+        var voce = document.createElement('button');
+        voce.type = 'button';
+        voce.className = 'bs-opzione';
+        voce.textContent = op.label;
+        voce.addEventListener('click', function () {
+          menu.querySelectorAll('.bs-opzione').forEach(function (v) { v.classList.remove('attiva'); });
+          voce.classList.add('attiva');
+          menu.classList.remove('aperto');
+          alClick(op);
+        });
+        menu.appendChild(voce);
+      });
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#barra-stile .bs-menu').forEach(function (m) {
+          if (m !== menu) m.classList.remove('aperto');
+        });
+        menu.classList.toggle('aperto');
+      });
+      g.appendChild(btn);
+      g.appendChild(menu);
+      return g;
+    }
+
+    // Sottolineato e Barrato: interruttori immediati, come in Word
+    bar.appendChild(pulsanteIcona('<u>U</u>', 'Sottolineato', function () { applicaSemplice('u'); }));
+    bar.appendChild(pulsanteIcona('<s>S</s>', 'Barrato', function () { applicaSemplice('s'); }));
+    bar.appendChild(separatore());
+
+    // Interlinea del paragrafo
+    bar.appendChild(gruppo('Interlinea', INTERLINEA, function (op) { applicaInterlinea(op.value); }));
+    bar.appendChild(separatore());
+
+    // Font e Colore del testo selezionato
+    bar.appendChild(gruppo('Font', FONT, function (op) { scelta.font = op.value; applicaStile(); }));
+    bar.appendChild(gruppo('Colore', COLORI, function (op) { scelta.colore = op.value; applicaStile(); }));
+    bar.appendChild(separatore());
+
+    // Nota a piè di pagina
+    bar.appendChild(pulsanteIcona('↩ Nota', 'Trasforma il testo selezionato in una nota a piè di pagina: verrà numerata e spostata in fondo all\'articolo', applicaNota));
+    bar.appendChild(separatore());
+
+    // Riga vuota (spazio verticale tra i paragrafi)
+    bar.appendChild(pulsanteIcona('⏎ Riga vuota', 'Inserisce una riga vuota: nell\'articolo diventa uno spazio verticale visibile tra i paragrafi. Va tenuta su una riga tutta sua.', inserisciRigaVuota));
+    bar.appendChild(separatore());
+
+    // Importa un file Word: apre il convertitore in una nuova scheda
+    bar.appendChild(pulsanteIcona('📄 Word', 'Importa un articolo da un file Word (.docx): lo converte nel formato del blog, note incluse. Si apre in una nuova scheda.', function () {
+      window.open('importa.html', '_blank');
+    }));
+
+    // Editor visuale avanzato: preview live, toolbar custom, esportazione JSON
+    bar.appendChild(pulsanteIcona('✏️ Editor', 'Apri l\'editor visuale avanzato con anteprima live del sito e pulsanti per note, colori, font e interlinea.', function () {
+      window.open('editor.html', '_blank');
+    }));
+
+    // Niente blur della selezione quando si clicca la barra
+    bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.addEventListener('click', function (e) {
+      if (!bar.contains(e.target)) {
+        bar.querySelectorAll('.bs-menu').forEach(function (m) { m.classList.remove('aperto'); });
+      }
+    });
+    return bar;
+  }
+
+  // ---------------- Aggancio sotto la barra nativa ----------------
+  // L'editor markdown del pannello è Lexical: un div.lexical-root
+  // contenteditable dentro un contenitore .text-editor, con la barra
+  // nativa (B, I, link...) subito sopra. La nostra barra si infila tra
+  // le due: diventa a tutti gli effetti la seconda riga dei comandi.
+  function trovaEditorArticolo() {
+    // 1) Editor visuale (Lexical)
+    var editor = document.querySelector('.text-editor .lexical-root[contenteditable="true"]');
+    if (editor) {
+      var cont = editor.closest('.text-editor');
+      if (cont) return { contenitore: cont, editor: editor };
+    }
+    // 2) Modalità codice: textarea dentro lo stesso contenitore
+    var ta = document.querySelector('.text-editor textarea');
+    if (ta) {
+      var cont2 = ta.closest('.text-editor');
+      if (cont2) return { contenitore: cont2, editor: ta };
+    }
+    // 3) Ripiego: cerca l'etichetta "Testo dell'articolo" (la più
+    //    specifica, cioè quella con meno testo) e risali al suo campo
+    var migliore = null;
+    document.querySelectorAll('label, span, div, p').forEach(function (el) {
+      var t = el.textContent.trim();
+      if (/^Testo dell.articolo/.test(t) && !el.querySelector('[contenteditable="true"], textarea')) {
+        if (!migliore || t.length < migliore.textContent.trim().length) migliore = el;
+      }
+    });
+    if (migliore) {
+      var c = migliore.parentNode;
+      while (c && c !== document.body) {
+        var ed = c.querySelector('[contenteditable="true"], textarea');
+        if (ed) return { contenitore: c, editor: ed };
+        c = c.parentNode;
+      }
+    }
+    return null;
+  }
+
+  function provaAttracco() {
+    var esistente = document.getElementById('barra-stile');
+    if (esistente && esistente.isConnected) return;
+    if (esistente) esistente.remove();
+    var trovato = trovaEditorArticolo();
+    if (!trovato) return;
+    var bar = costruisciBarra();
+    // Sali fino al wrapper dell'editor che è figlio diretto del campo,
+    // così la barra finisce tra la barra nativa e l'area di scrittura
+    var target = trovato.editor;
+    while (target.parentNode && target.parentNode !== trovato.contenitore) {
+      target = target.parentNode;
+    }
+    trovato.contenitore.insertBefore(bar, target);
+  }
+
+  // Il pannello è una single-page app: il campo articolo va e viene.
+  // Controlliamo periodicamente e (ri)agganciamo la barra quando serve.
+  setInterval(provaAttracco, 800);
+})();
+</script>
 </script>
 </body>
 </html>

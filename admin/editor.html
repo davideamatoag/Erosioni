@@ -1,17 +1,44 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor — Erosioni</title>
-<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor articoli — Erosioni</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#F5F0E8;--text:#2B2723;--accent:#A65A43;--muted:#6B6157;--surface:#FFFFFF;--border:#D8D0C4;--radius:12px;--shadow:0 4px 20px rgba(43,39,35,0.08);}
-  *{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;height:100vh;overflow:hidden;}
-  .editor-wrap { display: grid; grid-template-columns: 1fr 1fr; height: 100vh; }
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: Inter, system-ui, sans-serif;
+    background: #EAE5DD; color: #2B2723;
+    height: 100vh; overflow: hidden;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 520px;
+    height: 100vh;
+  }
+  .preview-col {
+    overflow-y: auto;
+    border-right: 1px solid rgba(43,39,35,0.12);
+    background: #EAE5DD;
+  }
+  .preview-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 28px 60px;
+  }
+  .preview-header {
+    position: sticky; top: 0; z-index: 10;
+    background: #EAE5DD;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(43,39,35,0.08);
+    margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.78rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.06em;
+  }
   .editor-col {
     display: flex; flex-direction: column;
     background: #F5F0E8;
@@ -82,38 +109,6 @@
   .btn-secondary:hover { background: rgba(43,39,35,0.04); }
   .status { font-size: 0.78rem; color: #6B6157; margin-left: auto; }
 
-  /* Preview */
-  .preview-col {
-    background: #EAE5DD;
-    overflow-y: auto;
-    padding: 32px 28px 60px;
-  }
-  .preview-header {
-    position: sticky; top: 0; z-index: 10;
-    background: #EAE5DD;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(43,39,35,0.08);
-    margin-bottom: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.78rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .preview-back { color: #A65A43; text-decoration: none; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
-  .preview-back:hover { text-decoration: underline; }
-  .preview-title { font-family: Playfair Display, Georgia, serif; font-size: 2.4rem; font-weight: 500; line-height: 1.15; margin: 16px 0 8px; color: #2B2723; }
-  .preview-subtitle { font-size: 1.15rem; color: #6B6157; margin: 0 0 16px; line-height: 1.5; }
-  .preview-meta-row { display: flex; gap: 24px; margin-bottom: 24px; font-size: 0.82rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.04em; }
-  .preview-meta-row span strong { color: #2B2723; font-weight: 600; }
-  .preview-hero { width: 100%; border-radius: 8px; margin-bottom: 28px; display: block; }
-  .preview-body { font-size: 1.05rem; line-height: 1.75; color: #3A3530; }
-  .preview-body p { margin: 0 0 1.1em; }
-  .preview-body h2 { font-family: Playfair Display, Georgia, serif; font-size: 1.7rem; font-weight: 500; margin: 36px 0 16px; color: #2B2723; }
-  .preview-body h3 { font-family: Playfair Display, Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 24px 0 10px; color: #2B2723; }
-  .preview-body blockquote { margin: 24px 0; padding: 8px 0 8px 20px; border-left: 3px solid #A65A43; font-style: italic; color: #6B6157; }
-  .preview-body img { max-width: 100%; border-radius: 6px; margin: 20px 0; display: block; }
-  .preview-body a { color: #A65A43; text-decoration: underline; }
-  .preview-body .citazione-lunga { margin: 24px 36px; padding: 16px 24px; border-left: 3px solid #A65A43; border-right: 3px solid #A65A43; font-style: italic; color: #6B6157; background: rgba(166,90,67,0.04); border-radius: 4px; }
-
-  /* Modal */
   .modal-overlay {
     position: fixed; inset: 0; z-index: 1000;
     background: rgba(26,24,22,0.5);
@@ -138,285 +133,1019 @@
     background: #fff; resize: none;
   }
   .modal-foot { padding: 0 20px 16px; display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* Stili preview specifici */
+  .preview-back { color: #A65A43; text-decoration: none; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  .preview-back:hover { text-decoration: underline; }
+  .preview-title { font-family: Playfair Display, Georgia, serif; font-size: 2.4rem; font-weight: 500; line-height: 1.15; margin: 16px 0 8px; color: #2B2723; }
+  .preview-subtitle { font-size: 1.15rem; color: #6B6157; margin: 0 0 16px; line-height: 1.5; }
+  .preview-meta-row { display: flex; gap: 24px; margin-bottom: 24px; font-size: 0.82rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.04em; }
+  .preview-meta-row span strong { color: #2B2723; font-weight: 600; }
+  .preview-hero { width: 100%; border-radius: 8px; margin-bottom: 28px; display: block; }
+  .preview-body { font-size: 1.05rem; line-height: 1.75; color: #3A3530; }
+  .preview-body p { margin: 0 0 1.1em; }
+  .preview-body h2 { font-family: Playfair Display, Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 1.6em 0 0.6em; color: #2B2723; }
+  .preview-body h3 { font-family: Playfair Display, Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 1.4em 0 0.5em; color: #2B2723; }
+  .preview-body blockquote { margin: 1.2em 0 1.2em 24px; padding-left: 20px; border-left: 3px solid #A65A43; color: #5A5249; font-style: italic; }
+  .preview-body .citazione-lunga { margin: 1.4em 36px; padding: 0 20px; font-size: 1.02rem; line-height: 1.85; color: #5A5249; border-left: 2px solid rgba(168,159,148,0.4); border-right: 2px solid rgba(168,159,148,0.4); }
+  .preview-body ul, .preview-body ol { margin: 1em 0; padding-left: 28px; }
+  .preview-body li { margin-bottom: 0.4em; }
+  .preview-body img { max-width: 100%; border-radius: 6px; margin: 1em 0; }
+  .preview-body figure { margin: 1.2em 0; }
+  .preview-body figcaption { font-size: 0.85rem; color: #6B6157; text-align: center; margin-top: 6px; }
+  .preview-body .nota-rif { font-size: 0.75em; vertical-align: super; }
+  .preview-body .nota-rif a { color: #A65A43; text-decoration: none; }
+  .preview-body .note-articolo { margin-top: 2.5em; padding-top: 1.5em; border-top: 1px solid rgba(43,39,35,0.12); }
+  .preview-body .note-titolo { font-family: Playfair Display, Georgia, serif; font-size: 1.3rem; font-weight: 500; margin-bottom: 0.8em; }
+  .preview-body .note-articolo ol { padding-left: 22px; }
+  .preview-body .note-articolo li { margin-bottom: 0.6em; font-size: 0.92rem; color: #4A4540; }
+  .preview-body .nota-back { color: #A65A43; text-decoration: none; margin-left: 6px; }
+  .preview-body .riga-vuota { height: 1.2em; }
+  .preview-body a { color: #A65A43; }
+  .preview-body strong { font-weight: 600; }
+  .preview-body em { font-style: italic; }
+  .preview-body u { text-decoration: underline; }
+  .preview-body s { text-decoration: line-through; }
+
+  /* Colori e font della preview */
+  .preview-body.t-avorio { color: #F6F1E7; }
+  .preview-body.t-sabbia { color: #B4AB9F; }
+  .preview-body.t-oro { color: #D4A574; }
+  .preview-body.t-terracotta { color: #CD7A62; }
+  .preview-body.t-font-elegante { font-family: 'Playfair Display', Georgia, serif; }
+  .preview-body.t-font-classico { font-family: Georgia, 'Times New Roman', serif; }
+  .preview-body.t-font-macchina { font-family: 'Space Mono', 'Courier New', monospace; }
+
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
+    .preview-col { border-right: 0; border-bottom: 1px solid rgba(43,39,35,0.12); }
+    .preview-title { font-size: 1.6rem; }
+  }
 </style>
 </head>
 <body>
-<div class="editor-wrap">
+
+<div class="layout">
+  <!-- PREVIEW -->
+  <div class="preview-col" id="previewCol">
+    <div class="preview-inner" id="previewInner"></div>
+  </div>
+
+  <!-- EDITOR -->
   <div class="editor-col">
     <div class="editor-scroll">
-      <h1 class="editor-title">Editor Articolo</h1>
-      <p class="editor-sub">Crea o modifica un articolo per il blog.</p>
+      <h1 class="editor-title">Editor articoli</h1>
+      <p class="editor-sub">Scrivi qui e vedi il risultato a sinistra in tempo reale.</p>
 
       <div class="field-row">
         <div class="field">
-          <label for="artTitle">Titolo</label>
-          <input type="text" id="artTitle" placeholder="Titolo dell'articolo">
+          <label for="inpSlug">Slug (URL)</label>
+          <input type="text" id="inpSlug" placeholder="es. la-rinascita-dell-ontologia">
         </div>
         <div class="field">
-          <label for="artSlug">Slug</label>
-          <input type="text" id="artSlug" placeholder="auto-generato">
+          <label for="inpDate">Data</label>
+          <input type="date" id="inpDate">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="inpTitle">Titolo</label>
+        <input type="text" id="inpTitle" placeholder="Titolo dell'articolo">
+      </div>
+
+      <div class="field">
+        <label for="inpSubtitle">Sottotitolo (facoltativo)</label>
+        <input type="text" id="inpSubtitle" placeholder="">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="inpCategory">Categoria</label>
+          <select id="inpCategory">
+            <option value="recensioni">Recensioni</option>
+            <option value="cinema">Cinema</option>
+            <option value="politica">Politica</option>
+            <option value="riflessioni">Riflessioni</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inpImage">Immagine di copertina (URL)</label>
+          <input type="text" id="inpImage" placeholder="https://res.cloudinary.com/...">
         </div>
       </div>
 
       <div class="field-row">
         <div class="field">
-          <label for="artCategory">Categoria</label>
-          <input type="text" id="artCategory" placeholder="es. Filosofia">
+          <label for="inpFont">Font</label>
+          <select id="inpFont">
+            <option value="predefinito">Predefinito</option>
+            <option value="elegante">Elegante</option>
+            <option value="classico">Classico</option>
+            <option value="macchina">Macchina da scrivere</option>
+          </select>
         </div>
         <div class="field">
-          <label for="artDate">Data</label>
-          <input type="date" id="artDate">
+          <label for="inpColore">Colore testo</label>
+          <select id="inpColore">
+            <option value="predefinito">Predefinito</option>
+            <option value="avorio">Avorio</option>
+            <option value="sabbia">Sabbia</option>
+            <option value="oro">Oro</option>
+            <option value="terracotta">Terracotta</option>
+          </select>
         </div>
       </div>
 
       <div class="field">
-        <label for="artExcerpt">Estratto (2-3 righe)</label>
-        <textarea id="artExcerpt" rows="3" placeholder="Breve descrizione dell'articolo..."></textarea>
-      </div>
-
-      <div class="field">
-        <label for="artImage">URL immagine di copertina</label>
-        <input type="text" id="artImage" placeholder="https://...">
-      </div>
-
-      <div class="field">
-        <label>Contenuto HTML</label>
-        <div class="toolbar">
-          <button type="button" onclick="wrapSel('h2')">H2</button>
-          <button type="button" onclick="wrapSel('h3')">H3</button>
-          <button type="button" onclick="wrapSel('p')">p</button>
-          <button type="button" onclick="wrapSel('strong')">Grassetto</button>
-          <button type="button" onclick="wrapSel('em')">Corsivo</button>
-          <button type="button" onclick="insertAtCursor('[nota]','[/nota]')">Nota</button>
-          <button type="button" onclick="insertAtCursor('[colore #hex]','[/colore]')">Colore</button>
-          <button type="button" onclick="insertAtCursor('[font nome]','[/font]')">Font</button>
-          <button type="button" onclick="insertAtCursor('[interlinea 1.8]','[/interlinea]')">Interlinea</button>
-          <button type="button" onclick="insertAtCursor('[riga-vuota]','')">Riga vuota</button>
-          <button type="button" onclick="insertAtCursor('[blocco]','[/blocco]')">Blocco</button>
-          <button type="button" onclick="insertAtCursor('[blocco-font nome]','[/blocco-font]')">Blocco font</button>
-          <button type="button" onclick="insertAtCursor('[citazione]','[/citazione]')">Citazione lunga</button>
+        <label>Toolbar</label>
+        <div class="toolbar" id="toolbar">
+          <button type="button" data-action="bold" title="Grassetto"><b>B</b></button>
+          <button type="button" data-action="italic" title="Corsivo"><i>I</i></button>
+          <button type="button" data-action="strike" title="Barrato"><s>S</s></button>
+          <button type="button" data-action="h2" title="Titolo">H2</button>
+          <button type="button" data-action="h3" title="Sottotitolo">H3</button>
           <span class="toolbar-sep"></span>
-          <small>Seleziona testo e clicca</small>
+          <button type="button" data-action="note" title="Nota a piè di pagina">📝 Nota</button>
+          <button type="button" data-action="color" title="Colore testo">🎨 Colore</button>
+          <button type="button" data-action="font" title="Font">🔤 Font</button>
+          <button type="button" data-action="interlinea" title="Interlinea">📐 Interlinea</button>
+          <span class="toolbar-sep"></span>
+          <button type="button" data-action="quote" title="Citazione">❝ Citaz.</button>
+          <button type="button" data-action="empty" title="Riga vuota extra">⬜ Riga</button>
+          <button type="button" data-action="citazione" title="Citazione lunga (rientro dx/sx)">❝ Citaz. lunga</button>
+          <button type="button" data-action="image" title="Immagine inline">🖼️ Img</button>
+          <span class="toolbar-sep"></span>
+          <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">📄 Word</button>
+          <input type="file" id="wordFile" accept=".docx" hidden>
+          <small>Seleziona testo e premi un pulsante</small>
         </div>
-        <textarea id="artContent" rows="12" placeholder="Scrivi il contenuto HTML dell'articolo..."></textarea>
       </div>
 
       <div class="field">
-        <label for="artReadingTime">Tempo di lettura</label>
-        <input type="text" id="artReadingTime" placeholder="es. 8 min">
+        <label for="inpBody">Testo dell'articolo (markdown)</label>
+        <textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Carica articolo esistente</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="loadSlug" placeholder="Slug dell'articolo" style="flex:1;">
+          <button type="button" class="btn-secondary" onclick="loadExisting()">Carica</button>
+        </div>
+        <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">Scarica l'articolo dal JSON remoto e riempie i campi.</p>
+      </div>
+
+      <div style="border-top:1px solid rgba(43,39,35,0.12);margin:20px 0;padding-top:16px;">
+        <h2 style="font-size:1rem;font-weight:600;margin:0 0 12px;">Impostazioni sito</h2>
+        <div class="field">
+          <label for="inpAuthorName">Nome autore</label>
+          <input type="text" id="inpAuthorName" placeholder="Davide Amato">
+        </div>
+        <div class="field">
+          <label for="inpAuthorBio">Bio autore</label>
+          <textarea id="inpAuthorBio" rows="3" placeholder="Breve descrizione..." style="min-height:80px;"></textarea>
+        </div>
+        <div class="field">
+          <label for="inpAuthorImage">Foto autore (URL, grandezza originale)</label>
+          <input type="text" id="inpAuthorImage" placeholder="https://res.cloudinary.com/...">
+          <p style="font-size:0.75rem;color:#6B6157;margin:4px 0 0;">Inserisci l'URL della foto così come la vuoi pubblicare. Nessuna ottimizzazione automatica verrà applicata.</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-secondary" onclick="loadSettings()">Carica impostazioni</button>
+          <button type="button" class="btn-secondary" onclick="saveSettingsToGitHub()">Salva impostazioni su GitHub</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Pubblicazione su GitHub</label>
+        <input type="password" id="githubToken" placeholder="Token GitHub (ghp_...)">
+        <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=Erosioni%20Editor" target="_blank" rel="noopener">Genera token</a>
+          con permesso <code>repo</code>, incollalo qui, poi premi "Pubblica".
+          Il token resta nel tuo browser, non viene inviato altrove.
+        </p>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;text-transform:none;letter-spacing:0;">
+          <input type="checkbox" id="saveToken" style="width:auto;"> Salva token nel browser
+        </label>
       </div>
     </div>
 
     <div class="actions-bar">
-      <button class="btn-primary" id="btnPreview">Anteprima</button>
-      <button class="btn-secondary" id="btnSaveLocal">Salva JSON locale</button>
-      <button class="btn-primary" id="btnPublish">Pubblica su GitHub</button>
+      <button class="btn-primary" onclick="publishToGitHub()">Pubblica su GitHub</button>
+      <button class="btn-secondary" onclick="exportJSON()">Esporta JSON</button>
+      <button class="btn-secondary" onclick="copyBody()">Copia solo testo</button>
+      <button class="btn-secondary" onclick="clearAll()">Svuota</button>
       <span class="status" id="status"></span>
     </div>
   </div>
-
-  <div class="preview-col" id="previewCol">
-    <div class="preview-header">
-      <span>Anteprima</span>
-      <a href="index.html" class="preview-back">← Torna al sito</a>
-    </div>
-    <div id="previewBody">
-      <p style="color:#6B6157;font-style:italic">Compila i campi a sinistra e clicca "Anteprima".</p>
-    </div>
-  </div>
 </div>
 
-<!-- Modal JSON -->
-<div class="modal-overlay" id="jsonModal">
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <div class="modal-head"><h3>JSON Articolo</h3><button class="modal-close" onclick="document.getElementById('jsonModal').classList.remove('open')">&times;</button></div>
-    <div class="modal-body"><p>Copia questo JSON e salvalo in <code>content/articoli.json</code> su GitHub.</p><textarea id="jsonOutput" readonly></textarea></div>
+    <div class="modal-head">
+      <h3>JSON articolo pronto</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Copia questo frammento e incollalo nell'array <code>articles</code> di <code>content/articoli.json</code> su GitHub (sostituisci l'articolo vecchio se lo stai modificando).</p>
+      <textarea id="exportArea" readonly></textarea>
+    </div>
     <div class="modal-foot">
-      <button class="btn-secondary" onclick="document.getElementById('jsonModal').classList.remove('open')">Chiudi</button>
-      <button class="btn-primary" onclick="copyJSON()">Copia</button>
+      <button class="btn-secondary" onclick="closeModal()">Chiudi</button>
+      <button class="btn-primary" onclick="copyExport()">Copia negli appunti</button>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
-/* ---------- Toolbar ---------- */
-function wrapSel(tag) {
-  const ta = document.getElementById('artContent');
-  const s = ta.selectionStart, e = ta.selectionEnd;
-  const selected = ta.value.substring(s, e);
-  const wrapped = `<${tag}>${selected}</${tag}>`;
-  ta.value = ta.value.substring(0, s) + wrapped + ta.value.substring(e);
-  ta.selectionStart = s; ta.selectionEnd = s + wrapped.length;
-  ta.focus();
+// ==================== RENDERING (identico al sito) ====================
+const MONTHS_IT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+const CATEGORY_LABELS = { recensioni:'Recensioni', cinema:'Cinema', politica:'Politica', riflessioni:'Riflessioni' };
+
+function formatDateIt(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00');
+  if (isNaN(d)) return isoDate;
+  return `${d.getDate()} ${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`;
 }
-function insertAtCursor(before, after) {
-  const ta = document.getElementById('artContent');
-  const s = ta.selectionStart, e = ta.selectionEnd;
-  const selected = ta.value.substring(s, e);
-  const inserted = before + selected + after;
-  ta.value = ta.value.substring(0, s) + inserted + ta.value.substring(e);
-  ta.selectionStart = s + before.length; ta.selectionEnd = s + before.length + selected.length;
-  ta.focus();
+function categoryLabel(cat) { return CATEGORY_LABELS[cat] || cat; }
+
+function optimizeImage(url, width) {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
+  const marker = '/upload/';
+  const i = url.indexOf(marker) + marker.length;
+  const already = /\/upload\/[a-z0-9_,]*\b(f_auto|q_auto)\b/.test(url);
+  if (already) return url;
+  const transform = `f_auto,q_auto:good,w_${width || 1600}/`;
+  return url.slice(0, i) + transform + url.slice(i);
 }
 
-/* ---------- Preview ---------- */
-function buildArticle() {
-  return {
-    title: document.getElementById('artTitle').value.trim(),
-    slug: document.getElementById('artSlug').value.trim() || slugify(document.getElementById('artTitle').value),
-    category: document.getElementById('artCategory').value.trim(),
-    date: document.getElementById('artDate').value,
-    excerpt: document.getElementById('artExcerpt').value.trim(),
-    image: document.getElementById('artImage').value.trim(),
-    content: document.getElementById('artContent').value.trim(),
-    reading_time: document.getElementById('artReadingTime').value.trim(),
-  };
+function stileClassi(attrs, perBlocco) {
+  const COLORI = ['avorio','sabbia','oro','terracotta'];
+  const FONT = ['elegante','classico','macchina'];
+  const classi = [];
+  (attrs || '').split(',').forEach((parte) => {
+    const [chiave, valore] = parte.split(':');
+    if (chiave === 'c' && COLORI.includes(valore)) classi.push((perBlocco ? 'blocco-' : 't-') + valore);
+    if (chiave === 'f' && FONT.includes(valore)) classi.push((perBlocco ? 'blocco-font-' : 't-font-') + valore);
+  });
+  return classi.join(' ');
 }
 
-function slugify(text) {
-  return text.toString().toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
+function renderInline(text) {
+  return text
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
+    .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+    .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
+    .replace(/\[riga-vuota\]/g, '')
+    .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
+      const classi = stileClassi(attrs, false);
+      return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
+    })
+    .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
+    .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
+      `<img src="${optimizeImage(url.trim(),1000)}" alt="${alt}">`)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\\_/g, '_')
+    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '<em>$1</em>');
 }
 
-function parseShortcodes(html) {
-  html = html.replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, '<span class="nota">$1</span>');
-  html = html.replace(/\[colore\s+([#\w]+)\]([\s\S]*?)\[\/colore\]/g, '<span style="color:$1">$2</span>');
-  html = html.replace(/\[font\s+([\w-]+)\]([\s\S]*?)\[\/font\]/g, '<span style="font-family:$1">$2</span>');
-  html = html.replace(/\[interlinea\s+(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>');
-  html = html.replace(/\[riga-vuota\]/g, '<div style="height:1.5em"></div>');
-  html = html.replace(/\[blocco\]([\s\S]*?)\[\/blocco\]/g, '<div class="blocco">$1</div>');
-  html = html.replace(/\[blocco-font\s+([\w-]+)\]([\s\S]*?)\[\/blocco-font\]/g, '<div style="font-family:$1">$1</div>');
-  html = html.replace(/\[citazione\]([\s\S]*?)\[\/citazione\]/g, '<blockquote class="citazione-lunga">$1</blockquote>');
+function renderMarkdown(md) {
+  const note = [];
+  md = (md || '').replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, (m, testo) => {
+    note.push(testo.trim());
+    return `{{NOTA_${note.length}}}`;
+  });
+  const noteImportate = {};
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^\n]+)/g, (m, n, testo) => { noteImportate[n]=testo.trim(); return ''; });
+  md = md.replace(/(^|\n\s*\n)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^\n]+)/g, (m, sep, n, testo) => { noteImportate[n]=testo.trim(); return sep; });
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, (m, n) => { note.push(noteImportate[n]||`Nota ${n}.`); return `{{NOTA_${note.length}}}`; });
+  md = md.replace(/\s+$/, '');
+
+  const pieces = md.split(/(\n\s*\n+)/);
+  const blocks = [];
+  pieces.forEach((piece, i) => {
+    if (i % 2 === 0) { if (piece.trim()) blocks.push(piece); }
+    else {
+      const precedente = blocks.length ? blocks[blocks.length-1].trim() : '';
+      const successivo = (pieces[i+1]||'').trim();
+      if (/^#{1,3}\s/.test(precedente) || /^#{1,3}\s/.test(successivo)) return;
+      const extra = piece.split('\n').length - 3;
+      for (let k=0;k<extra;k++) blocks.push('[riga-vuota]');
+    }
+  });
+  let html = blocks.map(block => {
+    if (block === '[riga-vuota]') return '<p class="riga-vuota" aria-hidden="true"></p>';
+    const trimmed = block.trim();
+    const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (soloImmagine) {
+      const alt = soloImmagine[1].trim();
+      const url = soloImmagine[2].trim();
+      const img = `<img src="${optimizeImage(url,1000)}" alt="${alt.replace(/"/g,'&quot;')}">`;
+      return alt ? `<figure>${img}<figcaption>${renderInline(alt)}</figcaption></figure>` : img;
+    }
+    const interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
+    if (interlinea) return `<p style="line-height:${interlinea[1]}">${renderInline(interlinea[2]).replace(/\n/g,'<br>')}</p>`;
+    const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
+    if (stileBlocco) {
+      const classi = stileClassi(stileBlocco[1], true);
+      const contenuto = renderInline(stileBlocco[2]).replace(/\n/g,'<br>');
+      return classi ? `<p class="${classi}">${contenuto}</p>` : `<p>${contenuto}</p>`;
+    }
+    const blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
+    if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g,'<br>')}</p>`;
+    const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
+    if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g,'<br>')}</p>`;
+    const citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
+    if (citazione) return `<p class="citazione-lunga">${renderInline(citazione[1]).replace(/\n/g,'<br>')}</p>`;
+    if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
+    if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
+    if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
+    if (/^[-•] /.test(trimmed)) {
+      const items = trimmed.split('\n').map(l=>l.trim()).filter(l=>/^[-•] /.test(l)).map(l=>`<li>${renderInline(l.slice(2))}</li>`).join('');
+      return `<ul>${items}</ul>`;
+    }
+    if (/^\d+\. /.test(trimmed)) {
+      const items = trimmed.split('\n').map(l=>l.trim()).filter(l=>/^\d+\. /.test(l)).map(l=>`<li>${renderInline(l.replace(/^\d+\. /,''))}</li>`).join('');
+      return `<ol>${items}</ol>`;
+    }
+    return `<p>${renderInline(trimmed).replace(/\n/g,'<br>')}</p>`;
+  }).join('\n');
+
+  if (note.length) {
+    html = html.replace(/\{\{NOTA_(\d+)\}\}/g, (m,n) => `<sup class="nota-rif"><a href="#nota-${n}">${n}</a></sup>`);
+    html += `\n<div class="note-articolo"><h3 class="note-titolo">Note</h3><ol>` +
+      note.map((t,i) => `<li id="nota-${i+1}">${renderInline(t)} <a class="nota-back" href="#nota-${i+1}">&#8617;</a></li>`).join('') +
+      `</ol></div>`;
+  }
   return html;
 }
 
-document.getElementById('btnPreview').addEventListener('click', () => {
-  const art = buildArticle();
-  if (!art.title) { document.getElementById('status').textContent = 'Inserisci almeno il titolo.'; return; }
-  const body = parseShortcodes(art.content);
-  document.getElementById('previewBody').innerHTML = `
-    <div class="preview-meta-row">
-      <span><strong>${art.category || '—'}</strong></span>
-      <span>${art.date || '—'}</span>
-      <span>${art.reading_time || '—'}</span>
-    </div>
-    ${art.image ? `<img class="preview-hero" src="${art.image}" alt="">` : ''}
-    <h1 class="preview-title">${art.title}</h1>
-    <p class="preview-subtitle">${art.excerpt}</p>
-    <div class="preview-body">${body}</div>
-  `;
-  document.getElementById('status').textContent = 'Anteprima aggiornata.';
+// ==================== EDITOR ACTIONS ====================
+let savedSel = { start: 0, end: 0 };
+
+// Salva la selezione della textarea prima che i pulsanti prendano il focus
+document.getElementById('toolbar').addEventListener('mousedown', function(e) {
+  const ta = document.getElementById('inpBody');
+  savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
 });
 
-/* ---------- Salva JSON locale ---------- */
-document.getElementById('btnSaveLocal').addEventListener('click', () => {
-  const art = buildArticle();
-  if (!art.title) { document.getElementById('status').textContent = 'Inserisci almeno il titolo.'; return; }
-  document.getElementById('jsonOutput').value = JSON.stringify(art, null, 2);
-  document.getElementById('jsonModal').classList.add('open');
-  document.getElementById('status').textContent = 'JSON pronto per la copia.';
-});
-
-function copyJSON() {
-  const ta = document.getElementById('jsonOutput');
-  ta.select();
-  document.execCommand('copy');
-  document.getElementById('status').textContent = 'JSON copiato negli appunti.';
+function wrap(before, after) {
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const val = ta.value;
+  const selected = val.slice(s, e);
+  const replacement = before + selected + (after || '');
+  ta.value = val.slice(0, s) + replacement + val.slice(e);
+  ta.selectionStart = s + before.length;
+  ta.selectionEnd = s + before.length + selected.length;
+  ta.focus();
+  updatePreview();
+}
+function insertAtCursor(text) {
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start;
+  ta.value = ta.value.slice(0, s) + text + ta.value.slice(s);
+  ta.selectionStart = ta.selectionEnd = s + text.length;
+  ta.focus();
+  updatePreview();
+}
+function insertNote() {
+  const testo = prompt('Testo della nota:');
+  if (testo === null) return;
+  insertAtCursor(`[nota]${testo}[/nota]`);
+}
+function insertColor() {
+  const colori = ['avorio','sabbia','oro','terracotta'];
+  const scelta = prompt(`Scegli colore: ${colori.join(', ')}`);
+  if (!scelta || !colori.includes(scelta)) return;
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const sel = ta.value.slice(s, e) || 'testo colorato';
+  insertAtCursor(`[colore=${scelta}]${sel}[/colore]`);
+}
+function insertFont() {
+  const fonts = ['elegante','classico','macchina'];
+  const scelta = prompt(`Scegli font: ${fonts.join(', ')}`);
+  if (!scelta || !fonts.includes(scelta)) return;
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const sel = ta.value.slice(s, e) || 'testo';
+  insertAtCursor(`[font=${scelta}]${sel}[/font]`);
+}
+function insertInterlinea() {
+  const valore = prompt('Interlinea (es. 1.6, 1.8, 2):', '1.6');
+  if (!valore || isNaN(parseFloat(valore))) return;
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const sel = ta.value.slice(s, e) || 'testo con interlinea';
+  insertAtCursor(`[interlinea=${valore}]${sel}[/interlinea]`);
+}
+function insertEmptyLine() {
+  insertAtCursor('\n\n[riga-vuota]\n\n');
+}
+function insertCitazione() {
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const sel = ta.value.slice(s, e) || 'Testo della citazione lunga...';
+  insertAtCursor(`[citazione]${sel}[/citazione]`);
+}
+function insertImage() {
+  const url = prompt('URL immagine (Cloudinary):');
+  if (!url) return;
+  const alt = prompt('Didascalia (facoltativa):') || '';
+  insertAtCursor(`\n\n![${alt}](${url})\n\n`);
 }
 
-/* ---------- Pubblica su GitHub ---------- */
-document.getElementById('btnPublish').addEventListener('click', async () => {
-  const art = buildArticle();
-  if (!art.title) { document.getElementById('status').textContent = 'Inserisci almeno il titolo.'; return; }
-  
-  document.getElementById('status').textContent = 'Caricamento articoli.json...';
-  
-  try {
-    const articles = await fetch('https://raw.githubusercontent.com/davideamatoag/Erosioni/main/content/articoli.json?v=' + Date.now()).then(r => r.json());
-    const existing = articles.findIndex(a => a.slug === art.slug);
-    if (existing >= 0) articles[existing] = art;
-    else articles.unshift(art);
-    
-    /* Salva articoli.json */
-    await saveFileToGitHub('content/articoli.json', JSON.stringify(articles, null, 2), 'Aggiorna articoli.json');
-    
-    /* Genera pagina statica */
-    const staticHtml = generateStaticPage(art);
-    await saveFileToGitHub('articoli/' + art.slug + '.html', staticHtml, 'Aggiungi pagina statica ' + art.slug);
-    
-    document.getElementById('status').textContent = 'Pubblicato! Ricarica il sito tra 2-3 minuti.';
-  } catch(e) {
-    document.getElementById('status').textContent = 'Errore: ' + e.message;
+// Toolbar event delegation
+document.getElementById('toolbar').addEventListener('click', function(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  switch (action) {
+    case 'bold': wrap('**','**'); break;
+    case 'italic': wrap('*','*'); break;
+    case 'strike': wrap('~~','~~'); break;
+    case 'h2': wrap('## '); break;
+    case 'h3': wrap('### '); break;
+    case 'quote': wrap('> '); break;
+    case 'note': insertNote(); break;
+    case 'color': insertColor(); break;
+    case 'font': insertFont(); break;
+    case 'interlinea': insertInterlinea(); break;
+    case 'empty': insertEmptyLine(); break;
+    case 'citazione': insertCitazione(); break;
+    case 'image': insertImage(); break;
   }
 });
 
-/* ---------- Genera pagina statica ---------- */
+// ==================== IMPORTAZIONE WORD ====================
+// Converte un file .docx in markdown del blog (note, corsivi, citazioni, immagini)
+function htmlVersoMarkdown(html) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // 1) Raccoglie le definizioni delle note di Word
+  var note = {};
+  var contenitoreNote = null;
+  doc.querySelectorAll('li[id^="footnote-"]').forEach(function (li) {
+    var n = li.id.replace('footnote-', '');
+    var cl = li.cloneNode(true);
+    cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function (a) { a.remove(); });
+    note[n] = inline(cl).trim();
+    if (!contenitoreNote) contenitoreNote = li.closest('ol, ul, div');
+  });
+  if (contenitoreNote && contenitoreNote.parentNode) contenitoreNote.parentNode.removeChild(contenitoreNote);
+  doc.querySelectorAll('hr').forEach(function (hr) { hr.remove(); });
+
+  var nImmagini = 0;
+
+  // 2) Conversione ricorsiva del contenuto in linea
+  function inline(nodo) {
+    var out = '';
+    nodo.childNodes.forEach(function (el) {
+      if (el.nodeType === 3) { out += el.textContent; return; }
+      if (el.nodeType !== 1) return;
+      var tag = el.tagName.toLowerCase();
+      if (tag === 'sup') {
+        var rif = el.querySelector('a[href^="#footnote-"]');
+        if (rif) {
+          var n = rif.getAttribute('href').replace('#footnote-', '');
+          out += '[nota]' + (note[n] || '') + '[/nota]';
+          return;
+        }
+      }
+      if (tag === 'a') {
+        var href = el.getAttribute('href') || '';
+        if (href.indexOf('#footnote-') === 0) {
+          var n2 = href.replace('#footnote-', '');
+          out += '[nota]' + (note[n2] || '') + '[/nota]';
+        } else if (href.indexOf('#footnote-ref-') !== 0) {
+          out += '[' + inline(el) + '](' + href + ')';
+        }
+        return;
+      }
+      if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
+      // Usiamo * per i corsivi: così gli underscore presenti nel testo
+      // (es. nei titoli dei libri) non interferiscono con il markdown.
+      if (tag === 'em' || tag === 'i') { out += '*' + inline(el) + '*'; return; }
+      if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
+      if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
+      if (tag === 'br') { out += '\n'; return; }
+      if (tag === 'img') {
+        nImmagini++;
+        var alt = (el.getAttribute('alt') || '').trim();
+        out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+        return;
+      }
+      out += inline(el);
+    });
+    return out;
+  }
+
+  // Rileva se un paragrafo ha un rientro significativo (probabile citazione)
+  function haRientro(el) {
+    var stile = (el.getAttribute('style') || '').toLowerCase();
+    var m = stile.match(/margin-left\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+    if (m) {
+      var val = parseFloat(m[1]);
+      var unit = m[2];
+      if (unit === 'pt' && val > 18) return true;
+      if (unit === 'px' && val > 24) return true;
+      if (unit === 'em' || unit === 'rem') return val > 1.5;
+      if (unit === 'cm' && val > 0.6) return true;
+      if (unit === 'mm' && val > 6) return true;
+      if (unit === 'in' && val > 0.25) return true;
+    }
+    var ti = stile.match(/text-indent\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+    if (ti) {
+      var v = parseFloat(ti[1]);
+      var u = ti[2];
+      if (u === 'pt' && v > 18) return true;
+      if (u === 'px' && v > 24) return true;
+      if (u === 'em' || u === 'rem') return v > 1.5;
+      if (u === 'cm' && v > 0.6) return true;
+      if (u === 'mm' && v > 6) return true;
+      if (u === 'in' && v > 0.25) return true;
+    }
+    return false;
+  }
+
+  // 3) Conversione dei blocchi
+  function blocco(el) {
+    var tag = el.tagName.toLowerCase();
+    var contenuto = inline(el).replace(/[ \t]+\n/g, '\n').trim();
+    if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
+    if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
+    if (tag === 'blockquote') {
+      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    }
+    if (tag === 'p' && haRientro(el) && contenuto) {
+      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    }
+    if (tag === 'ul') {
+      return Array.prototype.map.call(el.children, function (li) {
+        return '- ' + inline(li).trim();
+      }).join('\n');
+    }
+    if (tag === 'ol') {
+      return Array.prototype.map.call(el.children, function (li, i) {
+        return (i + 1) + '. ' + inline(li).trim();
+      }).join('\n');
+    }
+    return contenuto;
+  }
+
+  var blocchi = [];
+  doc.body.childNodes.forEach(function (el) {
+    if (el.nodeType !== 1) return;
+    var b = blocco(el);
+    if (b) blocchi.push(b);
+  });
+
+  var markdown = blocchi.join('\n\n');
+  // Se in Word due corsivi si toccano ("fine_ _inizio"), riduciamo a spazio normale
+  markdown = markdown.replace(/_\s+_/g, ' ');
+
+  return {
+    markdown: markdown,
+    note: Object.keys(note).length,
+    immagini: nImmagini
+  };
+}
+
+function importaWord(file) {
+  if (!/\.docx$/i.test(file.name)) {
+    alert('Il file deve essere in formato .docx (Word).');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function () {
+    mammoth.convertToHtml(
+      { arrayBuffer: reader.result },
+      {
+        convertImage: mammoth.images.imgElement(function () {
+          return { src: 'URL-IMMAGINE-CLOUDINARY' };
+        })
+      }
+    ).then(function (res) {
+      var esito = htmlVersoMarkdown(res.value);
+
+      // Estrae titolo dal primo H1/H2, sottotitolo dal primo H3
+      var temp = document.createElement('div');
+      temp.innerHTML = res.value;
+      var h1 = temp.querySelector('h1, h2');
+      var h3 = temp.querySelector('h3');
+      if (h1 && !document.getElementById('inpTitle').value) {
+        document.getElementById('inpTitle').value = h1.textContent.trim();
+      }
+      if (h3 && !document.getElementById('inpSubtitle').value) {
+        document.getElementById('inpSubtitle').value = h3.textContent.trim();
+      }
+
+      // Inserisce il testo nel body (append se già presente)
+      var ta = document.getElementById('inpBody');
+      if (ta.value.trim()) {
+        ta.value += '\n\n' + esito.markdown;
+      } else {
+        ta.value = esito.markdown;
+      }
+
+      updatePreview();
+      var msg = 'Importato: ' + esito.note + ' note, ' + esito.immagini + ' immagini';
+      if (esito.immagini > 0) msg += '. Sostituisci URL-IMMAGINE-CLOUDINARY con gli URL reali.';
+      document.getElementById('status').textContent = msg;
+      setTimeout(function () { document.getElementById('status').textContent = ''; }, 4000);
+    }).catch(function (err) {
+      alert('Errore lettura file: ' + err.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Gestione pulsante Importa Word
+document.getElementById('btnImportWord').addEventListener('click', function () {
+  document.getElementById('wordFile').click();
+});
+document.getElementById('wordFile').addEventListener('change', function () {
+  if (this.files && this.files[0]) importaWord(this.files[0]);
+});
+
+// ==================== PUBBLICAZIONE GITHUB ====================
+// Base64 helpers per Unicode (GitHub API richiede Base64 standard)
+function b64EncodeUnicode(str) {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+    return String.fromCharCode('0x' + p1);
+  }));
+}
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(atob(str).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+
 function generateStaticPage(article) {
-  const baseUrl = 'https://davideamatoag.github.io/Erosioni';
-  const body = parseShortcodes(article.content);
+  const base = 'https://davideamatoag.github.io/Erosioni';
+  const title = (article.title || 'Articolo').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const desc = (article.sottotitolo || (article.body || '').slice(0,160).replace(/\n/g,' ').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
+  let img = article.image || '';
+  if (img.startsWith('images/')) img = base + '/' + img;
+  const slug = article.slug;
+
   return `<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${article.title} — Erosioni</title>
-<meta name="description" content="${article.excerpt.replace(/"/g, '&quot;')}">
-<meta property="og:title" content="${article.title}">
-<meta property="og:description" content="${article.excerpt.replace(/"/g, '&quot;')}">
-<meta property="og:image" content="${article.image ? (article.image.startsWith('http') ? article.image : baseUrl + '/' + article.image) : ''}">
-<meta property="og:url" content="${baseUrl}/articoli/${article.slug}.html">
+<title>${title} — Erosioni</title>
+<meta name="description" content="${desc}">
 <meta property="og:type" content="article">
+<meta property="og:site_name" content="Erosioni">
+<meta property="og:title" content="${title} — Erosioni">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${img}">
+<meta property="og:url" content="${base}/articoli/${slug}.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${article.title}">
-<meta name="twitter:description" content="${article.excerpt.replace(/"/g, '&quot;')}">
-<meta name="twitter:image" content="${article.image ? (article.image.startsWith('http') ? article.image : baseUrl + '/' + article.image) : ''}">
-<script>
-  window.location.href = '../articolo.html?slug=${article.slug}';
-<\/script>
+<meta name="twitter:title" content="${title} — Erosioni">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${img}">
+<link rel="canonical" href="${base}/articoli/${slug}.html">
+<script>window.location.replace("${base}/articolo.html?slug=${encodeURIComponent(slug)}");</script>
 </head>
 <body>
-<p>Reindirizzamento in corso...</p>
+<p>Reindirizzamento a <a href="${base}/articolo.html?slug=${encodeURIComponent(slug)}">${title}</a>...</p>
 </body>
 </html>`;
 }
 
-/* ---------- Helper GitHub ---------- */
-async function saveFileToGitHub(path, content, message) {
-  const token = prompt('Inserisci il tuo GitHub Personal Access Token:');
-  if (!token) throw new Error('Token richiesto');
-  
-  const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/' + path;
-  
-  /* Ottieni SHA se il file esiste */
-  let sha = null;
+async function publishToGitHub() {
+  const token = document.getElementById('githubToken').value.trim();
+  if (!token) {
+    alert('Inserisci il token GitHub.\n\n1. Vai su https://github.com/settings/tokens/new\n2. Seleziona il permesso "repo"\n3. Copia il token e incollalo qui.');
+    return;
+  }
+  if (document.getElementById('saveToken').checked) {
+    localStorage.setItem('erosioni_github_token', token);
+  } else {
+    localStorage.removeItem('erosioni_github_token');
+  }
+
+  const slug = document.getElementById('inpSlug').value.trim();
+  if (!slug) {
+    alert('Inserisci uno slug per l\'articolo (es. la-rinascita-dell-ontologia).');
+    return;
+  }
+  const title = document.getElementById('inpTitle').value.trim() || slug;
+  const status = document.getElementById('status');
+  status.textContent = 'Connessione a GitHub...';
+
   try {
-    const r = await fetch(apiUrl + '?ref=main', { headers: { 'Authorization': 'token ' + token } });
-    if (r.ok) { const data = await r.json(); sha = data.sha; }
-  } catch(e) {}
-  
-  const body = {
-    message: message,
-    content: btoa(unescape(encodeURIComponent(content))),
-    branch: 'main'
-  };
-  if (sha) body.sha = sha;
-  
-  const r = await fetch(apiUrl, {
-    method: 'PUT',
-    headers: {
-      'Authorization': 'token ' + token,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-  
-  if (!r.ok) throw new Error('GitHub ' + r.status + ': ' + await r.text());
+    const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/content/articoli.json';
+
+    // 1. Leggi il file attuale
+    const getRes = await fetch(apiUrl, {
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (!getRes.ok) throw new Error('Impossibile leggere articoli.json (' + getRes.status + '). Verifica il token.');
+    const fileData = await getRes.json();
+
+    // 2. Decodifica e modifica
+    const currentContent = b64DecodeUnicode(fileData.content);
+    const data = JSON.parse(currentContent);
+
+    const article = {
+      slug: slug,
+      title: document.getElementById('inpTitle').value || '',
+      sottotitolo: document.getElementById('inpSubtitle').value || '',
+      category: document.getElementById('inpCategory').value,
+      date: document.getElementById('inpDate').value || new Date().toISOString().slice(0,10),
+      image: document.getElementById('inpImage').value || '',
+      font: document.getElementById('inpFont').value,
+      colore: document.getElementById('inpColore').value,
+      body: document.getElementById('inpBody').value || ''
+    };
+
+    const articles = data.articles || [];
+    const existingIdx = articles.findIndex(function(a) { return a.slug === slug; });
+    const isNew = existingIdx < 0;
+
+    if (!isNew) {
+      if (!confirm('L\'articolo "' + (articles[existingIdx].title || slug) + '" esiste già. Sovrascriverlo?')) {
+        status.textContent = '';
+        return;
+      }
+      articles[existingIdx] = article;
+    } else {
+      articles.unshift(article);
+    }
+    data.articles = articles;
+
+    // 3. Codifica e salva
+    status.textContent = 'Salvataggio in corso...';
+    const newContent = JSON.stringify(data, null, 2);
+    const encoded = b64EncodeUnicode(newContent);
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: (isNew ? 'Aggiunge' : 'Aggiorna') + ' articolo: ' + title + ' via editor',
+        content: encoded,
+        sha: fileData.sha
+      })
+    });
+
+    if (!putRes.ok) {
+      var errData = await putRes.json().catch(function() { return {}; });
+      throw new Error(errData.message || 'Errore ' + putRes.status);
+    }
+
+    status.textContent = 'Articolo salvato. Genero pagina statica...';
+
+    // 4. Genera e salva pagina HTML statica per i meta social
+    const staticHtml = generateStaticPage(article);
+    const staticPath = 'articoli/' + slug + '.html';
+    const staticApiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/' + staticPath;
+
+    // Leggi la pagina statica esistente (se c'è) per lo SHA
+    let staticSha = null;
+    try {
+      const staticGetRes = await fetch(staticApiUrl, {
+        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (staticGetRes.ok) {
+        const staticData = await staticGetRes.json();
+        staticSha = staticData.sha;
+      }
+    } catch(e) { /* la pagina non esiste ancora */ }
+
+    const staticEncoded = b64EncodeUnicode(staticHtml);
+    const staticBody = {
+      message: (isNew ? 'Aggiunge' : 'Aggiorna') + ' pagina statica: ' + slug,
+      content: staticEncoded
+    };
+    if (staticSha) staticBody.sha = staticSha;
+
+    const staticPutRes = await fetch(staticApiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(staticBody)
+    });
+
+    if (!staticPutRes.ok) {
+      var sErr = await staticPutRes.json().catch(function() { return {}; });
+      console.warn('Pagina statica non salvata:', sErr.message || staticPutRes.status);
+    }
+
+    status.textContent = 'Pubblicato! Attendi 1-2 minuti per GitHub Pages.';
+    setTimeout(function() { status.textContent = ''; }, 6000);
+
+  } catch (err) {
+    status.textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
 }
+
+// ==================== PREVIEW ====================
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function updatePreview() {
+  const title = document.getElementById('inpTitle').value || 'Titolo';
+  const subtitle = document.getElementById('inpSubtitle').value;
+  const date = document.getElementById('inpDate').value || new Date().toISOString().slice(0,10);
+  const cat = document.getElementById('inpCategory').value;
+  const image = document.getElementById('inpImage').value;
+  const font = document.getElementById('inpFont').value;
+  const colore = document.getElementById('inpColore').value;
+  const bodyMd = document.getElementById('inpBody').value;
+
+  const bodyClass = ['preview-body', font !== 'predefinito' ? 't-font-' + font : '', colore !== 'predefinito' ? 't-' + colore : ''].filter(Boolean).join(' ');
+  const htmlBody = renderMarkdown(bodyMd);
+  const words = (bodyMd.match(/\S+/g) || []).length;
+
+  const html = `
+    <div class="preview-header">
+      <span>Anteprima live</span>
+      <span>${words} parole</span>
+    </div>
+    <a href="#" class="preview-back">&larr; Torna agli articoli</a>
+    <h1 class="preview-title">${escapeHtml(title)}</h1>
+    ${subtitle ? `<p class="preview-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+    <div class="preview-meta-row">
+      <span><strong>${formatDateIt(date)}</strong> / ${categoryLabel(cat).toUpperCase()}</span>
+    </div>
+    ${image ? `<img class="preview-hero" src="${optimizeImage(image,1200)}" alt="">` : ''}
+    <div class="${bodyClass}">${htmlBody}</div>
+  `;
+  document.getElementById('previewInner').innerHTML = html;
+}
+
+// ==================== IMPOSTAZIONI ====================
+async function loadSettings() {
+  try {
+    const res = await fetch('../content/impostazioni.json', { cache: 'no-store' });
+    const settings = await res.json();
+    document.getElementById('inpAuthorName').value = settings.author_name || '';
+    document.getElementById('inpAuthorBio').value = settings.author_bio || '';
+    document.getElementById('inpAuthorImage').value = settings.author_image || '';
+    document.getElementById('status').textContent = 'Impostazioni caricate';
+    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+  } catch (err) {
+    alert('Errore caricamento impostazioni: ' + err.message);
+  }
+}
+
+async function saveSettingsToGitHub() {
+  const token = document.getElementById('githubToken').value.trim();
+  if (!token) {
+    alert('Inserisci il token GitHub.');
+    return;
+  }
+  const status = document.getElementById('status');
+  status.textContent = 'Salvataggio impostazioni...';
+
+  try {
+    const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/content/impostazioni.json';
+    const getRes = await fetch(apiUrl, {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!getRes.ok) throw new Error('Impossibile leggere impostazioni.json (' + getRes.status + ')');
+    const fileData = await getRes.json();
+
+    const currentContent = b64DecodeUnicode(fileData.content);
+    const settings = JSON.parse(currentContent);
+
+    settings.author_name = document.getElementById('inpAuthorName').value.trim();
+    settings.author_bio = document.getElementById('inpAuthorBio').value;
+    settings.author_image = document.getElementById('inpAuthorImage').value.trim();
+
+    const newContent = JSON.stringify(settings, null, 2);
+    const encoded = b64EncodeUnicode(newContent);
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Aggiorna impostazioni sito (bio e foto) via editor',
+        content: encoded,
+        sha: fileData.sha
+      })
+    });
+
+    if (!putRes.ok) {
+      var errData = await putRes.json().catch(function() { return {}; });
+      throw new Error(errData.message || 'Errore ' + putRes.status);
+    }
+
+    status.textContent = 'Impostazioni salvate! Attendi 1-2 minuti per GitHub Pages.';
+    setTimeout(() => status.textContent = '', 5000);
+  } catch (err) {
+    status.textContent = 'Errore: ' + err.message;
+    console.error(err);
+  }
+}
+
+// ==================== EXPORT / IMPORT ====================
+function exportJSON() {
+  const obj = {
+    slug: document.getElementById('inpSlug').value || '',
+    title: document.getElementById('inpTitle').value || '',
+    sottotitolo: document.getElementById('inpSubtitle').value || '',
+    category: document.getElementById('inpCategory').value,
+    date: document.getElementById('inpDate').value || new Date().toISOString().slice(0,10),
+    image: document.getElementById('inpImage').value || '',
+    font: document.getElementById('inpFont').value,
+    colore: document.getElementById('inpColore').value,
+    body: document.getElementById('inpBody').value || ''
+  };
+  const json = JSON.stringify(obj, null, 2);
+  document.getElementById('exportArea').value = json + ',';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function copyExport() {
+  const area = document.getElementById('exportArea');
+  area.select();
+  navigator.clipboard.writeText(area.value).then(() => {
+    document.getElementById('status').textContent = 'JSON copiato';
+    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+  });
+}
+function copyBody() {
+  const t = document.getElementById('inpBody');
+  t.select();
+  navigator.clipboard.writeText(t.value).then(() => {
+    document.getElementById('status').textContent = 'Testo copiato';
+    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+  });
+}
+function clearAll() {
+  if (!confirm('Svuotare tutti i campi?')) return;
+  ['inpSlug','inpTitle','inpSubtitle','inpImage','inpBody'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('inpDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('inpCategory').value = 'recensioni';
+  document.getElementById('inpFont').value = 'predefinito';
+  document.getElementById('inpColore').value = 'predefinito';
+  updatePreview();
+}
+async function loadExisting() {
+  const slug = document.getElementById('loadSlug').value.trim();
+  if (!slug) return alert('Inserisci uno slug');
+  try {
+    const res = await fetch('../content/articoli.json', { cache: 'no-store' });
+    const data = await res.json();
+    const article = (data.articles || []).find(a => a.slug === slug);
+    if (!article) return alert('Articolo non trovato');
+    document.getElementById('inpSlug').value = article.slug || '';
+    document.getElementById('inpTitle').value = article.title || '';
+    document.getElementById('inpSubtitle').value = article.sottotitolo || '';
+    document.getElementById('inpCategory').value = article.category || 'recensioni';
+    document.getElementById('inpDate').value = article.date || '';
+    document.getElementById('inpImage').value = article.image || '';
+    document.getElementById('inpFont').value = article.font || 'predefinito';
+    document.getElementById('inpColore').value = article.colore || 'predefinito';
+    document.getElementById('inpBody').value = article.body || '';
+    updatePreview();
+    document.getElementById('status').textContent = `Caricato: ${article.title}`;
+    setTimeout(() => document.getElementById('status').textContent = '', 3000);
+  } catch (err) {
+    alert('Errore caricamento: ' + err.message);
+  }
+}
+
+// ==================== INIT ====================
+// Carica token GitHub salvato
+var savedToken = localStorage.getItem('erosioni_github_token');
+if (savedToken) {
+  document.getElementById('githubToken').value = savedToken;
+  document.getElementById('saveToken').checked = true;
+}
+
+['inpSlug','inpTitle','inpSubtitle','inpCategory','inpDate','inpImage','inpFont','inpColore','inpBody'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+document.getElementById('inpDate').value = new Date().toISOString().slice(0,10);
+updatePreview();
 </script>
 </body>
 </html>
-<!-- __PLACEHOLDER__ -->

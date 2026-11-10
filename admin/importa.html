@@ -1,130 +1,296 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Importa da Word — Erosioni</title>
-<link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F5F0E8;--text:#2B2723;--accent:#A65A43;--muted:#6B6157;--surface:#FFFFFF;--border:#D8D0C4;--radius:12px;--shadow:0 4px 20px rgba(43,39,35,0.08);}
-*{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:40px 20px;line-height:1.6;}
-.container{max-width:960px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:40px;}
-h1{font-family:'Playfair Display',serif;font-size:2.2rem;margin:0 0 8px;font-weight:600;}
-.subtitle{color:var(--muted);margin-bottom:32px;font-size:0.95rem;}
-.field{margin-bottom:24px;}label{display:block;font-weight:500;margin-bottom:6px;font-size:0.9rem;}
-input[type="file"],input[type="text"],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.95rem;background:#FAFAF8;}
-textarea{min-height:180px;resize:vertical;line-height:1.7;font-family:'Space Mono',monospace;font-size:0.85rem;}
-.btn-primary{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-weight:600;cursor:pointer;font-size:1rem;transition:opacity .2s;}
-.btn-primary:hover{opacity:.85;}
-.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:10px 20px;border-radius:8px;font-weight:500;cursor:pointer;}
-.preview{background:#FAFAF8;border:1px solid var(--border);border-radius:8px;padding:24px;margin-top:24px;min-height:120px;}
-.preview h2{font-family:'Playfair Display',serif;font-size:1.3rem;margin-top:0;}
-.note{font-size:0.82rem;color:var(--muted);margin-top:8px;}
-.status{margin-top:16px;font-size:0.9rem;color:var(--muted);}
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #F5F0E8; color: #2B2723;
+  }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  .sotto { color: #6B6157; margin: 0 0 28px; font-size: 0.95rem; }
+  .zona {
+    border: 2px dashed rgba(166,90,67,0.5); border-radius: 12px;
+    padding: 44px 24px; text-align: center; cursor: pointer;
+    background: rgba(255,255,255,0.55); transition: background .15s;
+  }
+  .zona:hover, .zona.trascina { background: rgba(166,90,67,0.08); }
+  .zona strong { color: #A65A43; }
+  .zona small { display: block; margin-top: 8px; color: #6B6157; }
+  #risultato { display: none; margin-top: 28px; }
+  .barra-azioni { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  button.copia {
+    font: inherit; font-size: 0.95rem; cursor: pointer;
+    background: #A65A43; color: #fff; border: 0; border-radius: 8px;
+    padding: 10px 22px;
+  }
+  button.copia:hover { background: #8f4c38; }
+  .stat { font-size: 0.85rem; color: #6B6157; font-family: ui-monospace, monospace; }
+  textarea {
+    width: 100%; min-height: 420px; resize: vertical;
+    font: 14px/1.6 ui-monospace, 'SF Mono', Menlo, monospace;
+    border: 1px solid rgba(43,39,35,0.25); border-radius: 8px;
+    padding: 16px; background: #fff; color: #2B2723;
+  }
+  .avviso {
+    display: none; margin: 0 0 14px; padding: 12px 16px;
+    background: rgba(166,90,67,0.1); border-left: 3px solid #A65A43;
+    border-radius: 0 8px 8px 0; font-size: 0.9rem;
+  }
+  ol.aiuto { margin: 28px 0 0; padding-left: 22px; color: #6B6157; font-size: 0.95rem; line-height: 1.9; }
+  ol.aiuto b { color: #2B2723; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Importa da Word</h1>
-  <p class="subtitle">Carica un documento .docx e convertilo nel formato markdown del blog.</p>
+<main>
+  <h1>Importa un articolo da Word</h1>
+  <p class="sotto">Carica il file <code>.docx</code>: il testo viene convertito nel formato del blog (titoli, grassetto, corsivo e note a piè di pagina incluse).</p>
 
-  <div class="field">
-    <label for="wordFile">File Word (.docx)</label>
-    <input type="file" id="wordFile" accept=".docx">
+  <div class="zona" id="zona">
+    <strong>Scegli il file Word</strong> oppure trascinalo qui
+    <small>La conversione avviene tutta nel tuo browser: il file non viene caricato da nessuna parte.</small>
+    <input type="file" id="file" accept=".docx" hidden>
   </div>
 
-  <div class="field">
-    <label for="output">Markdown generato</label>
-    <textarea id="output" placeholder="Il markdown apparirà qui..."></textarea>
+  <div class="avviso" id="avviso"></div>
+
+  <div id="risultato">
+    <div class="barra-azioni">
+      <button class="copia" id="copia">Copia il testo</button>
+      <span class="stat" id="stat"></span>
+    </div>
+    <textarea id="testo" spellcheck="false"></textarea>
   </div>
 
-  <button class="btn-primary" id="btnCopy">Copia markdown</button>
-  <p class="status" id="status"></p>
-
-  <div class="preview" id="preview">
-    <h2>Anteprima</h2>
-    <div id="previewBody">Carica un file per vedere l'anteprima.</div>
-  </div>
-</div>
+  <ol class="aiuto">
+    <li><b>Converti</b> il file con il tasto qui sopra.</li>
+    <li><b>Copia</b> il risultato.</li>
+    <li>Nel pannello di amministrazione, apri (o crea) l'articolo e <b>incolla</b> il testo nel campo «Testo dell'articolo».</li>
+    <li>Le <b>note</b> di Word diventano automaticamente note a piè di pagina numerate. Le <b>immagini</b> vanno caricate a parte (Cloudinary), come sempre.</li>
+  </ol>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
-document.getElementById('wordFile').addEventListener('change', function(e){
-  var file=e.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(event){
-    mammoth.convertToHtml({arrayBuffer:event.target.result},{
-      styleMap:["p[style-name='Heading 1'] => h2","p[style-name='Heading 2'] => h3","p[style-name='Heading 3'] => h4","p[style-name='Quote'] => blockquote","p[style-name='Intestazione'] => p","p[style-name='Piè di pagina'] => p"]
-    }).then(function(result){
-      var html=result.value;
-      var md=htmlToMarkdown(html);
-      document.getElementById('output').value=md;
-      document.getElementById('previewBody').innerHTML=html;
-      document.getElementById('status').textContent='Conversione completata!';
-    }).catch(function(err){
-      document.getElementById('status').textContent='Errore: '+err.message;
+(function () {
+  var zona = document.getElementById('zona');
+  var input = document.getElementById('file');
+  var risultato = document.getElementById('risultato');
+  var testo = document.getElementById('testo');
+  var stat = document.getElementById('stat');
+  var avviso = document.getElementById('avviso');
+  var copia = document.getElementById('copia');
+
+  zona.addEventListener('click', function () { input.click(); });
+  zona.addEventListener('dragover', function (e) { e.preventDefault(); zona.classList.add('trascina'); });
+  zona.addEventListener('dragleave', function () { zona.classList.remove('trascina'); });
+  zona.addEventListener('drop', function (e) {
+    e.preventDefault(); zona.classList.remove('trascina');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) converti(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', function () {
+    if (input.files && input.files[0]) converti(input.files[0]);
+  });
+
+  copia.addEventListener('click', function () {
+    testo.select();
+    navigator.clipboard.writeText(testo.value).then(function () {
+      copia.textContent = 'Copiato ✓';
+      setTimeout(function () { copia.textContent = 'Copia il testo'; }, 2000);
     });
-  };
-  reader.readAsArrayBuffer(file);
-});
+  });
 
-function htmlToMarkdown(html){
-  var div=document.createElement('div'); div.innerHTML=html;
-  var out='';
-  function walk(node){
-    if(node.nodeType===3){
-      var t=node.textContent;
-      t=t.replace(/\u00A0/g,' ');
-      out+=t;
-      return;
-    }
-    if(node.nodeType!==1) return;
-    var tag=node.tagName.toLowerCase();
-    if(tag==='script'||tag==='style') return;
-    if(tag==='p'){
-      var style=node.getAttribute('style')||'';
-      var m=style.match(/text-indent:\s*([0-9.]+)pt/);
-      if(m && parseFloat(m[1])>0){
-        out+='\n\n> ';
-        for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]);
-        out+='\n\n';
-        return;
-      }
-      out+='\n\n';
-      for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]);
-      out+='\n\n';
-      return;
-    }
-    if(tag==='blockquote'){
-      out+='\n\n> ';
-      for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]);
-      out+='\n\n';
-      return;
-    }
-    if(tag==='h1'||tag==='h2'){out+='\n\n## '; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='\n\n'; return;}
-    if(tag==='h3'){out+='\n\n### '; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='\n\n'; return;}
-    if(tag==='h4'){out+='\n\n#### '; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='\n\n'; return;}
-    if(tag==='strong'||tag==='b'){out+='**'; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='**'; return;}
-    if(tag==='em'||tag==='i'){out+='*'; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='*'; return;}
-    if(tag==='s'||tag==='strike'||tag==='del'){out+='~~'; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+='~~'; return;}
-    if(tag==='br'){out+='\n'; return;}
-    if(tag==='a'){out+='['; for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]); out+=']('+node.getAttribute('href')+')'; return;}
-    if(tag==='img'){out+='!['+(node.getAttribute('alt')||'')+']('+node.getAttribute('src')+')'; return;}
-    if(tag==='ul'){for(var i=0;i<node.childNodes.length;i++){var li=node.childNodes[i]; if(li.nodeType===1&&li.tagName.toLowerCase()==='li'){out+='\n- '; for(var j=0;j<li.childNodes.length;j++) walk(li.childNodes[j]);}} out+='\n\n'; return;}
-    if(tag==='ol'){var n=1; for(var i=0;i<node.childNodes.length;i++){var li=node.childNodes[i]; if(li.nodeType===1&&li.tagName.toLowerCase()==='li'){out+='\n'+n+'. '; n++; for(var j=0;j<li.childNodes.length;j++) walk(li.childNodes[j]);}} out+='\n\n'; return;}
-    for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i]);
+  function segnala(msg) {
+    avviso.style.display = 'block';
+    avviso.innerHTML = msg;
   }
-  walk(div);
-  return out.replace(/\n{3,}/g,'\n\n').trim();
-}
 
-document.getElementById('btnCopy').addEventListener('click',function(){
-  var t=document.getElementById('output'); t.select(); document.execCommand('copy');
-  var s=document.getElementById('status'); s.textContent='Markdown copiato!'; setTimeout(function(){s.textContent='';},2000);
-});
+  function converti(file) {
+    if (!/\.docx$/i.test(file.name)) {
+      segnala('Il file deve essere in formato <b>.docx</b> (Word).');
+      return;
+    }
+    avviso.style.display = 'none';
+    var reader = new FileReader();
+    reader.onload = function () {
+      mammoth.convertToHtml(
+        { arrayBuffer: reader.result },
+        {
+          // Le immagini non possono essere caricate dal browser sul sito:
+          // diventano un segnaposto da sostituire con l'URL di Cloudinary.
+          convertImage: mammoth.images.imgElement(function () {
+            return { src: 'URL-IMMAGINE-CLOUDINARY' };
+          })
+        }
+      ).then(function (res) {
+        var esito = htmlVersoMarkdown(res.value);
+        testo.value = esito.markdown;
+        risultato.style.display = 'block';
+        stat.textContent = esito.note + ' note · ' + esito.immagini + ' immagini · ' +
+          esito.markdown.length + ' caratteri';
+        var messaggi = [];
+        if (esito.immagini > 0) {
+          messaggi.push('Il documento contiene <b>' + esito.immagini + ' immagini</b>: nel testo trovi il segnaposto <code>URL-IMMAGINE-CLOUDINARY</code> da sostituire dopo averle caricate su Cloudinary.');
+        }
+        if (res.messages && res.messages.length) {
+          var ignorate = res.messages.filter(function (m) { return m.type === 'warning'; });
+          if (ignorate.length) messaggi.push('Alcuni elementi non convertibili sono stati semplificati (' + ignorate.length + ' avvisi).');
+        }
+        if (messaggi.length) segnala(messaggi.join('<br>'));
+        risultato.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }).catch(function (err) {
+        segnala('Non sono riuscito a leggere il file: ' + err.message);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------------- HTML -> markdown del blog ----------------
+  function htmlVersoMarkdown(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // 1) Raccoglie le definizioni delle note di Word
+    //    (mammoth: <li id="footnote-1">...testo... <a href="#footnote-ref-1">↑</a></li>)
+    var note = {};
+    var contenitoreNote = null;
+    doc.querySelectorAll('li[id^="footnote-"]').forEach(function (li) {
+      var n = li.id.replace('footnote-', '');
+      var cl = li.cloneNode(true);
+      cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function (a) { a.remove(); });
+      note[n] = inline(cl).trim();
+      if (!contenitoreNote) contenitoreNote = li.closest('ol, ul, div');
+    });
+    if (contenitoreNote && contenitoreNote.parentNode) contenitoreNote.parentNode.removeChild(contenitoreNote);
+    doc.querySelectorAll('hr').forEach(function (hr) { hr.remove(); });
+
+    var nImmagini = 0;
+
+    // 2) Conversione ricorsiva del contenuto in linea
+    function inline(nodo) {
+      var out = '';
+      nodo.childNodes.forEach(function (el) {
+        if (el.nodeType === 3) { out += escapaTesto(el.textContent); return; }
+        if (el.nodeType !== 1) return;
+        var tag = el.tagName.toLowerCase();
+        if (tag === 'sup') {
+          var rif = el.querySelector('a[href^="#footnote-"]');
+          if (rif) {
+            var n = rif.getAttribute('href').replace('#footnote-', '');
+            out += '[nota]' + (note[n] || '') + '[/nota]';
+            return;
+          }
+        }
+        if (tag === 'a') {
+          var href = el.getAttribute('href') || '';
+          if (href.indexOf('#footnote-') === 0) {
+            var n2 = href.replace('#footnote-', '');
+            out += '[nota]' + (note[n2] || '') + '[/nota]';
+          } else if (href.indexOf('#footnote-ref-') !== 0) {
+            out += '[' + inline(el) + '](' + href + ')';
+          }
+          return;
+        }
+        if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
+        // Usiamo * per i corsivi: così gli underscore presenti nel testo
+        // (es. nei titoli dei libri) non interferiscono con il markdown.
+        if (tag === 'em' || tag === 'i') { out += '*' + inline(el) + '*'; return; }
+        if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
+        if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
+        if (tag === 'br') { out += '\n'; return; }
+        if (tag === 'img') {
+          nImmagini++;
+          var alt = (el.getAttribute('alt') || '').trim();
+          out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+          return;
+        }
+        out += inline(el);
+      });
+      return out;
+    }
+
+    // 3) Conversione dei blocchi
+    function blocco(el) {
+      var tag = el.tagName.toLowerCase();
+      var contenuto = inline(el).replace(/[ \t]+\n/g, '\n').trim();
+      if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
+      if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
+      if (tag === 'blockquote') {
+        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+      }
+      // Citazioni formattate in Word solo con rientro (non come "Citazione"):
+      // mammoth le converte in <p> con margin-left / text-indent.
+      if (tag === 'p' && haRientro(el) && contenuto) {
+        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+      }
+      if (tag === 'ul') {
+        return Array.prototype.map.call(el.children, function (li) {
+          return '- ' + inline(li).trim();
+        }).join('\n');
+      }
+      if (tag === 'ol') {
+        return Array.prototype.map.call(el.children, function (li, i) {
+          return (i + 1) + '. ' + inline(li).trim();
+        }).join('\n');
+      }
+      return contenuto;
+    }
+
+    // Rileva se un paragrafo ha un rientro significativo (probabile citazione)
+    function haRientro(el) {
+      var stile = (el.getAttribute('style') || '').toLowerCase();
+      var m = stile.match(/margin-left\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+      if (m) {
+        var val = parseFloat(m[1]);
+        var unit = m[2];
+        // Soglia: più di ~1.5em o equivalente
+        if (unit === 'pt' && val > 18) return true;
+        if (unit === 'px' && val > 24) return true;
+        if (unit === 'em' || unit === 'rem') return val > 1.5;
+        if (unit === 'cm' && val > 0.6) return true;
+        if (unit === 'mm' && val > 6) return true;
+        if (unit === 'in' && val > 0.25) return true;
+      }
+      // text-indent positivo grande
+      var ti = stile.match(/text-indent\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
+      if (ti) {
+        var v = parseFloat(ti[1]);
+        var u = ti[2];
+        if (u === 'pt' && v > 18) return true;
+        if (u === 'px' && v > 24) return true;
+        if (u === 'em' || u === 'rem') return v > 1.5;
+        if (u === 'cm' && v > 0.6) return true;
+        if (u === 'mm' && v > 6) return true;
+        if (u === 'in' && v > 0.25) return true;
+      }
+      return false;
+    }
+
+    var blocchi = [];
+    doc.body.childNodes.forEach(function (el) {
+      if (el.nodeType !== 1) return;
+      var b = blocco(el);
+      if (b) blocchi.push(b);
+    });
+
+    var markdown = blocchi.join('\n\n');
+    // Se in Word due corsivi si toccano ("fine_ _inizio"), lo spazio tra
+    // essi verrebbe letto come un corsivo a sé e romperebbe i corsivi
+    // seguenti: lo riduciamo a un normale spazio.
+    markdown = markdown.replace(/_\s+_/g, ' ');
+
+    return {
+      markdown: markdown,
+      note: Object.keys(note).length,
+      immagini: nImmagini
+    };
+  }
+})();
 </script>
 </body>
 </html>
