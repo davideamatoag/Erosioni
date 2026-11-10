@@ -147,6 +147,7 @@
   .preview-body h2 { font-family: Playfair Display, Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 1.6em 0 0.6em; color: #2B2723; }
   .preview-body h3 { font-family: Playfair Display, Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 1.4em 0 0.5em; color: #2B2723; }
   .preview-body blockquote { margin: 1.2em 0 1.2em 24px; padding-left: 20px; border-left: 3px solid #A65A43; color: #5A5249; font-style: italic; }
+  .preview-body .citazione-lunga { margin: 1.4em 36px; padding: 0 20px; font-size: 1.02rem; line-height: 1.85; color: #5A5249; border-left: 2px solid rgba(168,159,148,0.4); border-right: 2px solid rgba(168,159,148,0.4); }
   .preview-body ul, .preview-body ol { margin: 1em 0; padding-left: 28px; }
   .preview-body li { margin-bottom: 0.4em; }
   .preview-body img { max-width: 100%; border-radius: 6px; margin: 1em 0; }
@@ -271,6 +272,7 @@
           <span class="toolbar-sep"></span>
           <button type="button" data-action="quote" title="Citazione">❝ Citaz.</button>
           <button type="button" data-action="empty" title="Riga vuota extra">⬜ Riga</button>
+          <button type="button" data-action="citazione" title="Citazione lunga (rientro dx/sx)">❝ Citaz. lunga</button>
           <button type="button" data-action="image" title="Immagine inline">🖼️ Img</button>
           <span class="toolbar-sep"></span>
           <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">📄 Word</button>
@@ -438,6 +440,8 @@ function renderMarkdown(md) {
     if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g,'<br>')}</p>`;
     const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
     if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g,'<br>')}</p>`;
+    const citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
+    if (citazione) return `<p class="citazione-lunga">${renderInline(citazione[1]).replace(/\n/g,'<br>')}</p>`;
     if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
     if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
     if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
@@ -524,6 +528,12 @@ function insertInterlinea() {
 function insertEmptyLine() {
   insertAtCursor('\n\n[riga-vuota]\n\n');
 }
+function insertCitazione() {
+  const ta = document.getElementById('inpBody');
+  const s = savedSel.start, e = savedSel.end;
+  const sel = ta.value.slice(s, e) || 'Testo della citazione lunga...';
+  insertAtCursor(`[citazione]${sel}[/citazione]`);
+}
 function insertImage() {
   const url = prompt('URL immagine (Cloudinary):');
   if (!url) return;
@@ -548,6 +558,7 @@ document.getElementById('toolbar').addEventListener('click', function(e) {
     case 'font': insertFont(); break;
     case 'interlinea': insertInterlinea(); break;
     case 'empty': insertEmptyLine(); break;
+    case 'citazione': insertCitazione(); break;
     case 'image': insertImage(); break;
   }
 });

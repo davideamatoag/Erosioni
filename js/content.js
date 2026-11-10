@@ -33,7 +33,7 @@ function capitalize(str) {
 // Aggiorna i meta tag social (Open Graph/Twitter) della pagina: così quando
 // un articolo o una voce di portfolio viene condiviso, l'anteprima mostra
 // titolo, descrizione e immagine giusti invece di quelli generici del sito.
-function setSocialMeta(title, description, image) {
+function setSocialMeta(title, description, image, url) {
   const set = (selector, attr, value) => {
     let el = document.head.querySelector(selector);
     if (!el) {
@@ -47,7 +47,12 @@ function setSocialMeta(title, description, image) {
   set('meta[property="og:title"]', 'content', title);
   set('meta[name="twitter:card"]', 'content', 'summary_large_image');
   if (description) set('meta[property="og:description"]', 'content', description);
-  if (image) set('meta[property="og:image"]', 'content', optimizeImage(image, 1200));
+  if (image) {
+    // Assicura URL assoluto per WhatsApp/Facebook
+    const imgUrl = image.startsWith('http') ? image : 'https://davideamatoag.github.io/Erosioni/' + image.replace(/^\//, '');
+    set('meta[property="og:image"]', 'content', imgUrl);
+  }
+  if (url) set('meta[property="og:url"]', 'content', url);
 }
 
 // Indirizzo breve e stabile di una voce di portfolio, derivato dal titolo
@@ -381,6 +386,8 @@ function renderMarkdown(md) {
     if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g, '<br>')}</p>`;
     const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
     if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g, '<br>')}</p>`;
+    const citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
+    if (citazione) return `<p class="citazione-lunga">${renderInline(citazione[1]).replace(/\n/g, '<br>')}</p>`;
     if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
     if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
     if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
@@ -492,10 +499,12 @@ async function renderArticlePage() {
   }
 
   document.title = `${article.title} — Erosioni`;
+  const articleUrl = 'https://davideamatoag.github.io/Erosioni/articolo.html?slug=' + encodeURIComponent(article.slug);
   setSocialMeta(
     `${article.title} — Erosioni`,
     computeExcerpt(article.body, 160),
-    hasImage(article.image) ? article.image : null
+    hasImage(article.image) ? article.image : null,
+    articleUrl
   );
   document.getElementById('articleTitle').textContent = article.title;
   // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
@@ -575,11 +584,20 @@ async function renderArticlePage() {
     aggiornaProgress();
   }
 
-  // Autore (solo nome, dalla pagina dedicata)
+  // Autore (nome, bio e foto dalle impostazioni)
   const nameEl = document.getElementById('authorName');
   const bioEl = document.getElementById('authorBio');
+  const imgEl = document.getElementById('authorImage');
   if (nameEl && settings.author_name) nameEl.textContent = settings.author_name;
-  if (bioEl) bioEl.textContent = '';
+  if (bioEl && settings.author_bio) bioEl.textContent = settings.author_bio;
+  else if (bioEl) bioEl.textContent = '';
+  if (imgEl && settings.author_image) {
+    imgEl.src = settings.author_image;
+    imgEl.alt = settings.author_name || 'Autore';
+    imgEl.style.display = 'block';
+  } else if (imgEl) {
+    imgEl.style.display = 'none';
+  }
 
   // Condivisione
   const pageUrl = window.location.href;
@@ -942,10 +960,12 @@ async function renderVocePage() {
   }
 
   document.title = `${item.title} — Portfolio — Erosioni`;
+  const portfolioUrl = 'https://davideamatoag.github.io/Erosioni/voce.html?slug=' + encodeURIComponent(item.slug);
   setSocialMeta(
     `${item.title} — Portfolio — Erosioni`,
     (item.description || '').trim() || `Portfolio di Davide Amato — ${capitalize(item.category)}.`,
-    hasImage(item.image) ? item.image : null
+    hasImage(item.image) ? item.image : null,
+    portfolioUrl
   );
 
   const media = getPortfolioMedia(item);
@@ -1098,6 +1118,18 @@ async function openArticleModal(slug, historyMode = 'push') {
 
   const panel = modal.querySelector('.article-modal-panel');
 
+  // Sfondo dinamico della tendina: foto di copertina con forte sfocatura
+  const backdrop = modal.querySelector('.article-modal-backdrop');
+  if (backdrop) {
+    if (hasImage(article.image)) {
+      backdrop.style.setProperty('--modal-bg-image', `url('${optimizeImage(article.image, 800)}')`);
+      backdrop.classList.add('has-image');
+    } else {
+      backdrop.style.removeProperty('--modal-bg-image');
+      backdrop.classList.remove('has-image');
+    }
+  }
+
   // Meta in una riga sola: DATA · CATEGORIA · TEMPO DI LETTURA
   document.getElementById('modalArticleMeta').textContent =
     `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body)} min di lettura`;
@@ -1211,6 +1243,13 @@ function closeArticleModal(fromHistory) {
   if (!modal || !modal.classList.contains('is-open')) return;
   modal.classList.remove('is-open');
   document.body.classList.remove('modal-open');
+
+  // Pulisce lo sfondo dinamico
+  const backdrop = modal.querySelector('.article-modal-backdrop');
+  if (backdrop) {
+    backdrop.style.removeProperty('--modal-bg-image');
+    backdrop.classList.remove('has-image');
+  }
 
   if (fromHistory) {
     articleModalPushed = false;
