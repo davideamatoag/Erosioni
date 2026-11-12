@@ -90,7 +90,7 @@ let articlesCache = null;
 
 async function fetchArticles() {
   if (articlesCache) return articlesCache;
-  const res = await fetch('content/articoli.json', { cache: 'no-store' });
+  const res = await fetch('content/articoli.json');
   const data = await res.json();
   articlesCache = (data.articles || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
   return articlesCache;
@@ -100,7 +100,7 @@ let settingsCache = null;
 async function fetchSettings() {
   if (settingsCache) return settingsCache;
   try {
-    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
+    const res = await fetch('content/impostazioni.json');
     settingsCache = await res.json();
   } catch (e) {
     settingsCache = {};
@@ -108,16 +108,19 @@ async function fetchSettings() {
   return settingsCache;
 }
 
+let portfolioCache = null;
 async function fetchPortfolio() {
-  const res = await fetch('content/portfolio.json', { cache: 'no-store' });
+  if (portfolioCache) return portfolioCache;
+  const res = await fetch('content/portfolio.json');
   const data = await res.json();
-  return data.items || [];
+  portfolioCache = data.items || [];
+  return portfolioCache;
 }
 
 function articleCardHtml(a) {
   return `
     <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1100)}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 600)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -144,8 +147,7 @@ async function renderSiteImages() {
   if (!heroEl && !newsletterEl && !footerEl) return;
 
   try {
-    const res = await fetch('content/impostazioni.json', { cache: 'no-store' });
-    const data = await res.json();
+    const data = await fetchSettings();
 
     if (heroEl) {
       if (data.hero_image) {
@@ -209,7 +211,7 @@ async function renderHomeLayers() {
       <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
         <span class="layer-date">${formatDateIt(a.date)}</span>
         <div class="layer-media" data-parallax>
-          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 1200)}')"></div>
+          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 600)}')"></div>
         </div>
         <div class="layer-info">
           <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
@@ -237,7 +239,7 @@ async function renderArticoliPage() {
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.setAttribute('data-article-slug', latest.slug);
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1800)}')"></div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 800)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
@@ -290,7 +292,7 @@ function renderInline(text) {
     .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
     .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
-      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" data-full="${url.trim().replace(/"/g, '&quot;')}" alt="${alt}">`)
+      `<img class="article-inline-img" src="${optimizeImage(url.trim(), 1000)}" data-full="${url.trim().replace(/"/g, '&quot;')}" alt="${alt}" loading="lazy" decoding="async">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
@@ -368,7 +370,7 @@ function renderMarkdown(md) {
       // Il testo tra parentesi quadre diventa la DIDASCALIA sotto la foto.
       const alt = soloImmagine[1].trim();
       const url = soloImmagine[2].trim();
-      const img = `<img class="article-inline-img" src="${optimizeImage(url, 1000)}" data-full="${url.replace(/"/g, '&quot;')}" alt="${alt.replace(/"/g, '&quot;')}">`;
+      const img = `<img class="article-inline-img" src="${optimizeImage(url, 1000)}" data-full="${url.replace(/"/g, '&quot;')}" alt="${alt.replace(/"/g, '&quot;')}" loading="lazy" decoding="async">`;
       return alt
         ? `<figure class="article-figure">${img}<figcaption>${renderInline(alt)}</figcaption></figure>`
         : img;
@@ -732,7 +734,7 @@ function showPfLightboxItem(index) {
   if (m.tipo === 'video') {
     stage.innerHTML = `<video src="${m.file}" controls autoplay playsinline></video>`;
   } else {
-    stage.innerHTML = `<img src="${optimizeImage(m.file, 2200)}" alt="${m.titolo.replace(/"/g, '&quot;') || 'Foto del portfolio'}">`;
+    stage.innerHTML = `<img src="${optimizeImage(m.file, 2200)}" alt="${m.titolo.replace(/"/g, '&quot;') || 'Foto del portfolio'}" loading="lazy" decoding="async">`;
   }
   const caption = document.getElementById('pfLightboxCaption');
   caption.textContent = m.titolo || '';
@@ -815,10 +817,10 @@ function openPortfolioGallery(item, media) {
       <button type="button" class="pf-thumb" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
         ${m.tipo === 'video'
           ? (videoPoster(m.file)
-              ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
+              ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy" decoding="async">`
               : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
             + '<span class="pf-thumb-play" aria-hidden="true"></span>'
-          : `<img src="${optimizeImage(m.file, 800)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
+          : `<img src="${optimizeImage(m.file, 800)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy" decoding="async">`}
         ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
       </button>`).join('')}
     </div>`;
@@ -851,7 +853,7 @@ function openPortfolioModal(item) {
   mediaEl.innerHTML = embedUrl
     ? `<iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
     : hasImage(item.image)
-      ? `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">`
+      ? `<img src="${optimizeImage(item.image, 2000)}" alt="${item.title}" loading="lazy" decoding="async">`
       : `<div class="masonry-media--empty" style="width:100%;height:100%;"></div>`;
 
   document.getElementById('portfolioModalTag').textContent =
@@ -919,7 +921,7 @@ async function renderPortfolioPage() {
       <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
       <span class="work-media">
         ${hasImage(item.image)
-          ? `<img src="${optimizeImage(item.image, isLead ? 2000 : 1200)}" alt="${item.title}" loading="lazy">`
+          ? `<img src="${optimizeImage(item.image, isLead ? 1000 : 600)}" alt="${item.title}" loading="lazy" decoding="async">`
           : `<span class="work-media work-media--empty"><span>Immagine in arrivo</span></span>`}
         ${isVideo && !galleria.length ? '<span class="work-play" aria-hidden="true"></span>' : ''}
       </span>
@@ -1010,10 +1012,10 @@ async function renderVocePage() {
         <button type="button" class="pf-thumb voce-thumb${i === 0 ? ' voce-thumb--lead' : ''}" data-i="${i}" aria-label="${m.tipo === 'video' ? 'Riproduci il video' : 'Apri la foto a grandezza naturale'}${m.titolo ? `: ${m.titolo}` : ''}">
           ${m.tipo === 'video'
             ? (videoPoster(m.file)
-                ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy">`
+                ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy" decoding="async">`
                 : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
               + '<span class="pf-thumb-play" aria-hidden="true"></span>'
-            : `<img src="${optimizeImage(m.file, 1400)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy">`}
+            : `<img src="${optimizeImage(m.file, 1400)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy" decoding="async">`}
           ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
         </button>`).join('')}
       </div>`;
@@ -1024,7 +1026,7 @@ async function renderVocePage() {
     // Voce senza galleria: mostra almeno la copertina in grande
     gallery.innerHTML = `
       <div class="voce-cover">
-        <img src="${optimizeImage(item.image, 2000)}" alt="${item.title}">
+        <img src="${optimizeImage(item.image, 2000)}" alt="${item.title}" loading="lazy" decoding="async">
       </div>`;
   }
 
@@ -1357,7 +1359,7 @@ async function renderHomeViaggi() {
     const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
     return `
       <a class="home-travel-card" href="${href}">
-        <div class="home-travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></div>
+        <div class="home-travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 600) : ''}');"></div>
         <div class="home-travel-body">
           ${year ? `<span class="home-travel-year">${year}</span>` : ''}
           <h3>${item.title}</h3>
@@ -1399,7 +1401,7 @@ async function renderHomePortfolio() {
     const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
     return `
       <div class="home-work-row${idx % 2 ? ' home-work-row--reverse' : ''}">
-        <a class="home-work-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1600) : ''}');" aria-label="Apri: ${item.title}"></a>
+        <a class="home-work-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 800) : ''}');" aria-label="Apri: ${item.title}"></a>
         <div class="home-work-copy">
           <p class="home-work-meta">${capitalize(item.category)} &middot; ${tag}</p>
           <h3>${item.title}</h3>
@@ -1439,16 +1441,24 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
+let scattiCache = null;
+async function fetchScatti() {
+  if (scattiCache) return scattiCache;
+  try {
+    const res = await fetch('content/scatti.json');
+    const data = await res.json();
+    scattiCache = (data.shots || []).filter((shot) => hasImage(shot.image));
+  } catch (e) {
+    scattiCache = [];
+  }
+  return scattiCache;
+}
+
 async function renderScattiGrid() {
   const grid = document.getElementById('scattiGrid');
   if (!grid) return;
 
-  let shots = [];
-  try {
-    const res = await fetch('content/scatti.json', { cache: 'no-store' });
-    const data = await res.json();
-    shots = (data.shots || []).filter((shot) => hasImage(shot.image));
-  } catch (e) { /* niente scatti caricati: restano le cornici vuote */ }
+  const shots = await fetchScatti();
 
   if (!shots.length) {
     grid.innerHTML = Array.from({ length: 6 }, () =>
@@ -1462,7 +1472,7 @@ async function renderScattiGrid() {
     const title = (shot.title || '').trim();
     return `
     <button type="button" class="shot" data-full="${optimizeImage(shot.image, 2200)}" data-title="${title.replace(/"/g, '&quot;')}" aria-label="Apri lo scatto a grandezza originale${title ? `: ${title}` : ''}">
-      <img class="shot-img" src="${optimizeImage(shot.image, 800)}" alt="${title || 'Scatto fotografico'}" loading="lazy">
+      <img class="shot-img" src="${optimizeImage(shot.image, 800)}" alt="${title || 'Scatto fotografico'}" loading="lazy" decoding="async">
       ${title ? `<span class="shot-overlay"><span class="shot-title">${title}</span></span>` : ''}
     </button>`;
   }).join('');
