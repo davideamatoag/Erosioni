@@ -1,8 +1,16 @@
 {
   "hero_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786198205/75720024_yny7tm.jpg",
   "newsletter_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786217283/_DSC8226-Modifica_jumym6.jpg",
-  "footer_image": "https://res.cloudinary.com/plscorbg/image/upload/v1786196963/_DSC8540-Modifica_sovt7e.jpg",
+  "footer_image": "https://res.cloudinary.com/plscorbg/image/upload/v1788018603/Foto_Ungheria-8_igzytf.jpg",
   "author_name": "Davide Amato",
-  "author_bio": "",
+  "author_bio": "\"Prima di tutto, dì a te stesso chi vuoi essere; poi fai ciò che devi fare.\" (Diatribe, III, 23)",
+  "accent_color": "predefinito",
+  "default_font": "predefinito",
+  "default_colore": "predefinito",
+  "contact_email": "",
+  "social_instagram": "",
+  "social_youtube": "",
+  "social_linkedin": "",
+  "footer_quote": "",
   "author_image": ""
 }
