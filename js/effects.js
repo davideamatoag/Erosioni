@@ -38,7 +38,7 @@
   }
 
   // Esposta su window: content.js la richiama di nuovo dopo aver
-  // iniettato schede/voci dinamiche, così vengono osservate anche loro.
+  // iniettato schede/voci dinamiche, cosi vengono osservate anche loro.
   window.initScrollReveal = function initScrollReveal() {
     const items = document.querySelectorAll(REVEAL_SELECTOR);
 
@@ -62,8 +62,8 @@
   };
 
   // ---------------- Parallasse lenta sulle immagini ----------------
-  // Le immagini con [data-parallax] si muovono più lentamente dello
-  // scroll, come se il contenuto "scivolasse" via più in fretta della
+  // Le immagini con [data-parallax] si muovono piu lentamente dello
+  // scroll, come se il contenuto "scivolasse" via piu in fretta della
   // roccia sottostante.
   let parallaxEls = [];
   let parallaxTicking = false;
@@ -97,7 +97,7 @@
       const span = document.createElement('span');
       span.className = 'hero-letter';
       span.style.setProperty('--i', i);
-      span.textContent = ch === ' ' ? ' ' : ch;
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
       span.setAttribute('aria-hidden', 'true');
       title.appendChild(span);
     });
@@ -129,7 +129,8 @@
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      const count = Math.min(160, Math.floor((W * H) / 11000));
+      // Ridotto il numero massimo di particelle per migliorare le performance
+      const count = Math.min(60, Math.floor((W * H) / 18000));
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,
@@ -195,8 +196,8 @@
     return { start, stop };
   }
 
-  // Hero: ferma il disegno quando la hero è coperta dal contenuto
-  // (sipario) — inutile animare ciò che non si vede.
+  // Hero: ferma il disegno quando la hero e coperta dal contenuto
+  // (sipario) — inutile animare cio che non si vede.
   function initHeroParticles() {
     const canvas = document.getElementById('heroCanvas');
     const hero = document.querySelector('.hero');
@@ -214,7 +215,7 @@
   }
 
   // Footer ("fondo roccioso"): la stessa polvere della cima.
-  // Si anima solo mentre il footer è visibile sullo schermo.
+  // Si anima solo mentre il footer e visibile sullo schermo.
   function initFooterParticles() {
     const canvas = document.getElementById('footerCanvas');
     const footer = document.querySelector('.site-footer');
@@ -248,7 +249,7 @@
     }
 
     // Sfocatura progressiva della hero mentre il sipario la copre
-    // (più il contenuto sale, più lo strato superficiale si dissolve)
+    // (piu il contenuto sale, piu lo strato superficiale si dissolve)
     const hero = document.querySelector('.hero');
     const curtain = document.getElementById('curtainContent');
     const MAX_BLUR_PX = 12;
