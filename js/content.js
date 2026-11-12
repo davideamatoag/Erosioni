@@ -222,6 +222,7 @@ async function renderHomeLayers() {
 
   window.initScrollReveal && window.initScrollReveal();
   window.initParallax && window.initParallax();
+  forceReveal(document.body);
 }
 
 // ---------------- PAGINA ARTICOLI: in evidenza + successivi + archivio ----------------
@@ -249,6 +250,7 @@ async function renderArticoliPage() {
     window.initArchiveFilters && window.initArchiveFilters();
   }
   window.initScrollReveal && window.initScrollReveal();
+  forceReveal(document.body);
 }
 
 // ---------------- PAGINA SINGOLO ARTICOLO ----------------
@@ -938,6 +940,7 @@ async function renderPortfolioPage() {
   });
 
   window.initScrollReveal && window.initScrollReveal();
+  forceReveal(document.getElementById('portfolioWorks'));
 }
 
 // ---------------- PAGINA VOCE PORTFOLIO (voce.html) ----------------
@@ -1027,6 +1030,7 @@ async function renderVocePage() {
 
   window.initScrollReveal && window.initScrollReveal();
   document.querySelectorAll('.article-reveal').forEach(el => el.classList.add('is-loaded'));
+  forceReveal(document.body);
 }
 
 // ==========================================================
@@ -1320,6 +1324,15 @@ document.addEventListener('DOMContentLoaded', () => {
   openArticleFromUrl();
 });
 
+/* Forza la visibilita di elementi appena renderizzati (evita che restino
+   invisibili per colpa di IntersectionObserver su elementi gia nel viewport) */
+function forceReveal(container) {
+  if (!container) return;
+  container.querySelectorAll('.reveal-init').forEach((el) => {
+    el.classList.add('is-visible');
+  });
+}
+
 // ---------------- HOMEPAGE: "Diari di viaggio" (Sezione 3) ----------------
 // Card a due colonne: immagine sopra, sotto sfondo scuro con anno, titolo,
 // descrizione e link. Solo voci con categoria "viaggi".
@@ -1460,6 +1473,7 @@ async function renderScattiGrid() {
   initShotModal();
 
   window.initScrollReveal && window.initScrollReveal();
+  forceReveal(document.getElementById('scattiGrid'));
 }
 
 // ---------------- TENDINA per vedere uno scatto a grandezza originale ----------------
