@@ -768,7 +768,7 @@
   .section--large { padding: 96px 0 80px; }
   .section-title { margin-bottom: 40px; }
 
-  .page-header { padding: 128px 0 56px; }
+  .page-header { padding: 80px 0 40px; }
   .article-top { padding: 116px 0 0; }
 
   .contact-inner { flex-direction: column; align-items: flex-start; }
@@ -814,16 +814,16 @@
   background-image: var(--modal-bg-image, none);
   background-size: cover;
   background-position: center;
-  filter: blur(60px) brightness(0.35) saturate(0.5);
+  filter: blur(60px) brightness(0.55) saturate(0.6);
   transform: scale(1.15);
 }
-/* Overlay scuro + grain per mascherare bassa risoluzione */
+/* Overlay più leggero + grain per mascherare bassa risoluzione */
 .article-modal-backdrop.has-image::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at center, rgba(26,24,22,0.3) 0%, rgba(26,24,22,0.7) 100%),
+    radial-gradient(ellipse at center, rgba(26,24,22,0.15) 0%, rgba(26,24,22,0.45) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
   pointer-events: none;
 }
@@ -1480,4 +1480,201 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   border-radius: 4px;
   box-shadow: 0 0 0 6px rgba(166, 90, 67, 0.16);
   transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+/* ==========================================================
+   SEZIONI HOME — Diari di viaggio + Lavori selezionati
+   ========================================================== */
+
+/* Header row: titolo a sinistra, link a destra */
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 48px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.section-header-row .section-title { margin-bottom: 0; }
+
+/* ---------- Diari di viaggio — card grid ---------- */
+.home-travels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+}
+.home-travel-card {
+  display: block;
+  text-decoration: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1E1C1A;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.home-travel-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.home-travel-media {
+  aspect-ratio: 3 / 2;
+  background-size: cover;
+  background-position: center;
+  display: block;
+}
+.home-travel-body {
+  padding: 28px 32px 32px;
+}
+.home-travel-year {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oro);
+  margin-bottom: 10px;
+}
+.home-travel-body h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  margin: 0 0 10px;
+  color: var(--calce);
+}
+.home-travel-body p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--sabbia);
+  margin: 0 0 18px;
+}
+.home-travel-cta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--terracotta);
+  transition: color 0.25s ease;
+}
+.home-travel-card:hover .home-travel-cta { color: var(--oro); }
+
+/* ---------- Lavori selezionati — zig-zag ---------- */
+.home-works-list {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+.home-work-row {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+.home-work-row--reverse {
+  grid-template-columns: 1fr 1.15fr;
+  direction: rtl;
+}
+.home-work-row--reverse > * { direction: ltr; }
+
+.home-work-media {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: transform 0.4s ease;
+}
+.home-work-media:hover { transform: scale(1.02); }
+
+.home-work-copy {
+  padding: 8px 0;
+}
+.home-work-meta {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--terracotta);
+  margin: 0 0 14px;
+}
+.home-work-copy h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 2rem;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: var(--calce);
+}
+.home-work-desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--sabbia);
+  margin: 0 0 24px;
+}
+.home-work-cta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--terracotta);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+.home-work-cta:hover { color: var(--oro); }
+
+/* Responsive home sections */
+@media (max-width: 900px) {
+  .home-travels-grid { grid-template-columns: 1fr; }
+  .home-work-row,
+  .home-work-row--reverse {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    direction: ltr;
+  }
+  .home-work-row--reverse > * { direction: ltr; }
+  .home-work-media { aspect-ratio: 16 / 9; }
+}
+
+@media (max-width: 600px) {
+  .section-header-row { flex-direction: column; align-items: flex-start; }
+  .home-travel-body { padding: 20px 22px 24px; }
+  .home-travel-body h3 { font-size: 1.35rem; }
+  .home-work-copy h3 { font-size: 1.5rem; }
+}
+
+/* ==========================================================
+   LINEE VERTICALI A ZIGZAG AI BORDI DELLA PAGINA
+   ========================================================== */
+html::before,
+html::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='120' viewBox='0 0 14 120'%3E%3Cpolyline points='8,0 5,14 9,30 4,44 10,62 6,78 9,94 5,108 8,120' fill='none' stroke='%23A89F94' stroke-opacity='0.18' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 14px 120px;
+  opacity: 0.7;
+}
+html::before { left: 20px; }
+html::after  { right: 20px; }
+
+@media (max-width: 900px) {
+  html::before,
+  html::after {
+    width: 10px;
+    background-size: 10px 100px;
+    opacity: 0.5;
+  }
+  html::before { left: 10px; }
+  html::after  { right: 10px; }
+}
+
+@media (max-width: 600px) {
+  html::before,
+  html::after { display: none; }
 }
