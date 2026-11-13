@@ -1,0 +1,43 @@
+{
+  "nome": "Davide Amato",
+  "foto": "images/bio-photo.jpg",
+  "bio_paragrafi": [
+    "Sono Davide Amato, classe 1998. Ho una laurea triennale in Filosofia e una magistrale in Scienze Politiche. Sono appassionato di fotografia, cinema e letteratura. Ho lavorato come fotografo per eventi e ho una forte inclinazione per la scrittura.",
+    "Questo blog nasce dalla necessita di mettere insieme queste passioni in un unico spazio: la fotografia come strumento di osservazione, la filosofia come metodo di analisi, la politica come campo di applicazione.",
+    "Se vuoi collaborare o semplicemente scambiare idee, <a href=\"contatti.html\">scrivimi</a>."
+  ],
+  "formazione": [
+    {
+      "anno": "2023",
+      "titolo": "Laurea Magistrale in Scienze Politiche",
+      "dettaglio": "Universita degli Studi di Milano · 110L"
+    },
+    {
+      "anno": "2021",
+      "titolo": "Laurea Triennale in Filosofia",
+      "dettaglio": "Universita degli Studi di Milano · 110L"
+    },
+    {
+      "anno": "2017",
+      "titolo": "Diploma di Maturita Scientifica",
+      "dettaglio": "Liceo Scientifico Statale · 100/100"
+    }
+  ],
+  "esperienze": [
+    {
+      "anno": "2023",
+      "titolo": "Fotografo eventi",
+      "dettaglio": "Freelance · Matrimoni, concerti, eventi aziendali"
+    },
+    {
+      "anno": "2022",
+      "titolo": "Assistente ricerca",
+      "dettaglio": "Universita degli Studi di Milano · Progetto su teoria politica contemporanea"
+    },
+    {
+      "anno": "2021",
+      "titolo": "Redattore",
+      "dettaglio": "Rivista universitaria di filosofia · Articoli e recensioni"
+    }
+  ]
+}
