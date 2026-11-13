@@ -73,6 +73,38 @@ collections:
           - { label: "Link LinkedIn (facoltativo)", name: "social_linkedin", widget: "string", required: false }
           - { label: "Citazione nel footer (senza virgolette: le aggiunge il sito)", name: "footer_quote", widget: "string", required: false }
 
+  - name: "bio"
+    label: "Pagina Bio"
+    files:
+      - file: "content/bio.json"
+        label: "Dati biografici"
+        name: "bio"
+        fields:
+          - { label: "Nome", name: "nome", widget: "string" }
+          - { label: "Foto ritratto", name: "foto", widget: "image" }
+          - label: "Paragrafi della bio"
+            name: "bio_paragrafi"
+            widget: "list"
+            summary: "Paragrafo {{fields.paragrafo}}"
+            fields:
+              - { label: "Testo del paragrafo (HTML permesso per i link)", name: "paragrafo", widget: "text" }
+          - label: "Formazione"
+            name: "formazione"
+            widget: "list"
+            summary: "{{fields.anno}} — {{fields.titolo}}"
+            fields:
+              - { label: "Anno", name: "anno", widget: "string" }
+              - { label: "Titolo", name: "titolo", widget: "string" }
+              - { label: "Dettaglio", name: "dettaglio", widget: "string" }
+          - label: "Esperienze"
+            name: "esperienze"
+            widget: "list"
+            summary: "{{fields.anno}} — {{fields.titolo}}"
+            fields:
+              - { label: "Anno", name: "anno", widget: "string" }
+              - { label: "Titolo", name: "titolo", widget: "string" }
+              - { label: "Dettaglio", name: "dettaglio", widget: "string" }
+
   - name: "articoli"
     label: "Articoli"
     files:

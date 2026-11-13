@@ -732,6 +732,45 @@
   setInterval(provaAttracco, 800);
 })();
 </script>
+
+<!-- ============================================================
+     ORDINE LISTE: i nuovi articoli in alto, i vecchi in basso.
+     Sveltia CMS aggiunge gli elementi in fondo alla lista:
+     con CSS li rivoltiamo visivamente e portiamo il tasto "+"
+     in cima.
+     ============================================================ -->
+<style>
+  /* Tutti i widget-list del pannello: reverse per avere il
+     pulsante "+" in cima e gli elementi nuovi in alto */
+  .sveltia-cms [data-widget="list"],
+  .sveltia-cms .widget-list,
+  .sveltia-cms [class*="list-widget"],
+  [class*="sveltia"] [class*="list"] {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+  }
+</style>
+<script>
+(function () {
+  function fixLists() {
+    var sel = '.widget-list, [data-widget="list"], [class*="list-widget"]';
+    document.querySelectorAll(sel).forEach(function (el) {
+      if (el.dataset.erosioniFixed) return;
+      el.dataset.erosioniFixed = '1';
+      el.style.display = 'flex';
+      el.style.flexDirection = 'column-reverse';
+    });
+  }
+  var obs = new MutationObserver(fixLists);
+  if (document.body) {
+    obs.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener('DOMContentLoaded', function () {
+      obs.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+  setInterval(fixLists, 1200);
+})();
 </script>
 </body>
 </html>
