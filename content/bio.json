@@ -1,43 +1,64 @@
 {
   "nome": "Davide Amato",
-  "foto": "images/bio-photo.jpg",
+  "foto": "https://res.cloudinary.com/plscorbg/image/upload/v1794603733/12022025-_DSC2895_1_dxbxi4.jpg",
   "bio_paragrafi": [
-    "Sono Davide Amato, classe 1998. Ho una laurea triennale in Filosofia e una magistrale in Scienze Politiche. Sono appassionato di fotografia, cinema e letteratura. Ho lavorato come fotografo per eventi e ho una forte inclinazione per la scrittura.",
-    "Questo blog nasce dalla necessita di mettere insieme queste passioni in un unico spazio: la fotografia come strumento di osservazione, la filosofia come metodo di analisi, la politica come campo di applicazione.",
-    "Se vuoi collaborare o semplicemente scambiare idee, <a href=\"contatti.html\">scrivimi</a>."
+    {
+      "paragrafo": "Sono Davide Amato, classe 1999. Ho creato questo blog nel desiderio di possedere un diario digitale: qui collezionerò le mie esperienze, i miei viaggi, i miei lavori preferiti. Ma soprattutto scriverò articoli, recensioni, riflessioni sul presente e su argomenti politici / filosofici."
+    },
+    {
+      "paragrafo": "Politica e filosofia hanno dominato le mie riflessioni sin dai tempi del liceo. Quello che è nato come un approccio puramente pratico e istintivo alla politica (partecipando e organizzando le associazioni studentesche di cui ho fatto parte), si è progressivamente intrecciato alla riflessione filosofica e allo studio teorico, in particolare all'università (dove, per necessità più che per scelta, ho abbandonato l'attivismo nei partiti e nelle associazioni che trovavo ormai prive di sostanza). Ancora oggi queste due dimensioni sono intrecciate: i miei studi sull'ontologia Lukácsiana e il materialismo dialettico si accompagnano a un'attenzione costante verso il presente e le sue contraddizioni."
+    },
+    {
+      "paragrafo": "La fotografia è stata anch'essa una passione nata al liceo. All'inizio vissuta come secondaria, ininfluente e del tutto accidentale. Poi, dopo essere tornato ad Agrigento, mi ero convinto potesse diventare un lavoro combinato alla videografia. Ho quindi aperto una partita iva e lavorato con i professionisti locali per clienti di ogni tipo. Oggi, pur avendo deciso che la mia direzione è l'insegnamento nelle scuole, continuo a lavorare con la fotocamera. In questo sito condurrò, accanto alle riflessioni, un racconto fatto di immagini ed esperimenti visivi."
+    }
   ],
   "formazione": [
     {
-      "anno": "2023",
-      "titolo": "Laurea Magistrale in Scienze Politiche",
-      "dettaglio": "Universita degli Studi di Milano · 110L"
+      "anno": "2026",
+      "titolo": "Laurea Magistrale in Scienze Filosofiche",
+      "dettaglio": "Università degli Studi di Catania · 110L"
     },
     {
-      "anno": "2021",
+      "anno": "2022",
       "titolo": "Laurea Triennale in Filosofia",
-      "dettaglio": "Universita degli Studi di Milano · 110L"
+      "dettaglio": "Università degli Studi di Catania · 110L"
     },
     {
-      "anno": "2017",
+      "anno": "2018",
       "titolo": "Diploma di Maturita Scientifica",
-      "dettaglio": "Liceo Scientifico Statale · 100/100"
+      "dettaglio": "Liceo Scientifico Statale Leonardo · 84/100"
     }
   ],
   "esperienze": [
     {
-      "anno": "2023",
-      "titolo": "Fotografo eventi",
-      "dettaglio": "Freelance · Matrimoni, concerti, eventi aziendali"
+      "anno": "2026 - in corso",
+      "titolo": "Docente a contratto di Storia e Filosofia",
+      "dettaglio": "A.S. 2026-2027"
+    },
+    {
+      "anno": "2026",
+      "titolo": "Tirocinio presso Sciabica Assicurazioni",
+      "dettaglio": "Gestione Sinistri. Periodo Marzo-Settembre"
+    },
+    {
+      "anno": "2023 - in corso",
+      "titolo": "Fotografo e Videografo",
+      "dettaglio": "Libero professionista con partita iva · Matrimoni, concerti, eventi aziendali, Social Media"
     },
     {
       "anno": "2022",
-      "titolo": "Assistente ricerca",
-      "dettaglio": "Universita degli Studi di Milano · Progetto su teoria politica contemporanea"
+      "titolo": "Tirocinio presso Biblioteca Ursino-Recupero",
+      "dettaglio": "Università degli Studi di Catania"
     },
     {
       "anno": "2021",
-      "titolo": "Redattore",
-      "dettaglio": "Rivista universitaria di filosofia · Articoli e recensioni"
+      "titolo": "Segretario",
+      "dettaglio": "Asfu - Associazione Studenti di Filosofia"
+    },
+    {
+      "anno": "2018",
+      "titolo": "Presidente della Consulta studentesca di Agrigento",
+      "dettaglio": "A.S. 2017-2018"
     }
   ]
 }
