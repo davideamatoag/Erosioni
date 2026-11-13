@@ -172,9 +172,9 @@
   .preview-body.t-sabbia { color: #B4AB9F; }
   .preview-body.t-oro { color: #D4A574; }
   .preview-body.t-terracotta { color: #CD7A62; }
-  .preview-body.t-font-elegante { font-family: 'Playfair Display', Georgia, serif; }
-  .preview-body.t-font-classico { font-family: Georgia, 'Times New Roman', serif; }
-  .preview-body.t-font-macchina { font-family: 'Space Mono', 'Courier New', monospace; }
+  .preview-body.t-font-elegante { font-family: "Playfair Display", Georgia, serif; }
+  .preview-body.t-font-classico { font-family: Georgia, "Times New Roman", serif; }
+  .preview-body.t-font-macchina { font-family: "Space Mono", "Courier New", monospace; }
 
   @media (max-width: 980px) {
     .layout { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
@@ -265,17 +265,17 @@
           <button type="button" data-action="h2" title="Titolo">H2</button>
           <button type="button" data-action="h3" title="Sottotitolo">H3</button>
           <span class="toolbar-sep"></span>
-          <button type="button" data-action="note" title="Nota a piè di pagina">📝 Nota</button>
-          <button type="button" data-action="color" title="Colore testo">🎨 Colore</button>
-          <button type="button" data-action="font" title="Font">🔤 Font</button>
-          <button type="button" data-action="interlinea" title="Interlinea">📐 Interlinea</button>
+          <button type="button" data-action="note" title="Nota a pie di pagina">Nota</button>
+          <button type="button" data-action="color" title="Colore testo">Colore</button>
+          <button type="button" data-action="font" title="Font">Font</button>
+          <button type="button" data-action="interlinea" title="Interlinea">Interlinea</button>
           <span class="toolbar-sep"></span>
-          <button type="button" data-action="quote" title="Citazione">❝ Citaz.</button>
-          <button type="button" data-action="empty" title="Riga vuota extra">⬜ Riga</button>
-          <button type="button" data-action="citazione" title="Citazione lunga (rientro dx/sx)">❝ Citaz. lunga</button>
-          <button type="button" data-action="image" title="Immagine inline">🖼️ Img</button>
+          <button type="button" data-action="quote" title="Citazione">Citaz.</button>
+          <button type="button" data-action="empty" title="Riga vuota extra">Riga</button>
+          <button type="button" data-action="citazione" title="Citazione lunga (rientro dx/sx)">Citaz. lunga</button>
+          <button type="button" data-action="image" title="Immagine inline">Img</button>
           <span class="toolbar-sep"></span>
-          <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">📄 Word</button>
+          <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">Word</button>
           <input type="file" id="wordFile" accept=".docx" hidden>
           <small>Seleziona testo e premi un pulsante</small>
         </div>
@@ -308,7 +308,7 @@
         <div class="field">
           <label for="inpAuthorImage">Foto autore (URL, grandezza originale)</label>
           <input type="text" id="inpAuthorImage" placeholder="https://res.cloudinary.com/...">
-          <p style="font-size:0.75rem;color:#6B6157;margin:4px 0 0;">Inserisci l'URL della foto così come la vuoi pubblicare. Nessuna ottimizzazione automatica verrà applicata.</p>
+          <p style="font-size:0.75rem;color:#6B6157;margin:4px 0 0;">Inserisci l'URL della foto cosi come la vuoi pubblicare. Nessuna ottimizzazione automatica verra applicata.</p>
         </div>
         <div style="display:flex;gap:8px;">
           <button type="button" class="btn-secondary" onclick="loadSettings()">Carica impostazioni</button>
@@ -361,145 +361,168 @@
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
 // ==================== RENDERING (identico al sito) ====================
-const MONTHS_IT = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
-const CATEGORY_LABELS = { recensioni:'Recensioni', cinema:'Cinema', politica:'Politica', riflessioni:'Riflessioni' };
+const MONTHS_IT = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
+const CATEGORY_LABELS = { recensioni:"Recensioni", cinema:"Cinema", politica:"Politica", riflessioni:"Riflessioni" };
 
 function formatDateIt(isoDate) {
-  const d = new Date(isoDate + 'T00:00:00');
+  var d = new Date(isoDate + "T00:00:00");
   if (isNaN(d)) return isoDate;
-  return `${d.getDate()} ${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`;
+  return d.getDate() + " " + MONTHS_IT[d.getMonth()] + " " + d.getFullYear();
 }
 function categoryLabel(cat) { return CATEGORY_LABELS[cat] || cat; }
 
 function optimizeImage(url, width) {
-  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
-  const marker = '/upload/';
-  const i = url.indexOf(marker) + marker.length;
-  const already = /\/upload\/[a-z0-9_,]*\b(f_auto|q_auto)\b/.test(url);
+  if (!url || url.indexOf("res.cloudinary.com") === -1 || url.indexOf("/upload/") === -1) return url;
+  var marker = "/upload/";
+  var i = url.indexOf(marker) + marker.length;
+  var already = /\/upload\/[a-z0-9_,]*(f_auto|q_auto)/.test(url);
   if (already) return url;
-  const transform = `f_auto,q_auto:good,w_${width || 1600}/`;
+  var transform = "f_auto,q_auto:good,w_" + (width || 1600) + "/";
   return url.slice(0, i) + transform + url.slice(i);
 }
 
 function stileClassi(attrs, perBlocco) {
-  const COLORI = ['avorio','sabbia','oro','terracotta'];
-  const FONT = ['elegante','classico','macchina'];
-  const classi = [];
-  (attrs || '').split(',').forEach((parte) => {
-    const [chiave, valore] = parte.split(':');
-    if (chiave === 'c' && COLORI.includes(valore)) classi.push((perBlocco ? 'blocco-' : 't-') + valore);
-    if (chiave === 'f' && FONT.includes(valore)) classi.push((perBlocco ? 'blocco-font-' : 't-font-') + valore);
+  var COLORI = ["avorio","sabbia","oro","terracotta"];
+  var FONT = ["elegante","classico","macchina"];
+  var classi = [];
+  (attrs || "").split(",").forEach(function(parte) {
+    var kv = parte.split(":");
+    if (kv[0] === "c" && COLORI.indexOf(kv[1]) >= 0) classi.push((perBlocco ? "blocco-" : "t-") + kv[1]);
+    if (kv[0] === "f" && FONT.indexOf(kv[1]) >= 0) classi.push((perBlocco ? "blocco-font-" : "t-font-") + kv[1]);
   });
-  return classi.join(' ');
+  return classi.join(" ");
 }
 
 function renderInline(text) {
-  return text
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, '<u>$1</u>')
-    .replace(/\[s\]([\s\S]*?)\[\/s\]/g, '<s>$1</s>')
-    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+  // Fix per compatibilita: sostituisce underscore corsivi senza lookbehind (non supportato in Safari < 16.4)
+  var out = text
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/g, "<u>$1</u>")
+    .replace(/\[s\]([\s\S]*?)\[\/s\]/g, "<s>$1</s>")
+    .replace(/~~([^~]+)~~/g, "<s>$1</s>")
     .replace(/\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]/g, '<span style="line-height:$1">$2</span>')
-    .replace(/\[riga-vuota\]/g, '')
-    .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, (m, attrs, contenuto) => {
-      const classi = stileClassi(attrs, false);
-      return classi ? `<span class="${classi}">${contenuto}</span>` : contenuto;
+    .replace(/\[riga-vuota\]/g, "")
+    .replace(/\[stile=([^\]]+)\]([\s\S]*?)\[\/stile\]/g, function(m, attrs, contenuto) {
+      var classi = stileClassi(attrs, false);
+      return classi ? '<span class="' + classi + '">' + contenuto + "</span>" : contenuto;
     })
     .replace(/\[colore=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/colore\]/g, '<span class="t-$1">$2</span>')
     .replace(/\[font=(elegante|classico|macchina)\]([\s\S]*?)\[\/font\]/g, '<span class="t-font-$1">$2</span>')
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, url) =>
-      `<img src="${optimizeImage(url.trim(),1000)}" alt="${alt}">`)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(m, alt, url) {
+      return '<img src="' + optimizeImage(url.trim(), 1000) + '" alt="' + alt + '">';
+    })
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\\_/g, '_')
-    .replace(/(?<![A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g, '<em>$1</em>');
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\_/g, "_");
+  // Sostituzione underscore corsivo compatibile (senza lookbehind)
+  out = out.replace(/(^|[^A-Za-z0-9])_([^_]+)_([^A-Za-z0-9]|$)/g, function(m, before, content, after) {
+    return before + "<em>" + content + "</em>" + after;
+  });
+  return out;
 }
 
 function renderMarkdown(md) {
-  const note = [];
-  md = (md || '').replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, (m, testo) => {
+  var note = [];
+  md = (md || "").replace(/\[nota\]([\s\S]*?)\[\/nota\]/g, function(m, testo) {
     note.push(testo.trim());
-    return `{{NOTA_${note.length}}}`;
+    return "{{NOTA_" + note.length + "}}";
   });
-  const noteImportate = {};
-  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^\n]+)/g, (m, n, testo) => { noteImportate[n]=testo.trim(); return ''; });
-  md = md.replace(/(^|\n\s*\n)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^\n]+)/g, (m, sep, n, testo) => { noteImportate[n]=testo.trim(); return sep; });
-  md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, (m, n) => { note.push(noteImportate[n]||`Nota ${n}.`); return `{{NOTA_${note.length}}}`; });
-  md = md.replace(/\s+$/, '');
+  var noteImportate = {};
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^
+]+)/g, function(m, n, testo) { noteImportate[n] = testo.trim(); return ""; });
+  md = md.replace(/(^|
+\s*
+)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^
+]+)/g, function(m, sep, n, testo) { noteImportate[n] = testo.trim(); return sep; });
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, function(m, n) { note.push(noteImportate[n] || "Nota " + n + "."); return "{{NOTA_" + note.length + "}}"; });
+  md = md.replace(/\s+$/, "");
 
-  const pieces = md.split(/(\n\s*\n+)/);
-  const blocks = [];
-  pieces.forEach((piece, i) => {
+  var pieces = md.split(/(
+\s*
++)/);
+  var blocks = [];
+  pieces.forEach(function(piece, i) {
     if (i % 2 === 0) { if (piece.trim()) blocks.push(piece); }
     else {
-      const precedente = blocks.length ? blocks[blocks.length-1].trim() : '';
-      const successivo = (pieces[i+1]||'').trim();
+      var precedente = blocks.length ? blocks[blocks.length - 1].trim() : "";
+      var successivo = (pieces[i + 1] || "").trim();
       if (/^#{1,3}\s/.test(precedente) || /^#{1,3}\s/.test(successivo)) return;
-      const extra = piece.split('\n').length - 3;
-      for (let k=0;k<extra;k++) blocks.push('[riga-vuota]');
+      var extra = piece.split("
+").length - 3;
+      for (var k = 0; k < extra; k++) blocks.push("[riga-vuota]");
     }
   });
-  let html = blocks.map(block => {
-    if (block === '[riga-vuota]') return '<p class="riga-vuota" aria-hidden="true"></p>';
-    const trimmed = block.trim();
-    const soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+  var html = blocks.map(function(block) {
+    if (block === "[riga-vuota]") return '<p class="riga-vuota" aria-hidden="true"></p>';
+    var trimmed = block.trim();
+    var soloImmagine = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (soloImmagine) {
-      const alt = soloImmagine[1].trim();
-      const url = soloImmagine[2].trim();
-      const img = `<img src="${optimizeImage(url,1000)}" alt="${alt.replace(/"/g,'&quot;')}">`;
-      return alt ? `<figure>${img}<figcaption>${renderInline(alt)}</figcaption></figure>` : img;
+      var alt = soloImmagine[1].trim();
+      var url = soloImmagine[2].trim();
+      var img = '<img src="' + optimizeImage(url, 1000) + '" alt="' + alt.replace(/"/g, "&quot;") + '">';
+      return alt ? "<figure>" + img + "<figcaption>" + renderInline(alt) + "</figcaption></figure>" : img;
     }
-    const interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
-    if (interlinea) return `<p style="line-height:${interlinea[1]}">${renderInline(interlinea[2]).replace(/\n/g,'<br>')}</p>`;
-    const stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
+    var interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
+    if (interlinea) return '<p style="line-height:' + interlinea[1] + '">' + renderInline(interlinea[2]).replace(/
+/g, "<br>") + "</p>";
+    var stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
     if (stileBlocco) {
-      const classi = stileClassi(stileBlocco[1], true);
-      const contenuto = renderInline(stileBlocco[2]).replace(/\n/g,'<br>');
-      return classi ? `<p class="${classi}">${contenuto}</p>` : `<p>${contenuto}</p>`;
+      var classi = stileClassi(stileBlocco[1], true);
+      var contenuto = renderInline(stileBlocco[2]).replace(/
+/g, "<br>");
+      return classi ? '<p class="' + classi + '">' + contenuto + "</p>" : "<p>" + contenuto + "</p>";
     }
-    const blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
-    if (blocco) return `<p class="blocco-${blocco[1]}">${renderInline(blocco[2]).replace(/\n/g,'<br>')}</p>`;
-    const bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
-    if (bloccoFont) return `<p class="blocco-font-${bloccoFont[1]}">${renderInline(bloccoFont[2]).replace(/\n/g,'<br>')}</p>`;
-    const citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
-    if (citazione) return `<p class="citazione-lunga">${renderInline(citazione[1]).replace(/\n/g,'<br>')}</p>`;
-    if (trimmed.startsWith('### ')) return `<h3>${renderInline(trimmed.slice(4))}</h3>`;
-    if (trimmed.startsWith('## ')) return `<h2>${renderInline(trimmed.slice(3))}</h2>`;
-    if (trimmed.startsWith('> ')) return `<blockquote>${renderInline(trimmed.slice(2))}</blockquote>`;
+    var blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
+    if (blocco) return '<p class="blocco-' + blocco[1] + '">' + renderInline(blocco[2]).replace(/
+/g, "<br>") + "</p>";
+    var bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
+    if (bloccoFont) return '<p class="blocco-font-' + bloccoFont[1] + '">' + renderInline(bloccoFont[2]).replace(/
+/g, "<br>") + "</p>";
+    var citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
+    if (citazione) return '<p class="citazione-lunga">' + renderInline(citazione[1]).replace(/
+/g, "<br>") + "</p>";
+    if (trimmed.indexOf("### ") === 0) return "<h3>" + renderInline(trimmed.slice(4)) + "</h3>";
+    if (trimmed.indexOf("## ") === 0) return "<h2>" + renderInline(trimmed.slice(3)) + "</h2>";
+    if (trimmed.indexOf("> ") === 0) return "<blockquote>" + renderInline(trimmed.slice(2)) + "</blockquote>";
     if (/^[-•] /.test(trimmed)) {
-      const items = trimmed.split('\n').map(l=>l.trim()).filter(l=>/^[-•] /.test(l)).map(l=>`<li>${renderInline(l.slice(2))}</li>`).join('');
-      return `<ul>${items}</ul>`;
+      var items = trimmed.split("
+").map(function(l) { return l.trim(); }).filter(function(l) { return /^[-•] /.test(l); }).map(function(l) { return "<li>" + renderInline(l.slice(2)) + "</li>"; }).join("");
+      return "<ul>" + items + "</ul>";
     }
     if (/^\d+\. /.test(trimmed)) {
-      const items = trimmed.split('\n').map(l=>l.trim()).filter(l=>/^\d+\. /.test(l)).map(l=>`<li>${renderInline(l.replace(/^\d+\. /,''))}</li>`).join('');
-      return `<ol>${items}</ol>`;
+      var items2 = trimmed.split("
+").map(function(l) { return l.trim(); }).filter(function(l) { return /^\d+\. /.test(l); }).map(function(l) { return "<li>" + renderInline(l.replace(/^\d+\. /, "")) + "</li>"; }).join("");
+      return "<ol>" + items2 + "</ol>";
     }
-    return `<p>${renderInline(trimmed).replace(/\n/g,'<br>')}</p>`;
-  }).join('\n');
+    return "<p>" + renderInline(trimmed).replace(/
+/g, "<br>") + "</p>";
+  }).join("
+");
 
   if (note.length) {
-    html = html.replace(/\{\{NOTA_(\d+)\}\}/g, (m,n) => `<sup class="nota-rif"><a href="#nota-${n}">${n}</a></sup>`);
-    html += `\n<div class="note-articolo"><h3 class="note-titolo">Note</h3><ol>` +
-      note.map((t,i) => `<li id="nota-${i+1}">${renderInline(t)} <a class="nota-back" href="#nota-${i+1}">&#8617;</a></li>`).join('') +
-      `</ol></div>`;
+    html = html.replace(/\{\{NOTA_(\d+)\}\}/g, function(m, n) { return '<sup class="nota-rif"><a href="#nota-' + n + '">' + n + "</a></sup>"; });
+    html += "
+<div class="note-articolo"><h3 class="note-titolo">Note</h3><ol>" +
+      note.map(function(t, i) { return '<li id="nota-' + (i + 1) + '">' + renderInline(t) + ' <a class="nota-back" href="#nota-' + (i + 1) + '">&#8617;</a></li>'; }).join("") +
+      "</ol></div>";
   }
   return html;
 }
 
 // ==================== EDITOR ACTIONS ====================
-let savedSel = { start: 0, end: 0 };
+var savedSel = { start: 0, end: 0 };
 
-document.getElementById('toolbar').addEventListener('mousedown', function(e) {
-  const ta = document.getElementById('inpBody');
+document.getElementById("toolbar").addEventListener("mousedown", function(e) {
+  var ta = document.getElementById("inpBody");
   savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
 });
 
 function wrap(before, after) {
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start, e = savedSel.end;
-  const val = ta.value;
-  const selected = val.slice(s, e);
-  const replacement = before + selected + (after || '');
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start, e = savedSel.end;
+  var val = ta.value;
+  var selected = val.slice(s, e);
+  var replacement = before + selected + (after || "");
   ta.value = val.slice(0, s) + replacement + val.slice(e);
   ta.selectionStart = s + before.length;
   ta.selectionEnd = s + before.length + selected.length;
@@ -507,150 +530,154 @@ function wrap(before, after) {
   updatePreview();
 }
 function insertAtCursor(text) {
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start;
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start;
   ta.value = ta.value.slice(0, s) + text + ta.value.slice(s);
   ta.selectionStart = ta.selectionEnd = s + text.length;
   ta.focus();
   updatePreview();
 }
 function insertNote() {
-  const testo = prompt('Testo della nota:');
+  var testo = prompt("Testo della nota:");
   if (testo === null) return;
-  insertAtCursor(`[nota]${testo}[/nota]`);
+  insertAtCursor("[nota]" + testo + "[/nota]");
 }
 function insertColor() {
-  const colori = ['avorio','sabbia','oro','terracotta'];
-  const scelta = prompt(`Scegli colore: ${colori.join(', ')}`);
-  if (!scelta || !colori.includes(scelta)) return;
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start, e = savedSel.end;
-  const sel = ta.value.slice(s, e) || 'testo colorato';
-  insertAtCursor(`[colore=${scelta}]${sel}[/colore]`);
+  var colori = ["avorio","sabbia","oro","terracotta"];
+  var scelta = prompt("Scegli colore: " + colori.join(", "));
+  if (!scelta || colori.indexOf(scelta) === -1) return;
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start, e = savedSel.end;
+  var sel = ta.value.slice(s, e) || "testo colorato";
+  insertAtCursor("[colore=" + scelta + "]" + sel + "[/colore]");
 }
 function insertFont() {
-  const fonts = ['elegante','classico','macchina'];
-  const scelta = prompt(`Scegli font: ${fonts.join(', ')}`);
-  if (!scelta || !fonts.includes(scelta)) return;
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start, e = savedSel.end;
-  const sel = ta.value.slice(s, e) || 'testo';
-  insertAtCursor(`[font=${scelta}]${sel}[/font]`);
+  var fonts = ["elegante","classico","macchina"];
+  var scelta = prompt("Scegli font: " + fonts.join(", "));
+  if (!scelta || fonts.indexOf(scelta) === -1) return;
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start, e = savedSel.end;
+  var sel = ta.value.slice(s, e) || "testo";
+  insertAtCursor("[font=" + scelta + "]" + sel + "[/font]");
 }
 function insertInterlinea() {
-  const valore = prompt('Interlinea (es. 1.6, 1.8, 2):', '1.6');
+  var valore = prompt("Interlinea (es. 1.6, 1.8, 2):", "1.6");
   if (!valore || isNaN(parseFloat(valore))) return;
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start, e = savedSel.end;
-  const sel = ta.value.slice(s, e) || 'testo con interlinea';
-  insertAtCursor(`[interlinea=${valore}]${sel}[/interlinea]`);
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start, e = savedSel.end;
+  var sel = ta.value.slice(s, e) || "testo con interlinea";
+  insertAtCursor("[interlinea=" + valore + "]" + sel + "[/interlinea]");
 }
 function insertEmptyLine() {
-  insertAtCursor('\n\n[riga-vuota]\n\n');
+  insertAtCursor("
+
+[riga-vuota]
+
+");
 }
 function insertCitazione() {
-  const ta = document.getElementById('inpBody');
-  const s = savedSel.start, e = savedSel.end;
-  const sel = ta.value.slice(s, e) || 'Testo della citazione lunga...';
-  insertAtCursor(`[citazione]${sel}[/citazione]`);
+  var ta = document.getElementById("inpBody");
+  var s = savedSel.start, e = savedSel.end;
+  var sel = ta.value.slice(s, e) || "Testo della citazione lunga...";
+  insertAtCursor("[citazione]" + sel + "[/citazione]");
 }
 function insertImage() {
-  const url = prompt('URL immagine (Cloudinary):');
+  var url = prompt("URL immagine (Cloudinary):");
   if (!url) return;
-  const alt = prompt('Didascalia (facoltativa):') || '';
-  insertAtCursor(`\n\n![${alt}](${url})\n\n`);
+  var alt = prompt("Didascalia (facoltativa):") || "";
+  insertAtCursor("
+
+![" + alt + "](" + url + ")
+
+");
 }
 
 // Toolbar event delegation
-document.getElementById('toolbar').addEventListener('click', function(e) {
-  const btn = e.target.closest('button[data-action]');
+document.getElementById("toolbar").addEventListener("click", function(e) {
+  var btn = e.target.closest("button[data-action]");
   if (!btn) return;
-  const action = btn.getAttribute('data-action');
+  var action = btn.getAttribute("data-action");
   switch (action) {
-    case 'bold': wrap('**','**'); break;
-    case 'italic': wrap('*','*'); break;
-    case 'strike': wrap('~~','~~'); break;
-    case 'h2': wrap('## '); break;
-    case 'h3': wrap('### '); break;
-    case 'quote': wrap('> '); break;
-    case 'note': insertNote(); break;
-    case 'color': insertColor(); break;
-    case 'font': insertFont(); break;
-    case 'interlinea': insertInterlinea(); break;
-    case 'empty': insertEmptyLine(); break;
-    case 'citazione': insertCitazione(); break;
-    case 'image': insertImage(); break;
+    case "bold": wrap("**","**"); break;
+    case "italic": wrap("*","*"); break;
+    case "strike": wrap("~~","~~"); break;
+    case "h2": wrap("## "); break;
+    case "h3": wrap("### "); break;
+    case "quote": wrap("> "); break;
+    case "note": insertNote(); break;
+    case "color": insertColor(); break;
+    case "font": insertFont(); break;
+    case "interlinea": insertInterlinea(); break;
+    case "empty": insertEmptyLine(); break;
+    case "citazione": insertCitazione(); break;
+    case "image": insertImage(); break;
   }
 });
 
 // ==================== IMPORTAZIONE WORD ====================
-// Escape dei caratteri speciali markdown nel testo normale
 function escapaTesto(text) {
   return text
-    .replace(/\\/g, '\\\\')
-    .replace(/\*/g, '\\*')
-    .replace(/_/g, '\\_')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/\/g, "\\")
+    .replace(/\*/g, "\*")
+    .replace(/_/g, "\_")
+    .replace(/\[/g, "\[")
+    .replace(/\]/g, "\]")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function htmlVersoMarkdown(html) {
-  var doc = new DOMParser().parseFromString(html, 'text/html');
+  var doc = new DOMParser().parseFromString(html, "text/html");
 
-  // 1) Raccoglie le definizioni delle note di Word
   var note = {};
   var contenitoreNote = null;
-  doc.querySelectorAll('li[id^="footnote-"]').forEach(function (li) {
-    var n = li.id.replace('footnote-', '');
+  doc.querySelectorAll('li[id^="footnote-"]').forEach(function(li) {
+    var n = li.id.replace("footnote-", "");
     var cl = li.cloneNode(true);
-    cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function (a) { a.remove(); });
+    cl.querySelectorAll('a[href^="#footnote-ref-"]').forEach(function(a) { a.remove(); });
     note[n] = inline(cl).trim();
-    if (!contenitoreNote) contenitoreNote = li.closest('ol, ul, div');
+    if (!contenitoreNote) contenitoreNote = li.closest("ol, ul, div");
   });
   if (contenitoreNote && contenitoreNote.parentNode) contenitoreNote.parentNode.removeChild(contenitoreNote);
-  doc.querySelectorAll('hr').forEach(function (hr) { hr.remove(); });
+  doc.querySelectorAll("hr").forEach(function(hr) { hr.remove(); });
 
   var nImmagini = 0;
 
-  // 2) Conversione ricorsiva del contenuto in linea
   function inline(nodo) {
-    var out = '';
-    nodo.childNodes.forEach(function (el) {
+    var out = "";
+    nodo.childNodes.forEach(function(el) {
       if (el.nodeType === 3) { out += escapaTesto(el.textContent); return; }
       if (el.nodeType !== 1) return;
       var tag = el.tagName.toLowerCase();
-      if (tag === 'sup') {
+      if (tag === "sup") {
         var rif = el.querySelector('a[href^="#footnote-"]');
         if (rif) {
-          var n = rif.getAttribute('href').replace('#footnote-', '');
-          out += '[nota]' + (note[n] || '') + '[/nota]';
+          var n = rif.getAttribute("href").replace("#footnote-", "");
+          out += "[nota]" + (note[n] || "") + "[/nota]";
           return;
         }
       }
-      if (tag === 'a') {
-        var href = el.getAttribute('href') || '';
-        if (href.indexOf('#footnote-') === 0) {
-          var n2 = href.replace('#footnote-', '');
-          out += '[nota]' + (note[n2] || '') + '[/nota]';
-        } else if (href.indexOf('#footnote-ref-') !== 0) {
-          out += '[' + inline(el) + '](' + href + ')';
+      if (tag === "a") {
+        var href = el.getAttribute("href") || "";
+        if (href.indexOf("#footnote-") === 0) {
+          var n2 = href.replace("#footnote-", "");
+          out += "[nota]" + (note[n2] || "") + "[/nota]";
+        } else if (href.indexOf("#footnote-ref-") !== 0) {
+          out += "[" + inline(el) + "](" + href + ")";
         }
         return;
       }
-      if (tag === 'strong' || tag === 'b') { out += '**' + inline(el) + '**'; return; }
-      // Usiamo * per i corsivi: così gli underscore presenti nel testo
-      // (es. nei titoli dei libri) non interferiscono con il markdown.
-      if (tag === 'em' || tag === 'i') { out += '*' + inline(el) + '*'; return; }
-      if (tag === 'u') { out += '[u]' + inline(el) + '[/u]'; return; }
-      if (tag === 's' || tag === 'strike' || tag === 'del') { out += '[s]' + inline(el) + '[/s]'; return; }
-      if (tag === 'br') { out += '\n'; return; }
-      if (tag === 'img') {
+      if (tag === "strong" || tag === "b") { out += "**" + inline(el) + "**"; return; }
+      if (tag === "em" || tag === "i") { out += "*" + inline(el) + "*"; return; }
+      if (tag === "u") { out += "[u]" + inline(el) + "[/u]"; return; }
+      if (tag === "s" || tag === "strike" || tag === "del") { out += "[s]" + inline(el) + "[/s]"; return; }
+      if (tag === "br") { out += "
+"; return; }
+      if (tag === "img") {
         nImmagini++;
-        var alt = (el.getAttribute('alt') || '').trim();
-        var src = (el.getAttribute('src') || '').trim();
-        out += '![' + alt + '](' + src + ')';
+        var alt = (el.getAttribute("alt") || "").trim();
+        var src = (el.getAttribute("src") || "").trim();
+        out += "![" + alt + "](" + src + ")";
         return;
       }
       out += inline(el);
@@ -658,69 +685,76 @@ function htmlVersoMarkdown(html) {
     return out;
   }
 
-  // Rileva se un paragrafo ha un rientro significativo (probabile citazione)
   function haRientro(el) {
-    var stile = (el.getAttribute('style') || '').toLowerCase();
+    var stile = (el.getAttribute("style") || "").toLowerCase();
     var m = stile.match(/margin-left\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
     if (m) {
       var val = parseFloat(m[1]);
       var unit = m[2];
-      if (unit === 'pt' && val > 18) return true;
-      if (unit === 'px' && val > 24) return true;
-      if (unit === 'em' || unit === 'rem') return val > 1.5;
-      if (unit === 'cm' && val > 0.6) return true;
-      if (unit === 'mm' && val > 6) return true;
-      if (unit === 'in' && val > 0.25) return true;
+      if (unit === "pt" && val > 18) return true;
+      if (unit === "px" && val > 24) return true;
+      if (unit === "em" || unit === "rem") return val > 1.5;
+      if (unit === "cm" && val > 0.6) return true;
+      if (unit === "mm" && val > 6) return true;
+      if (unit === "in" && val > 0.25) return true;
     }
     var ti = stile.match(/text-indent\s*:\s*(\d+(?:\.\d+)?)(pt|px|em|rem|cm|mm|in)/);
     if (ti) {
       var v = parseFloat(ti[1]);
       var u = ti[2];
-      if (u === 'pt' && v > 18) return true;
-      if (u === 'px' && v > 24) return true;
-      if (u === 'em' || u === 'rem') return v > 1.5;
-      if (u === 'cm' && v > 0.6) return true;
-      if (u === 'mm' && v > 6) return true;
-      if (u === 'in' && v > 0.25) return true;
+      if (u === "pt" && v > 18) return true;
+      if (u === "px" && v > 24) return true;
+      if (u === "em" || u === "rem") return v > 1.5;
+      if (u === "cm" && v > 0.6) return true;
+      if (u === "mm" && v > 6) return true;
+      if (u === "in" && v > 0.25) return true;
     }
     return false;
   }
 
-  // 3) Conversione dei blocchi
   function blocco(el) {
     var tag = el.tagName.toLowerCase();
-    var contenuto = inline(el).replace(/[ \t]+\n/g, '\n').trim();
-    if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
-    if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
-    if (tag === 'blockquote') {
-      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    var contenuto = inline(el).replace(/[ 	]+
+/g, "
+").trim();
+    if (tag === "h1" || tag === "h2") return contenuto ? "## " + contenuto : "";
+    if (tag === "h3" || tag === "h4") return contenuto ? "### " + contenuto : "";
+    if (tag === "blockquote") {
+      return contenuto.split("
+").map(function(r) { return "> " + r; }).join("
+");
     }
-    if (tag === 'p' && haRientro(el) && contenuto) {
-      return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+    if (tag === "p" && haRientro(el) && contenuto) {
+      return contenuto.split("
+").map(function(r) { return "> " + r; }).join("
+");
     }
-    if (tag === 'ul') {
-      return Array.prototype.map.call(el.children, function (li) {
-        return '- ' + inline(li).trim();
-      }).join('\n');
+    if (tag === "ul") {
+      return Array.prototype.map.call(el.children, function(li) {
+        return "- " + inline(li).trim();
+      }).join("
+");
     }
-    if (tag === 'ol') {
-      return Array.prototype.map.call(el.children, function (li, i) {
-        return (i + 1) + '. ' + inline(li).trim();
-      }).join('\n');
+    if (tag === "ol") {
+      return Array.prototype.map.call(el.children, function(li, i) {
+        return (i + 1) + ". " + inline(li).trim();
+      }).join("
+");
     }
     return contenuto;
   }
 
   var blocchi = [];
-  doc.body.childNodes.forEach(function (el) {
+  doc.body.childNodes.forEach(function(el) {
     if (el.nodeType !== 1) return;
     var b = blocco(el);
     if (b) blocchi.push(b);
   });
 
-  var markdown = blocchi.join('\n\n');
-  // Se in Word due corsivi si toccano ("fine_ _inizio"), riduciamo a spazio normale
-  markdown = markdown.replace(/_\s+_/g, ' ');
+  var markdown = blocchi.join("
+
+");
+  markdown = markdown.replace(/_\s+_/g, " ");
 
   return {
     markdown: markdown,
@@ -731,169 +765,170 @@ function htmlVersoMarkdown(html) {
 
 function importaWord(file) {
   if (!/\.docx$/i.test(file.name)) {
-    alert('Il file deve essere in formato .docx (Word).');
+    alert("Il file deve essere in formato .docx (Word).");
     return;
   }
-  if (typeof mammoth === 'undefined') {
-    alert('La libreria di conversione non è stata caricata. Verifica la connessione internet e ricarica la pagina.');
+  if (typeof mammoth === "undefined") {
+    alert("La libreria di conversione non e stata caricata. Verifica la connessione internet e ricarica la pagina.");
     return;
   }
   var reader = new FileReader();
-  reader.onload = function () {
+  reader.onload = function() {
     mammoth.convertToHtml(
       { arrayBuffer: reader.result },
       {
-        convertImage: mammoth.images.imgElement(function () {
-          return { src: 'URL-IMMAGINE-CLOUDINARY' };
+        convertImage: mammoth.images.imgElement(function() {
+          return { src: "URL-IMMAGINE-CLOUDINARY" };
         })
       }
-    ).then(function (res) {
+    ).then(function(res) {
       var esito = htmlVersoMarkdown(res.value);
 
-      // Estrae titolo dal primo H1/H2, sottotitolo dal primo H3
-      var temp = document.createElement('div');
+      var temp = document.createElement("div");
       temp.innerHTML = res.value;
-      var h1 = temp.querySelector('h1, h2');
-      var h3 = temp.querySelector('h3');
-      if (h1 && !document.getElementById('inpTitle').value) {
-        document.getElementById('inpTitle').value = h1.textContent.trim();
+      var h1 = temp.querySelector("h1, h2");
+      var h3 = temp.querySelector("h3");
+      if (h1 && !document.getElementById("inpTitle").value) {
+        document.getElementById("inpTitle").value = h1.textContent.trim();
       }
-      if (h3 && !document.getElementById('inpSubtitle').value) {
-        document.getElementById('inpSubtitle').value = h3.textContent.trim();
+      if (h3 && !document.getElementById("inpSubtitle").value) {
+        document.getElementById("inpSubtitle").value = h3.textContent.trim();
       }
 
-      // Inserisce il testo nel body (append se già presente)
-      var ta = document.getElementById('inpBody');
+      var ta = document.getElementById("inpBody");
       if (ta.value.trim()) {
-        ta.value += '\n\n' + esito.markdown;
+        ta.value += "
+
+" + esito.markdown;
       } else {
         ta.value = esito.markdown;
       }
 
       updatePreview();
-      var msg = 'Importato: ' + esito.note + ' note, ' + esito.immagini + ' immagini';
-      if (esito.immagini > 0) msg += '. Sostituisci URL-IMMAGINE-CLOUDINARY con gli URL reali.';
-      document.getElementById('status').textContent = msg;
-      setTimeout(function () { document.getElementById('status').textContent = ''; }, 4000);
-    }).catch(function (err) {
-      alert('Errore lettura file: ' + err.message);
+      var msg = "Importato: " + esito.note + " note, " + esito.immagini + " immagini";
+      if (esito.immagini > 0) msg += ". Sostituisci URL-IMMAGINE-CLOUDINARY con gli URL reali.";
+      document.getElementById("status").textContent = msg;
+      setTimeout(function() { document.getElementById("status").textContent = ""; }, 4000);
+    }).catch(function(err) {
+      alert("Errore lettura file: " + err.message);
     });
   };
   reader.readAsArrayBuffer(file);
 }
 
-// Gestione pulsante Importa Word
-document.getElementById('btnImportWord').addEventListener('click', function () {
-  document.getElementById('wordFile').click();
+document.getElementById("btnImportWord").addEventListener("click", function() {
+  document.getElementById("wordFile").click();
 });
-document.getElementById('wordFile').addEventListener('change', function () {
+document.getElementById("wordFile").addEventListener("change", function() {
   if (this.files && this.files[0]) importaWord(this.files[0]);
 });
 
 // ==================== PUBBLICAZIONE GITHUB ====================
-// Base64 helpers per Unicode (GitHub API richiede Base64 standard)
 function b64EncodeUnicode(str) {
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-    return String.fromCharCode('0x' + p1);
+    return String.fromCharCode("0x" + p1);
   }));
 }
 function b64DecodeUnicode(str) {
-  return decodeURIComponent(atob(str).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
+  return decodeURIComponent(atob(str).split("").map(function(c) {
+    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(""));
 }
 
 function generateStaticPage(article) {
-  const base = 'https://davideamatoag.github.io/Erosioni';
-  const title = (article.title || 'Articolo').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const desc = (article.sottotitolo || (article.body || '').slice(0,160).replace(/\n/g,' ').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
-  let img = article.image || '';
-  if (img.startsWith('images/')) img = base + '/' + img;
-  const slug = article.slug;
+  var base = "https://davideamatoag.github.io/Erosioni";
+  var title = (article.title || "Articolo").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  var desc = (article.sottotitolo || (article.body || "").slice(0, 160).replace(/
+/g, " ").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
+  var img = article.image || "";
+  if (img.indexOf("images/") === 0) img = base + "/" + img;
+  var slug = article.slug;
 
-  return `<!DOCTYPE html>
+  return '<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${title} — Erosioni</title>
-<meta name="description" content="${desc}">
+<title>' + title + ' — Erosioni</title>
+<meta name="description" content="' + desc + '">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Erosioni">
-<meta property="og:title" content="${title} — Erosioni">
-<meta property="og:description" content="${desc}">
-<meta property="og:image" content="${img}">
-<meta property="og:url" content="${base}/articoli/${slug}.html">
+<meta property="og:title" content="' + title + ' — Erosioni">
+<meta property="og:description" content="' + desc + '">
+<meta property="og:image" content="' + img + '">
+<meta property="og:url" content="' + base + '/articoli/' + slug + '.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${title} — Erosioni">
-<meta name="twitter:description" content="${desc}">
-<meta name="twitter:image" content="${img}">
-<link rel="canonical" href="${base}/articoli/${slug}.html">
-<script>window.location.replace("${base}/articolo.html?slug=${encodeURIComponent(slug)}");</script>
+<meta name="twitter:title" content="' + title + ' — Erosioni">
+<meta name="twitter:description" content="' + desc + '">
+<meta name="twitter:image" content="' + img + '">
+<link rel="canonical" href="' + base + '/articoli/' + slug + '.html">
+<script>window.location.replace("' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '");<\/script>
 </head>
 <body>
-<p>Reindirizzamento a <a href="${base}/articolo.html?slug=${encodeURIComponent(slug)}">${title}</a>...</p>
+<p>Reindirizzamento a <a href="' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '">' + title + '</a>...</p>
 </body>
-</html>`;
+</html>';
 }
 
 async function publishToGitHub() {
-  const token = document.getElementById('githubToken').value.trim();
+  var token = document.getElementById("githubToken").value.trim();
   if (!token) {
-    alert('Inserisci il token GitHub.\n\n1. Vai su https://github.com/settings/tokens/new\n2. Seleziona il permesso "repo"\n3. Copia il token e incollalo qui.');
+    alert("Inserisci il token GitHub.
+
+1. Vai su https://github.com/settings/tokens/new
+2. Seleziona il permesso 'repo'
+3. Copia il token e incollalo qui.");
     return;
   }
-  if (document.getElementById('saveToken').checked) {
-    localStorage.setItem('erosioni_github_token', token);
+  if (document.getElementById("saveToken").checked) {
+    localStorage.setItem("erosioni_github_token", token);
   } else {
-    localStorage.removeItem('erosioni_github_token');
+    localStorage.removeItem("erosioni_github_token");
   }
 
-  const slug = document.getElementById('inpSlug').value.trim();
+  var slug = document.getElementById("inpSlug").value.trim();
   if (!slug) {
-    alert('Inserisci uno slug per l\'articolo (es. la-rinascita-dell-ontologia).');
+    alert("Inserisci uno slug per l'articolo (es. la-rinascita-dell-ontologia).");
     return;
   }
-  const title = document.getElementById('inpTitle').value.trim() || slug;
-  const status = document.getElementById('status');
-  status.textContent = 'Connessione a GitHub...';
+  var title = document.getElementById("inpTitle").value.trim() || slug;
+  var status = document.getElementById("status");
+  status.textContent = "Connessione a GitHub...";
 
   try {
-    const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/content/articoli.json';
+    var apiUrl = "https://api.github.com/repos/davideamatoag/Erosioni/contents/content/articoli.json";
 
-    // 1. Leggi il file attuale
-    const getRes = await fetch(apiUrl, {
+    var getRes = await fetch(apiUrl, {
       headers: {
-        'Authorization': 'token ' + token,
-        'Accept': 'application/vnd.github.v3+json'
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json"
       }
     });
-    if (!getRes.ok) throw new Error('Impossibile leggere articoli.json (' + getRes.status + '). Verifica il token.');
-    const fileData = await getRes.json();
+    if (!getRes.ok) throw new Error("Impossibile leggere articoli.json (" + getRes.status + "). Verifica il token.");
+    var fileData = await getRes.json();
 
-    // 2. Decodifica e modifica
-    const currentContent = b64DecodeUnicode(fileData.content);
-    const data = JSON.parse(currentContent);
+    var currentContent = b64DecodeUnicode(fileData.content);
+    var data = JSON.parse(currentContent);
 
-    const article = {
+    var article = {
       slug: slug,
-      title: document.getElementById('inpTitle').value || '',
-      sottotitolo: document.getElementById('inpSubtitle').value || '',
-      category: document.getElementById('inpCategory').value,
-      date: document.getElementById('inpDate').value || new Date().toISOString().slice(0,10),
-      image: document.getElementById('inpImage').value || '',
-      font: document.getElementById('inpFont').value,
-      colore: document.getElementById('inpColore').value,
-      body: document.getElementById('inpBody').value || ''
+      title: document.getElementById("inpTitle").value || "",
+      sottotitolo: document.getElementById("inpSubtitle").value || "",
+      category: document.getElementById("inpCategory").value,
+      date: document.getElementById("inpDate").value || new Date().toISOString().slice(0, 10),
+      image: document.getElementById("inpImage").value || "",
+      font: document.getElementById("inpFont").value,
+      colore: document.getElementById("inpColore").value,
+      body: document.getElementById("inpBody").value || ""
     };
 
-    const articles = data.articles || [];
-    const existingIdx = articles.findIndex(function(a) { return a.slug === slug; });
-    const isNew = existingIdx < 0;
+    var articles = data.articles || [];
+    var existingIdx = articles.findIndex(function(a) { return a.slug === slug; });
+    var isNew = existingIdx < 0;
 
     if (!isNew) {
-      if (!confirm('L\'articolo "' + (articles[existingIdx].title || slug) + '" esiste già. Sovrascriverlo?')) {
-        status.textContent = '';
+      if (!confirm('L'articolo "' + (articles[existingIdx].title || slug) + '" esiste gia. Sovrascriverlo?')) {
+        status.textContent = "";
         return;
       }
       articles[existingIdx] = article;
@@ -902,20 +937,19 @@ async function publishToGitHub() {
     }
     data.articles = articles;
 
-    // 3. Codifica e salva
-    status.textContent = 'Salvataggio in corso...';
-    const newContent = JSON.stringify(data, null, 2);
-    const encoded = b64EncodeUnicode(newContent);
+    status.textContent = "Salvataggio in corso...";
+    var newContent = JSON.stringify(data, null, 2);
+    var encoded = b64EncodeUnicode(newContent);
 
-    const putRes = await fetch(apiUrl, {
-      method: 'PUT',
+    var putRes = await fetch(apiUrl, {
+      method: "PUT",
       headers: {
-        'Authorization': 'token ' + token,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message: (isNew ? 'Aggiunge' : 'Aggiorna') + ' articolo: ' + title + ' via editor',
+        message: (isNew ? "Aggiunge" : "Aggiorna") + " articolo: " + title + " via editor",
         content: encoded,
         sha: fileData.sha
       })
@@ -923,145 +957,142 @@ async function publishToGitHub() {
 
     if (!putRes.ok) {
       var errData = await putRes.json().catch(function() { return {}; });
-      throw new Error(errData.message || 'Errore ' + putRes.status);
+      throw new Error(errData.message || "Errore " + putRes.status);
     }
 
-    status.textContent = 'Articolo salvato. Genero pagina statica...';
+    status.textContent = "Articolo salvato. Genero pagina statica...";
 
-    // 4. Genera e salva pagina HTML statica per i meta social
-    const staticHtml = generateStaticPage(article);
-    const staticPath = 'articoli/' + slug + '.html';
-    const staticApiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/' + staticPath;
+    var staticHtml = generateStaticPage(article);
+    var staticPath = "articoli/" + slug + ".html";
+    var staticApiUrl = "https://api.github.com/repos/davideamatoag/Erosioni/contents/" + staticPath;
 
-    // Leggi la pagina statica esistente (se c'è) per lo SHA
-    let staticSha = null;
+    var staticSha = null;
     try {
-      const staticGetRes = await fetch(staticApiUrl, {
-        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      var staticGetRes = await fetch(staticApiUrl, {
+        headers: { "Authorization": "token " + token, "Accept": "application/vnd.github.v3+json" }
       });
       if (staticGetRes.ok) {
-        const staticData = await staticGetRes.json();
+        var staticData = await staticGetRes.json();
         staticSha = staticData.sha;
       }
     } catch(e) { /* la pagina non esiste ancora */ }
 
-    const staticEncoded = b64EncodeUnicode(staticHtml);
-    const staticBody = {
-      message: (isNew ? 'Aggiunge' : 'Aggiorna') + ' pagina statica: ' + slug,
+    var staticEncoded = b64EncodeUnicode(staticHtml);
+    var staticBody = {
+      message: (isNew ? "Aggiunge" : "Aggiorna") + " pagina statica: " + slug,
       content: staticEncoded
     };
     if (staticSha) staticBody.sha = staticSha;
 
-    const staticPutRes = await fetch(staticApiUrl, {
-      method: 'PUT',
+    var staticPutRes = await fetch(staticApiUrl, {
+      method: "PUT",
       headers: {
-        'Authorization': 'token ' + token,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(staticBody)
     });
 
     if (!staticPutRes.ok) {
       var sErr = await staticPutRes.json().catch(function() { return {}; });
-      console.warn('Pagina statica non salvata:', sErr.message || staticPutRes.status);
+      console.warn("Pagina statica non salvata:", sErr.message || staticPutRes.status);
     }
 
-    status.textContent = 'Pubblicato! Attendi 1-2 minuti per GitHub Pages.';
-    setTimeout(function() { status.textContent = ''; }, 6000);
+    status.textContent = "Pubblicato! Attendi 1-2 minuti per GitHub Pages.";
+    setTimeout(function() { status.textContent = ""; }, 6000);
 
   } catch (err) {
-    status.textContent = 'Errore: ' + err.message;
+    status.textContent = "Errore: " + err.message;
     console.error(err);
   }
 }
 
 // ==================== PREVIEW ====================
 function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function updatePreview() {
-  const title = document.getElementById('inpTitle').value || 'Titolo';
-  const subtitle = document.getElementById('inpSubtitle').value;
-  const date = document.getElementById('inpDate').value || new Date().toISOString().slice(0,10);
-  const cat = document.getElementById('inpCategory').value;
-  const image = document.getElementById('inpImage').value;
-  const font = document.getElementById('inpFont').value;
-  const colore = document.getElementById('inpColore').value;
-  const bodyMd = document.getElementById('inpBody').value;
+  var title = document.getElementById("inpTitle").value || "Titolo";
+  var subtitle = document.getElementById("inpSubtitle").value;
+  var date = document.getElementById("inpDate").value || new Date().toISOString().slice(0, 10);
+  var cat = document.getElementById("inpCategory").value;
+  var image = document.getElementById("inpImage").value;
+  var font = document.getElementById("inpFont").value;
+  var colore = document.getElementById("inpColore").value;
+  var bodyMd = document.getElementById("inpBody").value;
 
-  const bodyClass = ['preview-body', font !== 'predefinito' ? 't-font-' + font : '', colore !== 'predefinito' ? 't-' + colore : ''].filter(Boolean).join(' ');
-  const htmlBody = renderMarkdown(bodyMd);
-  const words = (bodyMd.match(/\S+/g) || []).length;
+  var bodyClass = ["preview-body", font !== "predefinito" ? "t-font-" + font : "", colore !== "predefinito" ? "t-" + colore : ""].filter(Boolean).join(" ");
+  var htmlBody = renderMarkdown(bodyMd);
+  var words = (bodyMd.match(/\S+/g) || []).length;
 
-  const html = `
-    <div class="preview-header">
-      <span>Anteprima live</span>
-      <span>${words} parole</span>
-    </div>
-    <a href="#" class="preview-back">&larr; Torna agli articoli</a>
-    <h1 class="preview-title">${escapeHtml(title)}</h1>
-    ${subtitle ? `<p class="preview-subtitle">${escapeHtml(subtitle)}</p>` : ''}
-    <div class="preview-meta-row">
-      <span><strong>${formatDateIt(date)}</strong> / ${categoryLabel(cat).toUpperCase()}</span>
-    </div>
-    ${image ? `<img class="preview-hero" src="${optimizeImage(image,1200)}" alt="">` : ''}
-    <div class="${bodyClass}">${htmlBody}</div>
-  `;
-  document.getElementById('previewInner').innerHTML = html;
+  var html =
+    '<div class="preview-header">' +
+      '<span>Anteprima live</span>' +
+      '<span>' + words + ' parole</span>' +
+    '</div>' +
+    '<a href="#" class="preview-back">&larr; Torna agli articoli</a>' +
+    '<h1 class="preview-title">' + escapeHtml(title) + '</h1>' +
+    (subtitle ? '<p class="preview-subtitle">' + escapeHtml(subtitle) + '</p>' : '') +
+    '<div class="preview-meta-row">' +
+      '<span><strong>' + formatDateIt(date) + '</strong> / ' + categoryLabel(cat).toUpperCase() + '</span>' +
+    '</div>' +
+    (image ? '<img class="preview-hero" src="' + optimizeImage(image, 1200) + '" alt="">' : '') +
+    '<div class="' + bodyClass + '">' + htmlBody + '</div>';
+  document.getElementById("previewInner").innerHTML = html;
 }
 
 // ==================== IMPOSTAZIONI ====================
 async function loadSettings() {
   try {
-    const res = await fetch('../content/impostazioni.json', { cache: 'no-store' });
-    const settings = await res.json();
-    document.getElementById('inpAuthorName').value = settings.author_name || '';
-    document.getElementById('inpAuthorBio').value = settings.author_bio || '';
-    document.getElementById('inpAuthorImage').value = settings.author_image || '';
-    document.getElementById('status').textContent = 'Impostazioni caricate';
-    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+    var res = await fetch("../content/impostazioni.json", { cache: "no-store" });
+    var settings = await res.json();
+    document.getElementById("inpAuthorName").value = settings.author_name || "";
+    document.getElementById("inpAuthorBio").value = settings.author_bio || "";
+    document.getElementById("inpAuthorImage").value = settings.author_image || "";
+    document.getElementById("status").textContent = "Impostazioni caricate";
+    setTimeout(function() { document.getElementById("status").textContent = ""; }, 2000);
   } catch (err) {
-    alert('Errore caricamento impostazioni: ' + err.message);
+    alert("Errore caricamento impostazioni: " + err.message);
   }
 }
 
 async function saveSettingsToGitHub() {
-  const token = document.getElementById('githubToken').value.trim();
+  var token = document.getElementById("githubToken").value.trim();
   if (!token) {
-    alert('Inserisci il token GitHub.');
+    alert("Inserisci il token GitHub.");
     return;
   }
-  const status = document.getElementById('status');
-  status.textContent = 'Salvataggio impostazioni...';
+  var status = document.getElementById("status");
+  status.textContent = "Salvataggio impostazioni...";
 
   try {
-    const apiUrl = 'https://api.github.com/repos/davideamatoag/Erosioni/contents/content/impostazioni.json';
-    const getRes = await fetch(apiUrl, {
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    var apiUrl = "https://api.github.com/repos/davideamatoag/Erosioni/contents/content/impostazioni.json";
+    var getRes = await fetch(apiUrl, {
+      headers: { "Authorization": "token " + token, "Accept": "application/vnd.github.v3+json" }
     });
-    if (!getRes.ok) throw new Error('Impossibile leggere impostazioni.json (' + getRes.status + ')');
-    const fileData = await getRes.json();
+    if (!getRes.ok) throw new Error("Impossibile leggere impostazioni.json (" + getRes.status + ")");
+    var fileData = await getRes.json();
 
-    const currentContent = b64DecodeUnicode(fileData.content);
-    const settings = JSON.parse(currentContent);
+    var currentContent = b64DecodeUnicode(fileData.content);
+    var settings = JSON.parse(currentContent);
 
-    settings.author_name = document.getElementById('inpAuthorName').value.trim();
-    settings.author_bio = document.getElementById('inpAuthorBio').value;
-    settings.author_image = document.getElementById('inpAuthorImage').value.trim();
+    settings.author_name = document.getElementById("inpAuthorName").value.trim();
+    settings.author_bio = document.getElementById("inpAuthorBio").value;
+    settings.author_image = document.getElementById("inpAuthorImage").value.trim();
 
-    const newContent = JSON.stringify(settings, null, 2);
-    const encoded = b64EncodeUnicode(newContent);
+    var newContent = JSON.stringify(settings, null, 2);
+    var encoded = b64EncodeUnicode(newContent);
 
-    const putRes = await fetch(apiUrl, {
-      method: 'PUT',
+    var putRes = await fetch(apiUrl, {
+      method: "PUT",
       headers: {
-        'Authorization': 'token ' + token,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message: 'Aggiorna impostazioni sito (bio e foto) via editor',
+        message: "Aggiorna impostazioni sito (bio e foto) via editor",
         content: encoded,
         sha: fileData.sha
       })
@@ -1069,97 +1100,96 @@ async function saveSettingsToGitHub() {
 
     if (!putRes.ok) {
       var errData = await putRes.json().catch(function() { return {}; });
-      throw new Error(errData.message || 'Errore ' + putRes.status);
+      throw new Error(errData.message || "Errore " + putRes.status);
     }
 
-    status.textContent = 'Impostazioni salvate! Attendi 1-2 minuti per GitHub Pages.';
-    setTimeout(() => status.textContent = '', 5000);
+    status.textContent = "Impostazioni salvate! Attendi 1-2 minuti per GitHub Pages.";
+    setTimeout(function() { status.textContent = ""; }, 5000);
   } catch (err) {
-    status.textContent = 'Errore: ' + err.message;
+    status.textContent = "Errore: " + err.message;
     console.error(err);
   }
 }
 
 // ==================== EXPORT / IMPORT ====================
 function exportJSON() {
-  const obj = {
-    slug: document.getElementById('inpSlug').value || '',
-    title: document.getElementById('inpTitle').value || '',
-    sottotitolo: document.getElementById('inpSubtitle').value || '',
-    category: document.getElementById('inpCategory').value,
-    date: document.getElementById('inpDate').value || new Date().toISOString().slice(0,10),
-    image: document.getElementById('inpImage').value || '',
-    font: document.getElementById('inpFont').value,
-    colore: document.getElementById('inpColore').value,
-    body: document.getElementById('inpBody').value || ''
+  var obj = {
+    slug: document.getElementById("inpSlug").value || "",
+    title: document.getElementById("inpTitle").value || "",
+    sottotitolo: document.getElementById("inpSubtitle").value || "",
+    category: document.getElementById("inpCategory").value,
+    date: document.getElementById("inpDate").value || new Date().toISOString().slice(0, 10),
+    image: document.getElementById("inpImage").value || "",
+    font: document.getElementById("inpFont").value,
+    colore: document.getElementById("inpColore").value,
+    body: document.getElementById("inpBody").value || ""
   };
-  const json = JSON.stringify(obj, null, 2);
-  document.getElementById('exportArea').value = json + ',';
-  document.getElementById('modalOverlay').classList.add('open');
+  var json = JSON.stringify(obj, null, 2);
+  document.getElementById("exportArea").value = json + ",";
+  document.getElementById("modalOverlay").classList.add("open");
 }
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
 function copyExport() {
-  const area = document.getElementById('exportArea');
+  var area = document.getElementById("exportArea");
   area.select();
-  navigator.clipboard.writeText(area.value).then(() => {
-    document.getElementById('status').textContent = 'JSON copiato';
-    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+  navigator.clipboard.writeText(area.value).then(function() {
+    document.getElementById("status").textContent = "JSON copiato";
+    setTimeout(function() { document.getElementById("status").textContent = ""; }, 2000);
   });
 }
 function copyBody() {
-  const t = document.getElementById('inpBody');
+  var t = document.getElementById("inpBody");
   t.select();
-  navigator.clipboard.writeText(t.value).then(() => {
-    document.getElementById('status').textContent = 'Testo copiato';
-    setTimeout(() => document.getElementById('status').textContent = '', 2000);
+  navigator.clipboard.writeText(t.value).then(function() {
+    document.getElementById("status").textContent = "Testo copiato";
+    setTimeout(function() { document.getElementById("status").textContent = ""; }, 2000);
   });
 }
 function clearAll() {
-  if (!confirm('Svuotare tutti i campi?')) return;
-  ['inpSlug','inpTitle','inpSubtitle','inpImage','inpBody'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('inpDate').value = new Date().toISOString().slice(0,10);
-  document.getElementById('inpCategory').value = 'recensioni';
-  document.getElementById('inpFont').value = 'predefinito';
-  document.getElementById('inpColore').value = 'predefinito';
+  if (!confirm("Svuotare tutti i campi?")) return;
+  ["inpSlug","inpTitle","inpSubtitle","inpImage","inpBody"].forEach(function(id) { document.getElementById(id).value = ""; });
+  document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("inpCategory").value = "recensioni";
+  document.getElementById("inpFont").value = "predefinito";
+  document.getElementById("inpColore").value = "predefinito";
   updatePreview();
 }
 async function loadExisting() {
-  const slug = document.getElementById('loadSlug').value.trim();
-  if (!slug) return alert('Inserisci uno slug');
+  var slug = document.getElementById("loadSlug").value.trim();
+  if (!slug) return alert("Inserisci uno slug");
   try {
-    const res = await fetch('../content/articoli.json', { cache: 'no-store' });
-    const data = await res.json();
-    const article = (data.articles || []).find(a => a.slug === slug);
-    if (!article) return alert('Articolo non trovato');
-    document.getElementById('inpSlug').value = article.slug || '';
-    document.getElementById('inpTitle').value = article.title || '';
-    document.getElementById('inpSubtitle').value = article.sottotitolo || '';
-    document.getElementById('inpCategory').value = article.category || 'recensioni';
-    document.getElementById('inpDate').value = article.date || '';
-    document.getElementById('inpImage').value = article.image || '';
-    document.getElementById('inpFont').value = article.font || 'predefinito';
-    document.getElementById('inpColore').value = article.colore || 'predefinito';
-    document.getElementById('inpBody').value = article.body || '';
+    var res = await fetch("../content/articoli.json", { cache: "no-store" });
+    var data = await res.json();
+    var article = (data.articles || []).find(function(a) { return a.slug === slug; });
+    if (!article) return alert("Articolo non trovato");
+    document.getElementById("inpSlug").value = article.slug || "";
+    document.getElementById("inpTitle").value = article.title || "";
+    document.getElementById("inpSubtitle").value = article.sottotitolo || "";
+    document.getElementById("inpCategory").value = article.category || "recensioni";
+    document.getElementById("inpDate").value = article.date || "";
+    document.getElementById("inpImage").value = article.image || "";
+    document.getElementById("inpFont").value = article.font || "predefinito";
+    document.getElementById("inpColore").value = article.colore || "predefinito";
+    document.getElementById("inpBody").value = article.body || "";
     updatePreview();
-    document.getElementById('status').textContent = `Caricato: ${article.title}`;
-    setTimeout(() => document.getElementById('status').textContent = '', 3000);
+    document.getElementById("status").textContent = "Caricato: " + article.title;
+    setTimeout(function() { document.getElementById("status").textContent = ""; }, 3000);
   } catch (err) {
-    alert('Errore caricamento: ' + err.message);
+    alert("Errore caricamento: " + err.message);
   }
 }
 
 // ==================== INIT ====================
-// Carica token GitHub salvato
-var savedToken = localStorage.getItem('erosioni_github_token');
+var savedToken = localStorage.getItem("erosioni_github_token");
 if (savedToken) {
-  document.getElementById('githubToken').value = savedToken;
-  document.getElementById('saveToken').checked = true;
+  document.getElementById("githubToken").value = savedToken;
+  document.getElementById("saveToken").checked = true;
 }
 
-['inpSlug','inpTitle','inpSubtitle','inpCategory','inpDate','inpImage','inpFont','inpColore','inpBody'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updatePreview);
+["inpSlug","inpTitle","inpSubtitle","inpCategory","inpDate","inpImage","inpFont","inpColore","inpBody"].forEach(function(id) {
+  document.getElementById(id).addEventListener("input", updatePreview);
 });
-document.getElementById('inpDate').value = new Date().toISOString().slice(0,10);
+document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
 updatePreview();
 </script>
 </body>
