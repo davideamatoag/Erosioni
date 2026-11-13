@@ -10,252 +10,105 @@
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; font-family: Inter, system-ui, sans-serif;
-    background: #EAE5DD; color: #2B2723;
-    height: 100vh; overflow: hidden;
-  }
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr 520px;
-    height: 100vh;
-  }
-  .preview-col {
-    overflow-y: auto;
-    border-right: 1px solid rgba(43,39,35,0.12);
-    background: #EAE5DD;
-  }
-  .preview-inner {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 32px 28px 60px;
-  }
-  .preview-header {
-    position: sticky; top: 0; z-index: 10;
-    background: #EAE5DD;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(43,39,35,0.08);
-    margin-bottom: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.78rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .editor-col {
-    display: flex; flex-direction: column;
-    background: #F5F0E8;
-    overflow: hidden;
-  }
-  .editor-scroll {
-    flex: 1; overflow-y: auto;
-    padding: 22px 24px;
-  }
-  .editor-title {
-    font-size: 1.3rem; font-weight: 600; margin: 0 0 4px;
-    font-family: Playfair Display, Georgia, serif;
-  }
-  .editor-sub {
-    color: #6B6157; font-size: 0.88rem; margin: 0 0 18px;
-  }
-  .field { margin-bottom: 14px; }
-  .field label {
-    display: block; font-size: 0.75rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.04em;
-    color: #6B6157; margin-bottom: 4px;
-  }
-  .field input, .field select, .field textarea {
-    width: 100%; padding: 8px 11px;
-    font: inherit; font-size: 0.93rem;
-    border: 1px solid rgba(43,39,35,0.2); border-radius: 8px;
-    background: #fff; color: #2B2723;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    outline: 0; border-color: #A65A43;
-    box-shadow: 0 0 0 3px rgba(166,90,67,0.1);
-  }
-  .field textarea { min-height: 280px; resize: vertical; font: 13px/1.6 ui-monospace, Menlo, monospace; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .toolbar {
-    display: flex; flex-wrap: wrap; gap: 5px;
-    margin-bottom: 8px;
-  }
-  .toolbar button {
-    font: inherit; font-size: 0.78rem; cursor: pointer;
-    background: #fff; color: #2B2723;
-    border: 1px solid rgba(43,39,35,0.16); border-radius: 6px;
-    padding: 5px 9px; white-space: nowrap;
-  }
-  .toolbar button:hover { background: rgba(166,90,67,0.08); border-color: #A65A43; }
-  .toolbar-sep { width: 1px; background: rgba(43,39,35,0.12); margin: 0 2px; }
-  .toolbar small { color: #6B6157; font-size: 0.72rem; align-self: center; margin-left: auto; }
-
-  .actions-bar {
-    padding: 12px 24px;
-    border-top: 1px solid rgba(43,39,35,0.1);
-    background: #fff;
-    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  }
-  .btn-primary {
-    font: inherit; font-size: 0.88rem; cursor: pointer;
-    background: #A65A43; color: #fff; border: 0; border-radius: 8px;
-    padding: 9px 16px; font-weight: 500;
-  }
-  .btn-primary:hover { background: #8f4c38; }
-  .btn-secondary {
-    font: inherit; font-size: 0.88rem; cursor: pointer;
-    background: transparent; color: #2B2723;
-    border: 1px solid rgba(43,39,35,0.22); border-radius: 8px;
-    padding: 9px 16px;
-  }
-  .btn-secondary:hover { background: rgba(43,39,35,0.04); }
-  .status { font-size: 0.78rem; color: #6B6157; margin-left: auto; }
-
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(26,24,22,0.5);
-    display: none; align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-box {
-    background: #F5F0E8; border-radius: 14px;
-    max-width: 720px; width: 100%; max-height: 85vh;
-    display: flex; flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
-  }
-  .modal-head { padding: 16px 20px 0; display: flex; justify-content: space-between; align-items: center; }
-  .modal-head h3 { margin: 0; font-size: 1.05rem; }
-  .modal-close { background: none; border: 0; font-size: 1.4rem; cursor: pointer; color: #6B6157; }
-  .modal-body { padding: 12px 20px 20px; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-  .modal-body p { margin: 0 0 8px; font-size: 0.88rem; color: #6B6157; }
-  .modal-body textarea {
-    flex: 1; width: 100%; font: 12px/1.6 ui-monospace, Menlo, monospace;
-    border: 1px solid rgba(43,39,35,0.2); border-radius: 8px; padding: 12px;
-    background: #fff; resize: none;
-  }
-  .modal-foot { padding: 0 20px 16px; display: flex; gap: 8px; justify-content: flex-end; }
-
-  /* Stili preview specifici */
-  .preview-back { color: #A65A43; text-decoration: none; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
-  .preview-back:hover { text-decoration: underline; }
-  .preview-title { font-family: Playfair Display, Georgia, serif; font-size: 2.4rem; font-weight: 500; line-height: 1.15; margin: 16px 0 8px; color: #2B2723; }
-  .preview-subtitle { font-size: 1.15rem; color: #6B6157; margin: 0 0 16px; line-height: 1.5; }
-  .preview-meta-row { display: flex; gap: 24px; margin-bottom: 24px; font-size: 0.82rem; color: #6B6157; text-transform: uppercase; letter-spacing: 0.04em; }
-  .preview-meta-row span strong { color: #2B2723; font-weight: 600; }
-  .preview-hero { width: 100%; border-radius: 8px; margin-bottom: 28px; display: block; }
-  .preview-body { font-size: 1.05rem; line-height: 1.75; color: #3A3530; }
-  .preview-body p { margin: 0 0 1.1em; }
-  .preview-body h2 { font-family: Playfair Display, Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 1.6em 0 0.6em; color: #2B2723; }
-  .preview-body h3 { font-family: Playfair Display, Georgia, serif; font-size: 1.25rem; font-weight: 500; margin: 1.4em 0 0.5em; color: #2B2723; }
-  .preview-body blockquote { margin: 1.2em 0 1.2em 24px; padding-left: 20px; border-left: 3px solid #A65A43; color: #5A5249; font-style: italic; }
-  .preview-body .citazione-lunga { margin: 1.4em 36px; padding: 0 20px; font-size: 1.02rem; line-height: 1.85; color: #5A5249; border-left: 2px solid rgba(168,159,148,0.4); border-right: 2px solid rgba(168,159,148,0.4); }
-  .preview-body ul, .preview-body ol { margin: 1em 0; padding-left: 28px; }
-  .preview-body li { margin-bottom: 0.4em; }
-  .preview-body img { max-width: 100%; border-radius: 6px; margin: 1em 0; }
-  .preview-body figure { margin: 1.2em 0; }
-  .preview-body figcaption { font-size: 0.85rem; color: #6B6157; text-align: center; margin-top: 6px; }
-  .preview-body .nota-rif { font-size: 0.75em; vertical-align: super; }
-  .preview-body .nota-rif a { color: #A65A43; text-decoration: none; }
-  .preview-body .note-articolo { margin-top: 2.5em; padding-top: 1.5em; border-top: 1px solid rgba(43,39,35,0.12); }
-  .preview-body .note-titolo { font-family: Playfair Display, Georgia, serif; font-size: 1.3rem; font-weight: 500; margin-bottom: 0.8em; }
-  .preview-body .note-articolo ol { padding-left: 22px; }
-  .preview-body .note-articolo li { margin-bottom: 0.6em; font-size: 0.92rem; color: #4A4540; }
-  .preview-body .nota-back { color: #A65A43; text-decoration: none; margin-left: 6px; }
-  .preview-body .riga-vuota { height: 1.2em; }
-  .preview-body a { color: #A65A43; }
-  .preview-body strong { font-weight: 600; }
-  .preview-body em { font-style: italic; }
-  .preview-body u { text-decoration: underline; }
-  .preview-body s { text-decoration: line-through; }
-
-  /* Colori e font della preview */
-  .preview-body.t-avorio { color: #F6F1E7; }
-  .preview-body.t-sabbia { color: #B4AB9F; }
-  .preview-body.t-oro { color: #D4A574; }
-  .preview-body.t-terracotta { color: #CD7A62; }
-  .preview-body.t-font-elegante { font-family: "Playfair Display", Georgia, serif; }
-  .preview-body.t-font-classico { font-family: Georgia, "Times New Roman", serif; }
-  .preview-body.t-font-macchina { font-family: "Space Mono", "Courier New", monospace; }
-
-  @media (max-width: 980px) {
-    .layout { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
-    .preview-col { border-right: 0; border-bottom: 1px solid rgba(43,39,35,0.12); }
-    .preview-title { font-size: 1.6rem; }
-  }
+  body { margin:0; font-family:Inter,system-ui,sans-serif; background:#EAE5DD; color:#2B2723; height:100vh; overflow:hidden; }
+  .layout { display:grid; grid-template-columns:1fr 520px; height:100vh; }
+  .preview-col { overflow-y:auto; border-right:1px solid rgba(43,39,35,0.12); background:#EAE5DD; }
+  .preview-inner { max-width:860px; margin:0 auto; padding:32px 28px 60px; }
+  .preview-header { position:sticky; top:0; z-index:10; background:#EAE5DD; padding:10px 0; border-bottom:1px solid rgba(43,39,35,0.08); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:#6B6157; text-transform:uppercase; letter-spacing:0.06em; }
+  .editor-col { display:flex; flex-direction:column; background:#F5F0E8; overflow:hidden; }
+  .editor-scroll { flex:1; overflow-y:auto; padding:22px 24px; }
+  .editor-title { font-size:1.3rem; font-weight:600; margin:0 0 4px; font-family:Playfair Display,Georgia,serif; }
+  .editor-sub { color:#6B6157; font-size:0.88rem; margin:0 0 18px; }
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:#6B6157; margin-bottom:4px; }
+  .field input,.field select,.field textarea { width:100%; padding:8px 11px; font:inherit; font-size:0.93rem; border:1px solid rgba(43,39,35,0.2); border-radius:8px; background:#fff; color:#2B2723; }
+  .field input:focus,.field select:focus,.field textarea:focus { outline:0; border-color:#A65A43; box-shadow:0 0 0 3px rgba(166,90,67,0.1); }
+  .field textarea { min-height:280px; resize:vertical; font:13px/1.6 ui-monospace,Menlo,monospace; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+  .toolbar button { font:inherit; font-size:0.78rem; cursor:pointer; background:#fff; color:#2B2723; border:1px solid rgba(43,39,35,0.16); border-radius:6px; padding:5px 9px; white-space:nowrap; }
+  .toolbar button:hover { background:rgba(166,90,67,0.08); border-color:#A65A43; }
+  .toolbar-sep { width:1px; background:rgba(43,39,35,0.12); margin:0 2px; }
+  .toolbar small { color:#6B6157; font-size:0.72rem; align-self:center; margin-left:auto; }
+  .actions-bar { padding:12px 24px; border-top:1px solid rgba(43,39,35,0.1); background:#fff; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .btn-primary { font:inherit; font-size:0.88rem; cursor:pointer; background:#A65A43; color:#fff; border:0; border-radius:8px; padding:9px 16px; font-weight:500; }
+  .btn-primary:hover { background:#8f4c38; }
+  .btn-secondary { font:inherit; font-size:0.88rem; cursor:pointer; background:transparent; color:#2B2723; border:1px solid rgba(43,39,35,0.22); border-radius:8px; padding:9px 16px; }
+  .btn-secondary:hover { background:rgba(43,39,35,0.04); }
+  .status { font-size:0.78rem; color:#6B6157; margin-left:auto; }
+  .modal-overlay { position:fixed; inset:0; z-index:1000; background:rgba(26,24,22,0.5); display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:#F5F0E8; border-radius:14px; max-width:720px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.22); }
+  .modal-head { padding:16px 20px 0; display:flex; justify-content:space-between; align-items:center; }
+  .modal-head h3 { margin:0; font-size:1.05rem; }
+  .modal-close { background:none; border:0; font-size:1.4rem; cursor:pointer; color:#6B6157; }
+  .modal-body { padding:12px 20px 20px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .modal-body p { margin:0 0 8px; font-size:0.88rem; color:#6B6157; }
+  .modal-body textarea { flex:1; width:100%; font:12px/1.6 ui-monospace,Menlo,monospace; border:1px solid rgba(43,39,35,0.2); border-radius:8px; padding:12px; background:#fff; resize:none; }
+  .modal-foot { padding:0 20px 16px; display:flex; gap:8px; justify-content:flex-end; }
+  .preview-back { color:#A65A43; text-decoration:none; font-size:0.82rem; letter-spacing:0.04em; text-transform:uppercase; }
+  .preview-back:hover { text-decoration:underline; }
+  .preview-title { font-family:Playfair Display,Georgia,serif; font-size:2.4rem; font-weight:500; line-height:1.15; margin:16px 0 8px; color:#2B2723; }
+  .preview-subtitle { font-size:1.15rem; color:#6B6157; margin:0 0 16px; line-height:1.5; }
+  .preview-meta-row { display:flex; gap:24px; margin-bottom:24px; font-size:0.82rem; color:#6B6157; text-transform:uppercase; letter-spacing:0.04em; }
+  .preview-meta-row span strong { color:#2B2723; font-weight:600; }
+  .preview-hero { width:100%; border-radius:8px; margin-bottom:28px; display:block; }
+  .preview-body { font-size:1.05rem; line-height:1.75; color:#3A3530; }
+  .preview-body p { margin:0 0 1.1em; }
+  .preview-body h2 { font-family:Playfair Display,Georgia,serif; font-size:1.6rem; font-weight:500; margin:1.6em 0 0.6em; color:#2B2723; }
+  .preview-body h3 { font-family:Playfair Display,Georgia,serif; font-size:1.25rem; font-weight:500; margin:1.4em 0 0.5em; color:#2B2723; }
+  .preview-body blockquote { margin:1.2em 0 1.2em 24px; padding-left:20px; border-left:3px solid #A65A43; color:#5A5249; font-style:italic; }
+  .preview-body .citazione-lunga { margin:1.4em 36px; padding:0 20px; font-size:1.02rem; line-height:1.85; color:#5A5249; border-left:2px solid rgba(168,159,148,0.4); border-right:2px solid rgba(168,159,148,0.4); }
+  .preview-body ul,.preview-body ol { margin:1em 0; padding-left:28px; }
+  .preview-body li { margin-bottom:0.4em; }
+  .preview-body img { max-width:100%; border-radius:6px; margin:1em 0; }
+  .preview-body figure { margin:1.2em 0; }
+  .preview-body figcaption { font-size:0.85rem; color:#6B6157; text-align:center; margin-top:6px; }
+  .preview-body .nota-rif { font-size:0.75em; vertical-align:super; }
+  .preview-body .nota-rif a { color:#A65A43; text-decoration:none; }
+  .preview-body .note-articolo { margin-top:2.5em; padding-top:1.5em; border-top:1px solid rgba(43,39,35,0.12); }
+  .preview-body .note-titolo { font-family:Playfair Display,Georgia,serif; font-size:1.3rem; font-weight:500; margin-bottom:0.8em; }
+  .preview-body .note-articolo ol { padding-left:22px; }
+  .preview-body .note-articolo li { margin-bottom:0.6em; font-size:0.92rem; color:#4A4540; }
+  .preview-body .nota-back { color:#A65A43; text-decoration:none; margin-left:6px; }
+  .preview-body .riga-vuota { height:1.2em; }
+  .preview-body a { color:#A65A43; }
+  .preview-body strong { font-weight:600; }
+  .preview-body em { font-style:italic; }
+  .preview-body u { text-decoration:underline; }
+  .preview-body s { text-decoration:line-through; }
+  .preview-body.t-avorio { color:#F6F1E7; }
+  .preview-body.t-sabbia { color:#B4AB9F; }
+  .preview-body.t-oro { color:#D4A574; }
+  .preview-body.t-terracotta { color:#CD7A62; }
+  .preview-body.t-font-elegante { font-family:"Playfair Display",Georgia,serif; }
+  .preview-body.t-font-classico { font-family:Georgia,"Times New Roman",serif; }
+  .preview-body.t-font-macchina { font-family:"Space Mono","Courier New",monospace; }
+  @media (max-width:980px) { .layout { grid-template-columns:1fr; grid-template-rows:40vh 1fr; } .preview-col { border-right:0; border-bottom:1px solid rgba(43,39,35,0.12); } .preview-title { font-size:1.6rem; } }
 </style>
 </head>
 <body>
 
 <div class="layout">
-  <!-- PREVIEW -->
-  <div class="preview-col" id="previewCol">
-    <div class="preview-inner" id="previewInner"></div>
-  </div>
-
-  <!-- EDITOR -->
+  <div class="preview-col" id="previewCol"><div class="preview-inner" id="previewInner"></div></div>
   <div class="editor-col">
     <div class="editor-scroll">
       <h1 class="editor-title">Editor articoli</h1>
       <p class="editor-sub">Scrivi qui e vedi il risultato a sinistra in tempo reale.</p>
-
       <div class="field-row">
-        <div class="field">
-          <label for="inpSlug">Slug (URL)</label>
-          <input type="text" id="inpSlug" placeholder="es. la-rinascita-dell-ontologia">
-        </div>
-        <div class="field">
-          <label for="inpDate">Data</label>
-          <input type="date" id="inpDate">
-        </div>
+        <div class="field"><label for="inpSlug">Slug (URL)</label><input type="text" id="inpSlug" placeholder="es. la-rinascita-dell-ontologia"></div>
+        <div class="field"><label for="inpDate">Data</label><input type="date" id="inpDate"></div>
       </div>
-
-      <div class="field">
-        <label for="inpTitle">Titolo</label>
-        <input type="text" id="inpTitle" placeholder="Titolo dell'articolo">
-      </div>
-
-      <div class="field">
-        <label for="inpSubtitle">Sottotitolo (facoltativo)</label>
-        <input type="text" id="inpSubtitle" placeholder="">
-      </div>
-
+      <div class="field"><label for="inpTitle">Titolo</label><input type="text" id="inpTitle" placeholder="Titolo dell'articolo"></div>
+      <div class="field"><label for="inpSubtitle">Sottotitolo (facoltativo)</label><input type="text" id="inpSubtitle" placeholder=""></div>
       <div class="field-row">
-        <div class="field">
-          <label for="inpCategory">Categoria</label>
-          <select id="inpCategory">
-            <option value="recensioni">Recensioni</option>
-            <option value="cinema">Cinema</option>
-            <option value="politica">Politica</option>
-            <option value="riflessioni">Riflessioni</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="inpImage">Immagine di copertina (URL)</label>
-          <input type="text" id="inpImage" placeholder="https://res.cloudinary.com/...">
-        </div>
+        <div class="field"><label for="inpCategory">Categoria</label><select id="inpCategory"><option value="recensioni">Recensioni</option><option value="cinema">Cinema</option><option value="politica">Politica</option><option value="riflessioni">Riflessioni</option></select></div>
+        <div class="field"><label for="inpImage">Immagine di copertina (URL)</label><input type="text" id="inpImage" placeholder="https://res.cloudinary.com/..."></div>
       </div>
-
       <div class="field-row">
-        <div class="field">
-          <label for="inpFont">Font</label>
-          <select id="inpFont">
-            <option value="predefinito">Predefinito</option>
-            <option value="elegante">Elegante</option>
-            <option value="classico">Classico</option>
-            <option value="macchina">Macchina da scrivere</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="inpColore">Colore testo</label>
-          <select id="inpColore">
-            <option value="predefinito">Predefinito</option>
-            <option value="avorio">Avorio</option>
-            <option value="sabbia">Sabbia</option>
-            <option value="oro">Oro</option>
-            <option value="terracotta">Terracotta</option>
-          </select>
-        </div>
+        <div class="field"><label for="inpFont">Font</label><select id="inpFont"><option value="predefinito">Predefinito</option><option value="elegante">Elegante</option><option value="classico">Classico</option><option value="macchina">Macchina da scrivere</option></select></div>
+        <div class="field"><label for="inpColore">Colore testo</label><select id="inpColore"><option value="predefinito">Predefinito</option><option value="avorio">Avorio</option><option value="sabbia">Sabbia</option><option value="oro">Oro</option><option value="terracotta">Terracotta</option></select></div>
       </div>
-
       <div class="field">
         <label>Toolbar</label>
         <div class="toolbar" id="toolbar">
@@ -280,56 +133,41 @@
           <small>Seleziona testo e premi un pulsante</small>
         </div>
       </div>
-
-      <div class="field">
-        <label for="inpBody">Testo dell'articolo (markdown)</label>
-        <textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea>
-      </div>
-
+      <div class="field"><label for="inpBody">Testo dell'articolo (markdown)</label><textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea></div>
       <div class="field">
         <label>Carica articolo esistente</label>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="loadSlug" placeholder="Slug dell'articolo" style="flex:1;">
-          <button type="button" class="btn-secondary" onclick="loadExisting()">Carica</button>
-        </div>
+        <div style="display:flex;gap:8px;"><input type="text" id="loadSlug" placeholder="Slug dell'articolo" style="flex:1;"><button type="button" class="btn-secondary" onclick="loadExisting()">Carica</button></div>
         <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">Scarica l'articolo dal JSON remoto e riempie i campi.</p>
+      </div>
+      <div style="border-top:1px solid rgba(43,39,35,0.12);margin:20px 0;padding-top:16px;">
+        <h2 style="font-size:1rem;font-weight:600;margin:0 0 12px;">Impostazioni sito</h2>
+        <div class="field"><label for="inpAuthorName">Nome autore</label><input type="text" id="inpAuthorName" placeholder="Davide Amato"></div>
+        <div class="field"><label for="inpAuthorBio">Bio autore</label><textarea id="inpAuthorBio" rows="3" placeholder="Breve descrizione..." style="min-height:80px;"></textarea></div>
+        <div class="field"><label for="inpAuthorImage">Foto autore (URL, grandezza originale)</label><input type="text" id="inpAuthorImage" placeholder="https://res.cloudinary.com/..."><p style="font-size:0.75rem;color:#6B6157;margin:4px 0 0;">Inserisci l'URL della foto cosi come la vuoi pubblicare. Nessuna ottimizzazione automatica verra applicata.</p></div>
+        <div style="display:flex;gap:8px;"><button type="button" class="btn-secondary" onclick="loadSettings()">Carica impostazioni</button><button type="button" class="btn-secondary" onclick="saveSettingsToGitHub()">Salva impostazioni su GitHub</button></div>
       </div>
 
       <div style="border-top:1px solid rgba(43,39,35,0.12);margin:20px 0;padding-top:16px;">
-        <h2 style="font-size:1rem;font-weight:600;margin:0 0 12px;">Impostazioni sito</h2>
-        <div class="field">
-          <label for="inpAuthorName">Nome autore</label>
-          <input type="text" id="inpAuthorName" placeholder="Davide Amato">
-        </div>
-        <div class="field">
-          <label for="inpAuthorBio">Bio autore</label>
-          <textarea id="inpAuthorBio" rows="3" placeholder="Breve descrizione..." style="min-height:80px;"></textarea>
-        </div>
-        <div class="field">
-          <label for="inpAuthorImage">Foto autore (URL, grandezza originale)</label>
-          <input type="text" id="inpAuthorImage" placeholder="https://res.cloudinary.com/...">
-          <p style="font-size:0.75rem;color:#6B6157;margin:4px 0 0;">Inserisci l'URL della foto cosi come la vuoi pubblicare. Nessuna ottimizzazione automatica verra applicata.</p>
-        </div>
+        <h2 style="font-size:1rem;font-weight:600;margin:0 0 12px;">Pagina Bio</h2>
+        <div class="field"><label for="bioNome">Nome</label><input type="text" id="bioNome" placeholder="Davide Amato"></div>
+        <div class="field"><label for="bioFoto">URL foto ritratto</label><input type="text" id="bioFoto" placeholder="images/bio-photo.jpg oppure URL Cloudinary"></div>
+        <div class="field"><label for="bioParagrafi">Paragrafi bio (uno per riga, HTML permesso nei link)</label><textarea id="bioParagrafi" rows="5" placeholder="Sono Davide Amato..." style="min-height:100px;"></textarea></div>
+        <div class="field"><label for="bioFormazione">Formazione (formato: anno | titolo | dettaglio, uno per riga)</label><textarea id="bioFormazione" rows="4" placeholder="2023 | Laurea Magistrale... | UniMi" style="min-height:80px;"></textarea></div>
+        <div class="field"><label for="bioEsperienze">Esperienze (formato: anno | titolo | dettaglio, uno per riga)</label><textarea id="bioEsperienze" rows="4" placeholder="2023 | Fotografo eventi | Freelance" style="min-height:80px;"></textarea></div>
         <div style="display:flex;gap:8px;">
-          <button type="button" class="btn-secondary" onclick="loadSettings()">Carica impostazioni</button>
-          <button type="button" class="btn-secondary" onclick="saveSettingsToGitHub()">Salva impostazioni su GitHub</button>
+          <button type="button" class="btn-secondary" onclick="loadBio()">Carica bio</button>
+          <button type="button" class="btn-secondary" onclick="saveBioToGitHub()">Salva bio su GitHub</button>
         </div>
+        <p style="font-size:0.78rem;color:#6B6157;margin:8px 0 0;">La pagina <code>bio.html</code> legge questi dati da <code>content/bio.json</code>. Dopo il salvataggio, attendi 1-2 minuti per GitHub Pages.</p>
       </div>
 
       <div class="field">
         <label>Pubblicazione su GitHub</label>
         <input type="password" id="githubToken" placeholder="Token GitHub (ghp_...)">
-        <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">
-          <a href="https://github.com/settings/tokens/new?scopes=repo&description=Erosioni%20Editor" target="_blank" rel="noopener">Genera token</a>
-          con permesso <code>repo</code>, incollalo qui, poi premi "Pubblica".
-          Il token resta nel tuo browser, non viene inviato altrove.
-        </p>
-        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;text-transform:none;letter-spacing:0;">
-          <input type="checkbox" id="saveToken" style="width:auto;"> Salva token nel browser
-        </label>
+        <p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;"><a href="https://github.com/settings/tokens/new?scopes=repo&description=Erosioni%20Editor" target="_blank" rel="noopener">Genera token</a> con permesso <code>repo</code>, incollalo qui, poi premi "Pubblica". Il token resta nel tuo browser, non viene inviato altrove.</p>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" id="saveToken" style="width:auto;"> Salva token nel browser</label>
       </div>
     </div>
-
     <div class="actions-bar">
       <button class="btn-primary" onclick="publishToGitHub()">Pubblica su GitHub</button>
       <button class="btn-secondary" onclick="exportJSON()">Esporta JSON</button>
@@ -340,29 +178,19 @@
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>JSON articolo pronto</h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p>Copia questo frammento e incollalo nell'array <code>articles</code> di <code>content/articoli.json</code> su GitHub (sostituisci l'articolo vecchio se lo stai modificando).</p>
-      <textarea id="exportArea" readonly></textarea>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-secondary" onclick="closeModal()">Chiudi</button>
-      <button class="btn-primary" onclick="copyExport()">Copia negli appunti</button>
-    </div>
+    <div class="modal-head"><h3>JSON articolo pronto</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body"><p>Copia questo frammento e incollalo nell'array <code>articles</code> di <code>content/articoli.json</code> su GitHub (sostituisci l'articolo vecchio se lo stai modificando).</p><textarea id="exportArea" readonly></textarea></div>
+    <div class="modal-foot"><button class="btn-secondary" onclick="closeModal()">Chiudi</button><button class="btn-primary" onclick="copyExport()">Copia negli appunti</button></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
-// ==================== RENDERING (identico al sito) ====================
-const MONTHS_IT = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
-const CATEGORY_LABELS = { recensioni:"Recensioni", cinema:"Cinema", politica:"Politica", riflessioni:"Riflessioni" };
+/* ===================== RENDERING ===================== */
+var MONTHS_IT = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
+var CATEGORY_LABELS = { recensioni:"Recensioni", cinema:"Cinema", politica:"Politica", riflessioni:"Riflessioni" };
 
 function formatDateIt(isoDate) {
   var d = new Date(isoDate + "T00:00:00");
@@ -375,7 +203,7 @@ function optimizeImage(url, width) {
   if (!url || url.indexOf("res.cloudinary.com") === -1 || url.indexOf("/upload/") === -1) return url;
   var marker = "/upload/";
   var i = url.indexOf(marker) + marker.length;
-  var already = /\/upload\/[a-z0-9_,]*(f_auto|q_auto)/.test(url);
+  var already = url.indexOf("f_auto") !== -1 || url.indexOf("q_auto") !== -1;
   if (already) return url;
   var transform = "f_auto,q_auto:good,w_" + (width || 1600) + "/";
   return url.slice(0, i) + transform + url.slice(i);
@@ -394,7 +222,6 @@ function stileClassi(attrs, perBlocco) {
 }
 
 function renderInline(text) {
-  // Fix per compatibilita: sostituisce underscore corsivi senza lookbehind (non supportato in Safari < 16.4)
   var out = text
     .replace(/\[u\]([\s\S]*?)\[\/u\]/g, "<u>$1</u>")
     .replace(/\[s\]([\s\S]*?)\[\/s\]/g, "<s>$1</s>")
@@ -413,8 +240,7 @@ function renderInline(text) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/\_/g, "_");
-  // Sostituzione underscore corsivo compatibile (senza lookbehind)
+    .replace(/\\_/g, "_");
   out = out.replace(/(^|[^A-Za-z0-9])_([^_]+)_([^A-Za-z0-9]|$)/g, function(m, before, content, after) {
     return before + "<em>" + content + "</em>" + after;
   });
@@ -428,18 +254,12 @@ function renderMarkdown(md) {
     return "{{NOTA_" + note.length + "}}";
   });
   var noteImportate = {};
-  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^
-]+)/g, function(m, n, testo) { noteImportate[n] = testo.trim(); return ""; });
-  md = md.replace(/(^|
-\s*
-)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^
-]+)/g, function(m, sep, n, testo) { noteImportate[n] = testo.trim(); return sep; });
+  md = md.replace(/\[\[(\d+)\]\]\(#_ftnref\d+\)\s+([^\n]+)/g, function(m, n, testo) { noteImportate[n] = testo.trim(); return ""; });
+  md = md.replace(/(^|\n\s*\n)\s*\[\[(\d+)\]\]\(#_ftn\d+\)\s+([^\n]+)/g, function(m, sep, n, testo) { noteImportate[n] = testo.trim(); return sep; });
   md = md.replace(/\[\[(\d+)\]\]\(#_ftn(?:ref)?\d+\)/g, function(m, n) { note.push(noteImportate[n] || "Nota " + n + "."); return "{{NOTA_" + note.length + "}}"; });
   md = md.replace(/\s+$/, "");
 
-  var pieces = md.split(/(
-\s*
-+)/);
+  var pieces = md.split(/(\n\s*\n+)/);
   var blocks = [];
   pieces.forEach(function(piece, i) {
     if (i % 2 === 0) { if (piece.trim()) blocks.push(piece); }
@@ -447,8 +267,7 @@ function renderMarkdown(md) {
       var precedente = blocks.length ? blocks[blocks.length - 1].trim() : "";
       var successivo = (pieces[i + 1] || "").trim();
       if (/^#{1,3}\s/.test(precedente) || /^#{1,3}\s/.test(successivo)) return;
-      var extra = piece.split("
-").length - 3;
+      var extra = piece.split("\n").length - 3;
       for (var k = 0; k < extra; k++) blocks.push("[riga-vuota]");
     }
   });
@@ -463,59 +282,44 @@ function renderMarkdown(md) {
       return alt ? "<figure>" + img + "<figcaption>" + renderInline(alt) + "</figcaption></figure>" : img;
     }
     var interlinea = trimmed.match(/^\[interlinea=([\d.]+)\]([\s\S]*?)\[\/interlinea\]$/);
-    if (interlinea) return '<p style="line-height:' + interlinea[1] + '">' + renderInline(interlinea[2]).replace(/
-/g, "<br>") + "</p>";
+    if (interlinea) return '<p style="line-height:' + interlinea[1] + '">' + renderInline(interlinea[2]).replace(/\n/g, "<br>") + "</p>";
     var stileBlocco = trimmed.match(/^\[stile-blocco=([^\]]+)\]([\s\S]*?)\[\/stile-blocco\]$/);
     if (stileBlocco) {
       var classi = stileClassi(stileBlocco[1], true);
-      var contenuto = renderInline(stileBlocco[2]).replace(/
-/g, "<br>");
+      var contenuto = renderInline(stileBlocco[2]).replace(/\n/g, "<br>");
       return classi ? '<p class="' + classi + '">' + contenuto + "</p>" : "<p>" + contenuto + "</p>";
     }
     var blocco = trimmed.match(/^\[blocco=(avorio|sabbia|oro|terracotta)\]([\s\S]*?)\[\/blocco\]$/);
-    if (blocco) return '<p class="blocco-' + blocco[1] + '">' + renderInline(blocco[2]).replace(/
-/g, "<br>") + "</p>";
+    if (blocco) return '<p class="blocco-' + blocco[1] + '">' + renderInline(blocco[2]).replace(/\n/g, "<br>") + "</p>";
     var bloccoFont = trimmed.match(/^\[blocco-font=(elegante|classico|macchina)\]([\s\S]*?)\[\/blocco-font\]$/);
-    if (bloccoFont) return '<p class="blocco-font-' + bloccoFont[1] + '">' + renderInline(bloccoFont[2]).replace(/
-/g, "<br>") + "</p>";
+    if (bloccoFont) return '<p class="blocco-font-' + bloccoFont[1] + '">' + renderInline(bloccoFont[2]).replace(/\n/g, "<br>") + "</p>";
     var citazione = trimmed.match(/^\[citazione\]([\s\S]*?)\[\/citazione\]$/);
-    if (citazione) return '<p class="citazione-lunga">' + renderInline(citazione[1]).replace(/
-/g, "<br>") + "</p>";
+    if (citazione) return '<p class="citazione-lunga">' + renderInline(citazione[1]).replace(/\n/g, "<br>") + "</p>";
     if (trimmed.indexOf("### ") === 0) return "<h3>" + renderInline(trimmed.slice(4)) + "</h3>";
     if (trimmed.indexOf("## ") === 0) return "<h2>" + renderInline(trimmed.slice(3)) + "</h2>";
     if (trimmed.indexOf("> ") === 0) return "<blockquote>" + renderInline(trimmed.slice(2)) + "</blockquote>";
-    if (/^[-•] /.test(trimmed)) {
-      var items = trimmed.split("
-").map(function(l) { return l.trim(); }).filter(function(l) { return /^[-•] /.test(l); }).map(function(l) { return "<li>" + renderInline(l.slice(2)) + "</li>"; }).join("");
+    if (/^[-\u2022] /.test(trimmed)) {
+      var items = trimmed.split("\n").map(function(l) { return l.trim(); }).filter(function(l) { return /^[-\u2022] /.test(l); }).map(function(l) { return "<li>" + renderInline(l.slice(2)) + "</li>"; }).join("");
       return "<ul>" + items + "</ul>";
     }
     if (/^\d+\. /.test(trimmed)) {
-      var items2 = trimmed.split("
-").map(function(l) { return l.trim(); }).filter(function(l) { return /^\d+\. /.test(l); }).map(function(l) { return "<li>" + renderInline(l.replace(/^\d+\. /, "")) + "</li>"; }).join("");
+      var items2 = trimmed.split("\n").map(function(l) { return l.trim(); }).filter(function(l) { return /^\d+\. /.test(l); }).map(function(l) { return "<li>" + renderInline(l.replace(/^\d+\. /, "")) + "</li>"; }).join("");
       return "<ol>" + items2 + "</ol>";
     }
-    return "<p>" + renderInline(trimmed).replace(/
-/g, "<br>") + "</p>";
-  }).join("
-");
+    return "<p>" + renderInline(trimmed).replace(/\n/g, "<br>") + "</p>";
+  }).join("\n");
 
   if (note.length) {
     html = html.replace(/\{\{NOTA_(\d+)\}\}/g, function(m, n) { return '<sup class="nota-rif"><a href="#nota-' + n + '">' + n + "</a></sup>"; });
-    html += "
-<div class="note-articolo"><h3 class="note-titolo">Note</h3><ol>" +
+    html += "\n<div class=\"note-articolo\"><h3 class=\"note-titolo\">Note</h3><ol>" +
       note.map(function(t, i) { return '<li id="nota-' + (i + 1) + '">' + renderInline(t) + ' <a class="nota-back" href="#nota-' + (i + 1) + '">&#8617;</a></li>'; }).join("") +
       "</ol></div>";
   }
   return html;
 }
 
-// ==================== EDITOR ACTIONS ====================
+/* ===================== EDITOR ACTIONS ===================== */
 var savedSel = { start: 0, end: 0 };
-
-document.getElementById("toolbar").addEventListener("mousedown", function(e) {
-  var ta = document.getElementById("inpBody");
-  savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
-});
 
 function wrap(before, after) {
   var ta = document.getElementById("inpBody");
@@ -569,11 +373,7 @@ function insertInterlinea() {
   insertAtCursor("[interlinea=" + valore + "]" + sel + "[/interlinea]");
 }
 function insertEmptyLine() {
-  insertAtCursor("
-
-[riga-vuota]
-
-");
+  insertAtCursor("\n\n[riga-vuota]\n\n");
 }
 function insertCitazione() {
   var ta = document.getElementById("inpBody");
@@ -585,14 +385,14 @@ function insertImage() {
   var url = prompt("URL immagine (Cloudinary):");
   if (!url) return;
   var alt = prompt("Didascalia (facoltativa):") || "";
-  insertAtCursor("
-
-![" + alt + "](" + url + ")
-
-");
+  insertAtCursor("\n\n![" + alt + "](" + url + ")\n\n");
 }
 
-// Toolbar event delegation
+document.getElementById("toolbar").addEventListener("mousedown", function(e) {
+  var ta = document.getElementById("inpBody");
+  savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
+});
+
 document.getElementById("toolbar").addEventListener("click", function(e) {
   var btn = e.target.closest("button[data-action]");
   if (!btn) return;
@@ -614,14 +414,21 @@ document.getElementById("toolbar").addEventListener("click", function(e) {
   }
 });
 
-// ==================== IMPORTAZIONE WORD ====================
+document.getElementById("btnImportWord").addEventListener("click", function() {
+  document.getElementById("wordFile").click();
+});
+document.getElementById("wordFile").addEventListener("change", function() {
+  if (this.files && this.files[0]) importaWord(this.files[0]);
+});
+
+/* ===================== IMPORTAZIONE WORD ===================== */
 function escapaTesto(text) {
   return text
-    .replace(/\/g, "\\")
-    .replace(/\*/g, "\*")
-    .replace(/_/g, "\_")
-    .replace(/\[/g, "\[")
-    .replace(/\]/g, "\]")
+    .replace(/\\/g, "\\\\")
+    .replace(/\*/g, "\\*")
+    .replace(/_/g, "\\_")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
@@ -671,8 +478,7 @@ function htmlVersoMarkdown(html) {
       if (tag === "em" || tag === "i") { out += "*" + inline(el) + "*"; return; }
       if (tag === "u") { out += "[u]" + inline(el) + "[/u]"; return; }
       if (tag === "s" || tag === "strike" || tag === "del") { out += "[s]" + inline(el) + "[/s]"; return; }
-      if (tag === "br") { out += "
-"; return; }
+      if (tag === "br") { out += "\n"; return; }
       if (tag === "img") {
         nImmagini++;
         var alt = (el.getAttribute("alt") || "").trim();
@@ -714,32 +520,24 @@ function htmlVersoMarkdown(html) {
 
   function blocco(el) {
     var tag = el.tagName.toLowerCase();
-    var contenuto = inline(el).replace(/[ 	]+
-/g, "
-").trim();
+    var contenuto = inline(el).replace(/[ \t]+\n/g, "\n").trim();
     if (tag === "h1" || tag === "h2") return contenuto ? "## " + contenuto : "";
     if (tag === "h3" || tag === "h4") return contenuto ? "### " + contenuto : "";
     if (tag === "blockquote") {
-      return contenuto.split("
-").map(function(r) { return "> " + r; }).join("
-");
+      return contenuto.split("\n").map(function(r) { return "> " + r; }).join("\n");
     }
     if (tag === "p" && haRientro(el) && contenuto) {
-      return contenuto.split("
-").map(function(r) { return "> " + r; }).join("
-");
+      return contenuto.split("\n").map(function(r) { return "> " + r; }).join("\n");
     }
     if (tag === "ul") {
       return Array.prototype.map.call(el.children, function(li) {
         return "- " + inline(li).trim();
-      }).join("
-");
+      }).join("\n");
     }
     if (tag === "ol") {
       return Array.prototype.map.call(el.children, function(li, i) {
         return (i + 1) + ". " + inline(li).trim();
-      }).join("
-");
+      }).join("\n");
     }
     return contenuto;
   }
@@ -751,9 +549,7 @@ function htmlVersoMarkdown(html) {
     if (b) blocchi.push(b);
   });
 
-  var markdown = blocchi.join("
-
-");
+  var markdown = blocchi.join("\n\n");
   markdown = markdown.replace(/_\s+_/g, " ");
 
   return {
@@ -797,9 +593,7 @@ function importaWord(file) {
 
       var ta = document.getElementById("inpBody");
       if (ta.value.trim()) {
-        ta.value += "
-
-" + esito.markdown;
+        ta.value += "\n\n" + esito.markdown;
       } else {
         ta.value = esito.markdown;
       }
@@ -816,14 +610,7 @@ function importaWord(file) {
   reader.readAsArrayBuffer(file);
 }
 
-document.getElementById("btnImportWord").addEventListener("click", function() {
-  document.getElementById("wordFile").click();
-});
-document.getElementById("wordFile").addEventListener("change", function() {
-  if (this.files && this.files[0]) importaWord(this.files[0]);
-});
-
-// ==================== PUBBLICAZIONE GITHUB ====================
+/* ===================== PUBBLICAZIONE GITHUB ===================== */
 function b64EncodeUnicode(str) {
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
     return String.fromCharCode("0x" + p1);
@@ -838,46 +625,18 @@ function b64DecodeUnicode(str) {
 function generateStaticPage(article) {
   var base = "https://davideamatoag.github.io/Erosioni";
   var title = (article.title || "Articolo").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  var desc = (article.sottotitolo || (article.body || "").slice(0, 160).replace(/
-/g, " ").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
+  var desc = (article.sottotitolo || (article.body || "").slice(0, 160).replace(/\n/g, " ").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
   var img = article.image || "";
   if (img.indexOf("images/") === 0) img = base + "/" + img;
   var slug = article.slug;
 
-  return '<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>' + title + ' — Erosioni</title>
-<meta name="description" content="' + desc + '">
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="Erosioni">
-<meta property="og:title" content="' + title + ' — Erosioni">
-<meta property="og:description" content="' + desc + '">
-<meta property="og:image" content="' + img + '">
-<meta property="og:url" content="' + base + '/articoli/' + slug + '.html">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="' + title + ' — Erosioni">
-<meta name="twitter:description" content="' + desc + '">
-<meta name="twitter:image" content="' + img + '">
-<link rel="canonical" href="' + base + '/articoli/' + slug + '.html">
-<script>window.location.replace("' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '");<\/script>
-</head>
-<body>
-<p>Reindirizzamento a <a href="' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '">' + title + '</a>...</p>
-</body>
-</html>';
+  return '<!DOCTYPE html>\n<html lang="it">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>' + title + ' — Erosioni</title>\n<meta name="description" content="' + desc + '">\n<meta property="og:type" content="article">\n<meta property="og:site_name" content="Erosioni">\n<meta property="og:title" content="' + title + ' — Erosioni">\n<meta property="og:description" content="' + desc + '">\n<meta property="og:image" content="' + img + '">\n<meta property="og:url" content="' + base + '/articoli/' + slug + '.html">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="' + title + ' — Erosioni">\n<meta name="twitter:description" content="' + desc + '">\n<meta name="twitter:image" content="' + img + '">\n<link rel="canonical" href="' + base + '/articoli/' + slug + '.html">\n<script>window.location.replace("' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '");<\/script>\n</head>\n<body>\n<p>Reindirizzamento a <a href="' + base + '/articolo.html?slug=' + encodeURIComponent(slug) + '">' + title + '</a>...</p>\n</body>\n</html>';
 }
 
 async function publishToGitHub() {
   var token = document.getElementById("githubToken").value.trim();
   if (!token) {
-    alert("Inserisci il token GitHub.
-
-1. Vai su https://github.com/settings/tokens/new
-2. Seleziona il permesso 'repo'
-3. Copia il token e incollalo qui.");
+    alert("Inserisci il token GitHub.\n\n1. Vai su https://github.com/settings/tokens/new\n2. Seleziona il permesso 'repo'\n3. Copia il token e incollalo qui.");
     return;
   }
   if (document.getElementById("saveToken").checked) {
@@ -927,7 +686,7 @@ async function publishToGitHub() {
     var isNew = existingIdx < 0;
 
     if (!isNew) {
-      if (!confirm('L'articolo "' + (articles[existingIdx].title || slug) + '" esiste gia. Sovrascriverlo?')) {
+      if (!confirm('L\'articolo "' + (articles[existingIdx].title || slug) + '" esiste gia. Sovrascriverlo?')) {
         status.textContent = "";
         return;
       }
@@ -1008,7 +767,7 @@ async function publishToGitHub() {
   }
 }
 
-// ==================== PREVIEW ====================
+/* ===================== PREVIEW ===================== */
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -1042,7 +801,7 @@ function updatePreview() {
   document.getElementById("previewInner").innerHTML = html;
 }
 
-// ==================== IMPOSTAZIONI ====================
+/* ===================== IMPOSTAZIONI ===================== */
 async function loadSettings() {
   try {
     var res = await fetch("../content/impostazioni.json", { cache: "no-store" });
@@ -1059,10 +818,7 @@ async function loadSettings() {
 
 async function saveSettingsToGitHub() {
   var token = document.getElementById("githubToken").value.trim();
-  if (!token) {
-    alert("Inserisci il token GitHub.");
-    return;
-  }
+  if (!token) { alert("Inserisci il token GitHub."); return; }
   var status = document.getElementById("status");
   status.textContent = "Salvataggio impostazioni...";
 
@@ -1111,7 +867,7 @@ async function saveSettingsToGitHub() {
   }
 }
 
-// ==================== EXPORT / IMPORT ====================
+/* ===================== EXPORT / IMPORT ===================== */
 function exportJSON() {
   var obj = {
     slug: document.getElementById("inpSlug").value || "",
@@ -1179,7 +935,92 @@ async function loadExisting() {
   }
 }
 
-// ==================== INIT ====================
+/* ===================== EDITOR BIO ===================== */
+function parseBioList(text) {
+  return text.split("\n").map(function(l) { return l.trim(); }).filter(Boolean).map(function(l) {
+    var parts = l.split("|");
+    return {
+      anno: (parts[0] || "").trim(),
+      titolo: (parts[1] || "").trim(),
+      dettaglio: (parts[2] || "").trim()
+    };
+  });
+}
+function serializeBioList(items) {
+  return (items || []).map(function(item) {
+    return (item.anno || "") + " | " + (item.titolo || "") + " | " + (item.dettaglio || "");
+  }).join("\n");
+}
+
+async function loadBio() {
+  try {
+    var res = await fetch("../content/bio.json", { cache: "no-store" });
+    var data = await res.json();
+    document.getElementById("bioNome").value = data.nome || "";
+    document.getElementById("bioFoto").value = data.foto || "";
+    document.getElementById("bioParagrafi").value = (data.bio_paragrafi || []).join("\n\n");
+    document.getElementById("bioFormazione").value = serializeBioList(data.formazione);
+    document.getElementById("bioEsperienze").value = serializeBioList(data.esperienze);
+    document.getElementById("status").textContent = "Bio caricata";
+    setTimeout(function() { document.getElementById("status").textContent = ""; }, 2000);
+  } catch (err) {
+    alert("Errore caricamento bio: " + err.message);
+  }
+}
+
+async function saveBioToGitHub() {
+  var token = document.getElementById("githubToken").value.trim();
+  if (!token) { alert("Inserisci il token GitHub."); return; }
+  var status = document.getElementById("status");
+  status.textContent = "Salvataggio bio...";
+
+  try {
+    var apiUrl = "https://api.github.com/repos/davideamatoag/Erosioni/contents/content/bio.json";
+    var getRes = await fetch(apiUrl, {
+      headers: { "Authorization": "token " + token, "Accept": "application/vnd.github.v3+json" }
+    });
+    if (!getRes.ok) throw new Error("Impossibile leggere bio.json (" + getRes.status + ")");
+    var fileData = await getRes.json();
+
+    var bio = {
+      nome: document.getElementById("bioNome").value.trim(),
+      foto: document.getElementById("bioFoto").value.trim(),
+      bio_paragrafi: document.getElementById("bioParagrafi").value.split("\n\n").map(function(p) { return p.trim(); }).filter(Boolean),
+      formazione: parseBioList(document.getElementById("bioFormazione").value),
+      esperienze: parseBioList(document.getElementById("bioEsperienze").value)
+    };
+
+    var newContent = JSON.stringify(bio, null, 2);
+    var encoded = b64EncodeUnicode(newContent);
+
+    var putRes = await fetch(apiUrl, {
+      method: "PUT",
+      headers: {
+        "Authorization": "token " + token,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Aggiorna pagina bio via editor",
+        content: encoded,
+        sha: fileData.sha
+      })
+    });
+
+    if (!putRes.ok) {
+      var errData = await putRes.json().catch(function() { return {}; });
+      throw new Error(errData.message || "Errore " + putRes.status);
+    }
+
+    status.textContent = "Bio salvata! Attendi 1-2 minuti per GitHub Pages.";
+    setTimeout(function() { status.textContent = ""; }, 5000);
+  } catch (err) {
+    status.textContent = "Errore: " + err.message;
+    console.error(err);
+  }
+}
+
+/* ===================== INIT ===================== */
 var savedToken = localStorage.getItem("erosioni_github_token");
 if (savedToken) {
   document.getElementById("githubToken").value = savedToken;
