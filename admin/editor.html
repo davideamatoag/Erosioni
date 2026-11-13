@@ -489,7 +489,6 @@ function renderMarkdown(md) {
 // ==================== EDITOR ACTIONS ====================
 let savedSel = { start: 0, end: 0 };
 
-// Salva la selezione della textarea prima che i pulsanti prendano il focus
 document.getElementById('toolbar').addEventListener('mousedown', function(e) {
   const ta = document.getElementById('inpBody');
   savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
@@ -585,7 +584,18 @@ document.getElementById('toolbar').addEventListener('click', function(e) {
 });
 
 // ==================== IMPORTAZIONE WORD ====================
-// Converte un file .docx in markdown del blog (note, corsivi, citazioni, immagini)
+// Escape dei caratteri speciali markdown nel testo normale
+function escapaTesto(text) {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/\*/g, '\\*')
+    .replace(/_/g, '\\_')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function htmlVersoMarkdown(html) {
   var doc = new DOMParser().parseFromString(html, 'text/html');
 
@@ -608,7 +618,7 @@ function htmlVersoMarkdown(html) {
   function inline(nodo) {
     var out = '';
     nodo.childNodes.forEach(function (el) {
-      if (el.nodeType === 3) { out += el.textContent; return; }
+      if (el.nodeType === 3) { out += escapaTesto(el.textContent); return; }
       if (el.nodeType !== 1) return;
       var tag = el.tagName.toLowerCase();
       if (tag === 'sup') {
@@ -639,7 +649,8 @@ function htmlVersoMarkdown(html) {
       if (tag === 'img') {
         nImmagini++;
         var alt = (el.getAttribute('alt') || '').trim();
-        out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+        var src = (el.getAttribute('src') || '').trim();
+        out += '![' + alt + '](' + src + ')';
         return;
       }
       out += inline(el);
@@ -721,6 +732,10 @@ function htmlVersoMarkdown(html) {
 function importaWord(file) {
   if (!/\.docx$/i.test(file.name)) {
     alert('Il file deve essere in formato .docx (Word).');
+    return;
+  }
+  if (typeof mammoth === 'undefined') {
+    alert('La libreria di conversione non è stata caricata. Verifica la connessione internet e ricarica la pagina.');
     return;
   }
   var reader = new FileReader();

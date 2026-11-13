@@ -116,6 +116,10 @@
       segnala('Il file deve essere in formato <b>.docx</b> (Word).');
       return;
     }
+    if (typeof mammoth === 'undefined') {
+      segnala('La libreria di conversione non è stata caricata. Verifica la connessione internet e ricarica la pagina.');
+      return;
+    }
     avviso.style.display = 'none';
     var reader = new FileReader();
     reader.onload = function () {
@@ -152,6 +156,18 @@
   }
 
   // ---------------- HTML -> markdown del blog ----------------
+  // Escape dei caratteri speciali markdown nel testo normale
+  function escapaTesto(text) {
+    return text
+      .replace(/\\/g, '\\\\')
+      .replace(/\*/g, '\\*')
+      .replace(/_/g, '\\_')
+      .replace(/\[/g, '\\[')
+      .replace(/\]/g, '\\]')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   function htmlVersoMarkdown(html) {
     var doc = new DOMParser().parseFromString(html, 'text/html');
 
@@ -206,7 +222,8 @@
         if (tag === 'img') {
           nImmagini++;
           var alt = (el.getAttribute('alt') || '').trim();
-          out += '![' + alt + '](URL-IMMAGINE-CLOUDINARY)';
+          var src = (el.getAttribute('src') || '').trim();
+          out += '![' + alt + '](' + src + ')';
           return;
         }
         out += inline(el);

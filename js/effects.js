@@ -129,8 +129,7 @@
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      // Ridotto il numero massimo di particelle per migliorare le performance
-      const count = Math.min(60, Math.floor((W * H) / 18000));
+      const count = Math.min(150, Math.floor((W * H) / 9000));
       particles = Array.from({ length: count }, () => ({
         x: Math.random() * W,
         y: Math.random() * H,

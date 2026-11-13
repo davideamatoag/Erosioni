@@ -120,7 +120,7 @@ async function fetchPortfolio() {
 function articleCardHtml(a) {
   return `
     <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 600)}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1000)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -129,7 +129,7 @@ function articleCardHtml(a) {
 function archiveItemHtml(a) {
   return `
     <a class="archive-item" data-article-slug="${a.slug}" data-category="${a.category}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="archive-thumb" style="background-image:url('${optimizeImage(a.image, 200)}')"></div>
+      <div class="archive-thumb" style="background-image:url('${optimizeImage(a.image, 400)}')"></div>
       <div class="archive-body">
         <p class="archive-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
         <h3 class="archive-title">${a.title}</h3>
@@ -211,7 +211,7 @@ async function renderHomeLayers() {
       <a class="layer-card${i % 2 ? ' layer-card--reverse' : ''}" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
         <span class="layer-date">${formatDateIt(a.date)}</span>
         <div class="layer-media" data-parallax>
-          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 600)}')"></div>
+          <div class="layer-media-inner" style="background-image:url('${optimizeImage(a.image, 1000)}')"></div>
         </div>
         <div class="layer-info">
           <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
@@ -238,7 +238,7 @@ async function renderArticoliPage() {
   featuredEl.href = `articolo.html?slug=${encodeURIComponent(latest.slug)}`;
   featuredEl.setAttribute('data-article-slug', latest.slug);
   featuredEl.innerHTML = `
-    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 800)}')"></div>
+    <div class="featured-thumb" style="background-image:url('${optimizeImage(latest.image, 1200)}')"></div>
     <p class="featured-meta">${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}</p>
     <h2 class="featured-title">${latest.title}</h2>`;
 
@@ -480,7 +480,7 @@ function computeReadingTime(md) {
 function relatedCardHtml(a) {
   return `
     <a class="article-card" data-article-slug="${a.slug}" href="articolo.html?slug=${encodeURIComponent(a.slug)}">
-      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 700)}')"></div>
+      <div class="article-thumb" style="background-image:url('${optimizeImage(a.image, 1000)}')"></div>
       <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
       <h3 class="article-title">${a.title}</h3>
     </a>`;
@@ -784,7 +784,7 @@ function closePfLightbox() {
 // chiedendo il primo fotogramma come immagine.
 function videoPoster(url) {
   if (!url || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return null;
-  return url.replace('/upload/', '/upload/so_0,f_auto,q_auto,w_800/').replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+  return url.replace('/upload/', '/upload/so_0,f_auto,q_auto,w_1200/').replace(/\.[a-zA-Z0-9]+$/, '.jpg');
 }
 
 function openPortfolioGallery(item, media) {
@@ -818,7 +818,7 @@ function openPortfolioGallery(item, media) {
               ? `<img src="${videoPoster(m.file)}" alt="${m.titolo || 'Video'}" loading="lazy" decoding="async">`
               : `<video src="${m.file}" muted preload="metadata" playsinline></video>`)
             + '<span class="pf-thumb-play" aria-hidden="true"></span>'
-          : `<img src="${optimizeImage(m.file, 800)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy" decoding="async">`}
+          : `<img src="${optimizeImage(m.file, 1200)}" alt="${m.titolo || 'Foto del portfolio'}" loading="lazy" decoding="async">`}
         ${m.titolo ? `<span class="pf-thumb-overlay"><span class="pf-thumb-title">${m.titolo}</span></span>` : ''}
       </button>`).join('')}
     </div>`;
@@ -919,7 +919,7 @@ async function renderPortfolioPage() {
       <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
       <span class="work-media">
         ${hasImage(item.image)
-          ? `<img src="${optimizeImage(item.image, isLead ? 1000 : 600)}" alt="${item.title}" loading="lazy" decoding="async">`
+          ? `<img src="${optimizeImage(item.image, isLead ? 1400 : 1000)}" alt="${item.title}" loading="lazy" decoding="async">`
           : `<span class="work-media work-media--empty"><span>Immagine in arrivo</span></span>`}
         ${isVideo && !galleria.length ? '<span class="work-play" aria-hidden="true"></span>' : ''}
       </span>
@@ -1309,6 +1309,14 @@ async function openArticleFromUrl() {
   openArticleModal(slug, 'replace');
 }
 
+// Fix bfcache: quando il browser ripristina la pagina dalla cache
+// (tasto indietro), forza il reload per rigenerare il contenuto dinamico.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    window.location.reload();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   renderSiteImages();
   renderHomeLayers();
@@ -1346,7 +1354,7 @@ async function renderHomeViaggi() {
     const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
     return `
       <a class="home-travel-card" href="${href}">
-        <div class="home-travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 600) : ''}');"></div>
+        <div class="home-travel-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></div>
         <div class="home-travel-body">
           ${year ? `<span class="home-travel-year">${year}</span>` : ''}
           <h3>${item.title}</h3>
@@ -1388,7 +1396,7 @@ async function renderHomePortfolio() {
     const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
     return `
       <div class="home-work-row${idx % 2 ? ' home-work-row--reverse' : ''}">
-        <a class="home-work-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 800) : ''}');" aria-label="Apri: ${item.title}"></a>
+        <a class="home-work-media" href="${href}" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');" aria-label="Apri: ${item.title}"></a>
         <div class="home-work-copy">
           <p class="home-work-meta">${capitalize(item.category)} &middot; ${tag}</p>
           <h3>${item.title}</h3>
@@ -1459,7 +1467,7 @@ async function renderScattiGrid() {
     const title = (shot.title || '').trim();
     return `
     <button type="button" class="shot" data-full="${optimizeImage(shot.image, 2200)}" data-title="${title.replace(/"/g, '&quot;')}" aria-label="Apri lo scatto a grandezza originale${title ? `: ${title}` : ''}">
-      <img class="shot-img" src="${optimizeImage(shot.image, 800)}" alt="${title || 'Scatto fotografico'}" loading="lazy" decoding="async">
+      <img class="shot-img" src="${optimizeImage(shot.image, 1200)}" alt="${title || 'Scatto fotografico'}" loading="lazy" decoding="async">
       ${title ? `<span class="shot-overlay"><span class="shot-title">${title}</span></span>` : ''}
     </button>`;
   }).join('');

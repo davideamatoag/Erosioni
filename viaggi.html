@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viaggi — Erosioni</title>
-<meta name="description" content="Diari di viaggio di Davide Amato: racconti fotografici dai luoghi esplorati.">
+<meta name="description" content="Diari di viaggio di Davide Amato: foto, video e racconti dai viaggi.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Erosioni">
 <meta property="og:title" content="Viaggi — Erosioni">
-<meta property="og:description" content="Diari di viaggio di Davide Amato: racconti fotografici dai luoghi esplorati.">
+<meta property="og:description" content="Diari di viaggio di Davide Amato: foto, video e racconti dai viaggi.">
 <meta property="og:image" content="https://res.cloudinary.com/plscorbg/image/upload/f_auto,q_auto,w_1200/v1786198205/75720024_yny7tm.jpg">
 <meta property="og:url" content="https://davideamatoag.github.io/Erosioni/viaggi.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -45,19 +45,35 @@
   <div class="container">
     <p class="page-eyebrow">Erosioni &middot; Cartografia erosa</p>
     <h1 class="page-title">Viaggi</h1>
-    <p class="page-intro">Diari di viaggio — racconti fotografici dai luoghi esplorati.</p>
+    <p class="page-intro">Foto, video e racconti dai viaggi — i luoghi visitati attraverso l'obiettivo.</p>
   </div>
 </section>
 
-<!-- SALA DI PROIEZIONE — i lavori in grande, uno dopo l'altro -->
+<!-- CONTENUTO -->
 <section class="section">
   <div class="container">
-    <div class="work-list" id="portfolioWorks" data-filter="viaggi">
-      <div class="skeleton skeleton--work"></div>
-      <div class="skeleton skeleton--work"></div>
+    <div class="works-list" id="portfolioWorks" data-filter="viaggi">
+      <span class="skeleton skeleton--card" style="height:200px;"></span>
+      <span class="skeleton skeleton--card" style="height:200px;"></span>
+      <span class="skeleton skeleton--card" style="height:200px;"></span>
     </div>
   </div>
 </section>
+
+<!-- TENDINA PORTFOLIO -->
+<div class="portfolio-modal" id="portfolioModal">
+  <div class="portfolio-modal-backdrop" data-modal-close></div>
+  <div class="portfolio-modal-panel">
+    <button type="button" class="portfolio-modal-close" id="portfolioModalClose" aria-label="Chiudi">&times;</button>
+    <div class="portfolio-modal-media" id="portfolioModalMedia"></div>
+    <div class="portfolio-modal-info">
+      <p class="portfolio-modal-tag" id="portfolioModalTag"></p>
+      <h3 class="portfolio-modal-title" id="portfolioModalTitle"></h3>
+      <p class="portfolio-modal-desc" id="portfolioModalDesc"></p>
+      <a class="portfolio-modal-external" id="portfolioModalExternal" href="#" target="_blank" rel="noopener">Apri la foto originale</a>
+    </div>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer class="site-footer" style="background-color:#1A1816;background-image: linear-gradient(180deg, rgba(26,24,22,0.82) 0%, rgba(26,24,22,0.94) 100%), url('images/footer-bg.jpg');">

@@ -7,7 +7,7 @@ backend:
 
 # Dove finiscono le foto caricate SENZA passare da Cloudinary (usato solo
 # come libreria di riserva — con Cloudinary attivo qui sotto, il pannello
-# user\u00e0 quello per tutte le nuove immagini).
+# userà quello per tutte le nuove immagini).
 media_folder: "images/uploads"
 public_folder: "/Erosioni/images/uploads"   # CAMBIA "Erosioni" se il repository ha un nome diverso
 
