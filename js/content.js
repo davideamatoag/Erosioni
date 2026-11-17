@@ -929,6 +929,43 @@ function initPortfolioModal() {
   });
 }
 
+// ---------------- PAGINA VIAGGI (viaggi.html) ----------------
+// Griglia elegante di card: immagine in alto, sotto titolo,
+// descrizione, anno e link. Solo voci con categoria "viaggi".
+async function renderViaggiPage() {
+  const grid = document.getElementById('viaggiGrid');
+  if (!grid) return;
+  const items = await fetchPortfolio();
+  const viaggi = items.filter(i => i.category === 'viaggi');
+  if (!viaggi.length) {
+    grid.innerHTML = '<p class="section-empty">Nuovi viaggi in arrivo.</p>';
+    return;
+  }
+
+  const conData = viaggi.filter(i => i.date);
+  const senzaData = viaggi.filter(i => !i.date);
+  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
+  const ordinati = conData.concat(senzaData);
+
+  grid.innerHTML = ordinati.map((item) => {
+    const year = item.date ? item.date.slice(0, 4) : '';
+    const desc = (item.description || '').trim();
+    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
+    return `
+      <a class="viaggio-card" href="${href}">
+        <div class="viaggio-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></div>
+        <div class="viaggio-body">
+          <span class="viaggio-tag">${capitalize(item.category)}${year ? ' &middot; ' + year : ''}</span>
+          <h3 class="viaggio-title">${item.title}</h3>
+          ${desc ? `<p class="viaggio-desc">${desc}</p>` : ''}
+          <span class="viaggio-cta">Leggi il diario &rarr;</span>
+        </div>
+      </a>`;
+  }).join('');
+
+  window.initScrollReveal && window.initScrollReveal();
+}
+
 async function renderPortfolioPage() {
   const list = document.getElementById('portfolioWorks');
   if (!list) return;
@@ -1363,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
+  renderViaggiPage();
   renderVocePage();
   renderScattiGrid();
   openArticleFromUrl();
