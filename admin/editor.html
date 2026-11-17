@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
@@ -133,7 +134,7 @@
           <small>Seleziona testo e premi un pulsante</small>
         </div>
       </div>
-      <div class="field"><label for="inpBody">Testo dell'articolo (markdown)</label><textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea></div>
+      <div class="field"><label for="inpBody">Testo dell'articolo</label><textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea><p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">Editor visuale: seleziona il testo e formatta con la barra in alto. Gli articoli creati qui vengono salvati in formato HTML.</p></div>
       <div class="field">
         <label>Carica articolo esistente</label>
         <div style="display:flex;gap:8px;"><input type="text" id="loadSlug" placeholder="Slug dell'articolo" style="flex:1;"><button type="button" class="btn-secondary" onclick="loadExisting()">Carica</button></div>
@@ -678,7 +679,8 @@ async function publishToGitHub() {
       image: document.getElementById("inpImage").value || "",
       font: document.getElementById("inpFont").value,
       colore: document.getElementById("inpColore").value,
-      body: document.getElementById("inpBody").value || ""
+      format: "html",
+      body: getEditorContent()
     };
 
     var articles = data.articles || [];
@@ -771,6 +773,15 @@ async function publishToGitHub() {
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+function getEditorContent() {
+  var editor = tinymce.get("inpBody");
+  return editor ? editor.getContent() : (document.getElementById("inpBody").value || "");
+}
+function setEditorContent(html) {
+  var editor = tinymce.get("inpBody");
+  if (editor) editor.setContent(html || "");
+  else document.getElementById("inpBody").value = html || "";
+}
 function updatePreview() {
   var title = document.getElementById("inpTitle").value || "Titolo";
   var subtitle = document.getElementById("inpSubtitle").value;
@@ -779,11 +790,11 @@ function updatePreview() {
   var image = document.getElementById("inpImage").value;
   var font = document.getElementById("inpFont").value;
   var colore = document.getElementById("inpColore").value;
-  var bodyMd = document.getElementById("inpBody").value;
+  var bodyHtml = getEditorContent();
 
   var bodyClass = ["preview-body", font !== "predefinito" ? "t-font-" + font : "", colore !== "predefinito" ? "t-" + colore : ""].filter(Boolean).join(" ");
-  var htmlBody = renderMarkdown(bodyMd);
-  var words = (bodyMd.match(/\S+/g) || []).length;
+  var htmlBody = bodyHtml;
+  var words = (bodyHtml.replace(/<[^>]+>/g, " ").match(/\S+/g) || []).length;
 
   var html =
     '<div class="preview-header">' +
@@ -878,7 +889,8 @@ function exportJSON() {
     image: document.getElementById("inpImage").value || "",
     font: document.getElementById("inpFont").value,
     colore: document.getElementById("inpColore").value,
-    body: document.getElementById("inpBody").value || ""
+    format: "html",
+    body: getEditorContent()
   };
   var json = JSON.stringify(obj, null, 2);
   document.getElementById("exportArea").value = json + ",";
@@ -894,20 +906,20 @@ function copyExport() {
   });
 }
 function copyBody() {
-  var t = document.getElementById("inpBody");
-  t.select();
-  navigator.clipboard.writeText(t.value).then(function() {
+  var content = getEditorContent();
+  navigator.clipboard.writeText(content).then(function() {
     document.getElementById("status").textContent = "Testo copiato";
     setTimeout(function() { document.getElementById("status").textContent = ""; }, 2000);
   });
 }
 function clearAll() {
   if (!confirm("Svuotare tutti i campi?")) return;
-  ["inpSlug","inpTitle","inpSubtitle","inpImage","inpBody"].forEach(function(id) { document.getElementById(id).value = ""; });
+  ["inpSlug","inpTitle","inpSubtitle","inpImage"].forEach(function(id) { document.getElementById(id).value = ""; });
   document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
   document.getElementById("inpCategory").value = "recensioni";
   document.getElementById("inpFont").value = "predefinito";
   document.getElementById("inpColore").value = "predefinito";
+  setEditorContent("");
   updatePreview();
 }
 async function loadExisting() {
@@ -926,7 +938,13 @@ async function loadExisting() {
     document.getElementById("inpImage").value = article.image || "";
     document.getElementById("inpFont").value = article.font || "predefinito";
     document.getElementById("inpColore").value = article.colore || "predefinito";
-    document.getElementById("inpBody").value = article.body || "";
+    if (article.format === "html") {
+      setEditorContent(article.body || "");
+    } else {
+      setEditorContent(article.body || "");
+      document.getElementById("status").textContent = "Attenzione: articolo in formato shortcode. Modifica dal pannello Sveltia per preservare la formattazione.";
+      setTimeout(function() { document.getElementById("status").textContent = ""; }, 6000);
+    }
     updatePreview();
     document.getElementById("status").textContent = "Caricato: " + article.title;
     setTimeout(function() { document.getElementById("status").textContent = ""; }, 3000);
@@ -1027,10 +1045,43 @@ if (savedToken) {
   document.getElementById("saveToken").checked = true;
 }
 
-["inpSlug","inpTitle","inpSubtitle","inpCategory","inpDate","inpImage","inpFont","inpColore","inpBody"].forEach(function(id) {
+["inpSlug","inpTitle","inpSubtitle","inpCategory","inpDate","inpImage","inpFont","inpColore"].forEach(function(id) {
   document.getElementById(id).addEventListener("input", updatePreview);
 });
 document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
+
+/* ===================== TINYMCE ===================== */
+tinymce.init({
+  selector: '#inpBody',
+  language: 'it',
+  plugins: 'link lists image code table fullscreen wordcount',
+  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image | table | removeformat | code | fullscreen',
+  height: 420,
+  menubar: false,
+  branding: false,
+  promotion: false,
+  entity_encoding: 'raw',
+  paste_as_text: false,
+  paste_remove_styles: true,
+  paste_remove_spans: true,
+  paste_strip_class_attributes: 'all',
+  content_style: `
+    body { font-family: 'Playfair Display', Georgia, serif; font-size: 1.05rem; line-height: 1.7; color: #EAE3D9; background: #1A1816; padding: 12px; }
+    p { margin: 0 0 14px; }
+    blockquote { margin: 18px 0; padding: 4px 0 4px 18px; border-left: 2px solid #C4705A; font-style: italic; color: #B4AB9F; }
+    a { color: #C4705A; text-decoration: underline; }
+    img { max-width: 100%; height: auto; border-radius: 4px; }
+    h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 28px 0 12px; }
+    h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; font-weight: 500; margin: 20px 0 10px; }
+    ul, ol { margin: 0 0 14px 18px; padding: 0; }
+    li { margin-bottom: 6px; }
+  `,
+  setup: function(editor) {
+    editor.on('change input NodeChange', updatePreview);
+    editor.on('init', updatePreview);
+  }
+});
+
 updatePreview();
 </script>
 </body>

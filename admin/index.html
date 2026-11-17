@@ -217,6 +217,23 @@
     }
   });
 
+  // ---------------- Citazione lunga ----------------
+  // [citazione]...[/citazione]: paragrafo con rientro dx/sx, stile
+  // elegante, usato per citazioni estese dagli articoli.
+  CMS.registerEditorComponent({
+    id: 'citazione',
+    label: 'Citazione lunga',
+    fields: [
+      { name: 'testo', label: 'Testo della citazione', widget: 'text' }
+    ],
+    pattern: /\[citazione\]([\s\S]*?)\[\/citazione\]/,
+    fromBlock: function (m) { return { testo: m[1] }; },
+    toBlock: function (o) { return '[citazione]' + (o.testo || '') + '[/citazione]'; },
+    toPreview: function (o) {
+      return '<blockquote style="margin:36px 0;padding:4px 0 4px 24px;border-left:2px solid #C4705A;font-family:\'Playfair Display\',Georgia,serif;font-style:italic;font-size:1.15rem;color:#B4AB9F">' + esc(o.testo).replace(/\n/g, '<br>') + '</blockquote>';
+    }
+  });
+
   // ---------------- Anteprima fedele al sito ----------------
   // Carica i font del sito nel riquadro di anteprima...
   CMS.registerPreviewStyle(
@@ -510,6 +527,27 @@
     ultimaSelezione = null;
   }
 
+  // Citazione lunga: avvolge la selezione in [citazione]...[/citazione].
+  // Se il testo è già una citazione, la toglie (commutatore).
+  function applicaCitazione() {
+    var c = selezioneCorrente();
+    if (!c) return;
+    var aperto = '[citazione]', chiuso = '[/citazione]';
+    var pulito = c.testo.replace(/\[citazione\]/g, '').replace(/\[\/citazione\]/g, '');
+    var nuovo;
+    if (c.testo.indexOf(aperto) === 0 && c.testo.lastIndexOf(chiuso) === c.testo.length - chiuso.length) {
+      nuovo = pulito; // toglie
+    } else {
+      nuovo = aperto + pulito + chiuso; // mette
+    }
+    if (c.ed.tagName === 'TEXTAREA') {
+      sostituisciInTextarea(c.ed, nuovo);
+    } else {
+      document.execCommand('insertText', false, nuovo);
+    }
+    ultimaSelezione = null;
+  }
+
   // Sottolineato [u] e Barrato [s]: interruttori — se il testo è già
   // sottolineato/barrato, il comando toglie il formato; altrimenti lo mette.
   function applicaSemplice(tag) {
@@ -647,6 +685,10 @@
 
     // Nota a piè di pagina
     bar.appendChild(pulsanteIcona('↩ Nota', 'Trasforma il testo selezionato in una nota a piè di pagina: verrà numerata e spostata in fondo all\'articolo', applicaNota));
+    bar.appendChild(separatore());
+
+    // Citazione lunga (rientro dx/sx): avvolge il testo in [citazione]...[/citazione]
+    bar.appendChild(pulsanteIcona('❝ Citaz.', 'Trasforma il testo selezionato in una citazione lunga con rientro', applicaCitazione));
     bar.appendChild(separatore());
 
     // Riga vuota (spazio verticale tra i paragrafi)

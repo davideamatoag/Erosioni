@@ -238,12 +238,12 @@
       if (tag === 'h1' || tag === 'h2') return contenuto ? '## ' + contenuto : '';
       if (tag === 'h3' || tag === 'h4') return contenuto ? '### ' + contenuto : '';
       if (tag === 'blockquote') {
-        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+        return '[citazione]' + contenuto + '[/citazione]';
       }
       // Citazioni formattate in Word solo con rientro (non come "Citazione"):
       // mammoth le converte in <p> con margin-left / text-indent.
       if (tag === 'p' && haRientro(el) && contenuto) {
-        return contenuto.split('\n').map(function (r) { return '> ' + r; }).join('\n');
+        return '[citazione]' + contenuto + '[/citazione]';
       }
       if (tag === 'ul') {
         return Array.prototype.map.call(el.children, function (li) {

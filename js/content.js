@@ -203,7 +203,7 @@ async function renderHomeLayers() {
     document.getElementById('homeFeaturedMeta').textContent =
       `${formatDateIt(latest.date)} / ${categoryLabel(latest.category).toUpperCase()}`;
     document.getElementById('homeFeaturedTitle').textContent = latest.title;
-    document.getElementById('homeFeaturedExcerpt').textContent = computeExcerpt(latest.body, 150);
+    document.getElementById('homeFeaturedExcerpt').textContent = computeExcerpt(latest.body, 150, latest.format);
   }
 
   if (layersEl) {
@@ -216,7 +216,7 @@ async function renderHomeLayers() {
         <div class="layer-info">
           <p class="article-meta">${formatDateIt(a.date)} / ${categoryLabel(a.category).toUpperCase()}</p>
           <h3 class="layer-title">${a.title}</h3>
-          <p class="layer-excerpt">${computeExcerpt(a.body, 130)}</p>
+          <p class="layer-excerpt">${computeExcerpt(a.body, 130, a.format)}</p>
           <span class="layer-cta">Leggi &rarr;</span>
         </div>
       </a>`).join('');
@@ -445,10 +445,17 @@ function stripMarkdown(md) {
     .trim();
 }
 
-function computeExcerpt(md, maxLen) {
-  const plain = stripMarkdown(md);
-  const firstBlock = (md || '').split(/\n\s*\n/)[0] || '';
-  const source = stripMarkdown(firstBlock) || plain;
+function stripHtml(html) {
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+}
+
+function computeExcerpt(body, maxLen, format) {
+  const plain = (format === 'html') ? stripHtml(body) : stripMarkdown(body);
+  const firstBlock = (body || '').split(/\n\s*\n/)[0] || '';
+  const source = (format === 'html') ? stripHtml(firstBlock) : (stripMarkdown(firstBlock) || plain);
   if (source.length <= maxLen) return source;
   return source.slice(0, maxLen).replace(/\s+\S*$/, '') + '\u2026';
 }
@@ -472,9 +479,29 @@ function applyArticleBodyStyle(el, article, settings) {
   if (colore) el.classList.add(`body-colore-${colore}`);
 }
 
-function computeReadingTime(md) {
-  const words = stripMarkdown(md).split(/\s+/).filter(Boolean).length;
+function computeReadingTime(body, format) {
+  const words = ((format === 'html') ? stripHtml(body) : stripMarkdown(body)).split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
+}
+
+// Per articoli in formato HTML puro: prepara il body per la visualizzazione.
+// Sanitizza, aggiunge loading="eager" alle immagini, e rende cliccabili.
+function renderHtmlBody(html) {
+  if (!html) return '';
+  // Rimuovi script e style per sicurezza
+  let cleaned = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  // Aggiungi loading="eager" alle immagini nel corpo
+  cleaned = cleaned.replace(/<img\b/g, '<img loading="eager"');
+  // Aggiungi classe article-inline-img alle immagini per il lightbox
+  cleaned = cleaned.replace(/<img\b([^>]*)>/gi, (m, attrs) => {
+    if (attrs.includes('class=')) {
+      return m.replace(/class="([^"]*)"/, 'class="$1 article-inline-img"');
+    }
+    return `<img class="article-inline-img"${attrs}>`;
+  });
+  return cleaned;
 }
 
 function relatedCardHtml(a) {
@@ -504,7 +531,7 @@ async function renderArticlePage() {
   const articleUrl = 'https://davideamatoag.github.io/Erosioni/articolo.html?slug=' + encodeURIComponent(article.slug);
   setSocialMeta(
     `${article.title} — Erosioni`,
-    computeExcerpt(article.body, 160),
+    computeExcerpt(article.body, 160, article.format),
     hasImage(article.image) ? article.image : null,
     articleUrl
   );
@@ -515,7 +542,7 @@ async function renderArticlePage() {
   excerptEl.hidden = !excerptEl.textContent;
   document.getElementById('articleMetaDate').textContent = formatDateIt(article.date);
   document.getElementById('articleMetaCategory').textContent = categoryLabel(article.category);
-  document.getElementById('articleMetaReadTime').textContent = `${computeReadingTime(article.body)} min`;
+  document.getElementById('articleMetaReadTime').textContent = `${computeReadingTime(article.body, article.format)} min`;
 
   const heroImg = document.getElementById('articleHeroImg');
   const heroFrame = document.getElementById('articleHeroFrame');
@@ -551,7 +578,11 @@ async function renderArticlePage() {
     preload.src = fullUrl;
   }
   const settings = await fetchSettings();
-  bodyEl.innerHTML = renderMarkdown(article.body || '').replace(' loading="lazy"', ' loading="eager"');
+  if (article.format === 'html') {
+    bodyEl.innerHTML = renderHtmlBody(article.body || '');
+  } else {
+    bodyEl.innerHTML = renderMarkdown(article.body || '').replace(' loading="lazy"', ' loading="eager"');
+  }
   applyArticleBodyStyle(bodyEl, article, settings);
 
   // Dissolvenza lenta anche per le immagini inserite nel corpo del testo,
@@ -1138,7 +1169,7 @@ async function openArticleModal(slug, historyMode = 'push') {
 
   // Meta in una riga sola: DATA · CATEGORIA · TEMPO DI LETTURA
   document.getElementById('modalArticleMeta').textContent =
-    `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body)} min di lettura`;
+    `${formatDateIt(article.date)} · ${categoryLabel(article.category)} · ${computeReadingTime(article.body, article.format)} min di lettura`;
   document.getElementById('modalArticleTitle').textContent = article.title;
   // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
   const modalExcerptEl = document.getElementById('modalArticleExcerpt');
@@ -1157,7 +1188,11 @@ async function openArticleModal(slug, historyMode = 'push') {
 
   const settings = await fetchSettings();
   const bodyEl = document.getElementById('modalArticleBody');
-  bodyEl.innerHTML = renderMarkdown(article.body || '').replace(' loading="lazy"', ' loading="eager"');
+  if (article.format === 'html') {
+    bodyEl.innerHTML = renderHtmlBody(article.body || '');
+  } else {
+    bodyEl.innerHTML = renderMarkdown(article.body || '').replace(' loading="lazy"', ' loading="eager"');
+  }
   applyArticleBodyStyle(bodyEl, article, settings);
 
   // Tasto "Pagina intera": porta alla pagina dedicata (sfondo scuro)

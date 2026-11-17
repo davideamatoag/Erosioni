@@ -17,9 +17,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261108l">
-<link rel="stylesheet" href="css/style-2.css?v=20261108l">
-<link rel="stylesheet" href="css/style-3.css?v=20261108l">
+<link rel="stylesheet" href="css/style.css?v=20261108p">
+<link rel="stylesheet" href="css/style-2.css?v=20261108p">
+<link rel="stylesheet" href="css/style-3.css?v=20261108p">
+<style>
+  .bio-photo img { max-width: 420px; width: 100%; height: auto; display: block; margin: 0 auto; }
+  @media (max-width: 768px) { .bio-photo img { max-width: 280px; } }
+</style>
 </head>
 <body class="page-enter">
 
@@ -94,9 +98,9 @@
   </div>
 </footer>
 
-<script src="js/content.js?v=20261108l"></script>
-<script src="js/effects.js?v=20261108l"></script>
-<script src="js/script.js?v=20261108l"></script>
+<script src="js/content.js?v=20261108p"></script>
+<script src="js/effects.js?v=20261108p"></script>
+<script src="js/script.js?v=20261108p"></script>
 <script>
 /* Caricamento dinamico dati bio */
 (function() {
@@ -108,11 +112,12 @@
       img.alt = "Ritratto di " + (data.nome || "");
     }
 
-    // Testo bio
+    // Testo bio (gestisce sia array di stringhe che array di oggetti {paragrafo})
     var bioText = document.getElementById("bioText");
     if (bioText && data.bio_paragrafi && data.bio_paragrafi.length) {
       bioText.innerHTML = data.bio_paragrafi.map(function(p) {
-        return "<p>" + p + "</p>";
+        var testo = (typeof p === "string") ? p : (p.paragrafo || "");
+        return "<p>" + testo + "</p>";
       }).join("");
     }
 
