@@ -536,6 +536,9 @@ async function renderArticlePage() {
     articleUrl
   );
   document.getElementById('articleTitle').textContent = article.title;
+  // Eyebrow = categoria
+  const eyebrowEl = document.getElementById('articleEyebrow');
+  if (eyebrowEl) eyebrowEl.textContent = categoryLabel(article.category);
   // Sottotitolo: solo se scritto a mano nel pannello; altrimenti sparisce
   const excerptEl = document.getElementById('articleExcerpt');
   excerptEl.textContent = (article.sottotitolo || '').trim();

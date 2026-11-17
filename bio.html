@@ -17,12 +17,111 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261108t">
-<link rel="stylesheet" href="css/style-2.css?v=20261108t">
-<link rel="stylesheet" href="css/style-3.css?v=20261108t">
+<link rel="stylesheet" href="css/style.css?v=20261108u">
+<link rel="stylesheet" href="css/style-2.css?v=20261108u">
+<link rel="stylesheet" href="css/style-3.css?v=20261108u">
 <style>
-  .bio-photo img { max-width: 420px; width: 100%; height: auto; display: block; margin: 0 auto; }
-  @media (max-width: 768px) { .bio-photo img { max-width: 280px; } }
+  /* Layout bio: testo a sinistra, foto a destra, allineati in alto */
+  .bio-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 56px;
+    align-items: start;
+    margin-bottom: 0;
+  }
+
+  /* Testo bio: più compatto per stare in altezza con la foto */
+  .bio-text {
+    font-size: 0.98rem;
+    line-height: 1.65;
+    text-align: justify;
+    hyphens: auto;
+    color: #2B2723;
+  }
+  .bio-text p {
+    margin: 0 0 1em;
+  }
+  .bio-text p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Separatore elegante sotto il testo */
+  .bio-separator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    margin-bottom: 6px;
+  }
+  .bio-separator::before,
+  .bio-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(196, 112, 90, 0.35), transparent);
+  }
+  .bio-separator span {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #C4705A;
+    opacity: 0.7;
+    line-height: 1;
+  }
+
+  /* Foto con bordo irregolare / organico */
+  .bio-photo {
+    position: relative;
+    padding: 10px;
+  }
+  .bio-photo::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 1.5px solid rgba(196, 112, 90, 0.35);
+    border-radius: 3px 18px 5px 22px / 22px 5px 18px 3px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .bio-photo::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px; right: -6px; bottom: -6px;
+    border: 1px solid rgba(180, 171, 159, 0.25);
+    border-radius: 3px 18px 5px 22px / 22px 5px 18px 3px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bio-photo img {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    border-radius: 3px 18px 5px 22px / 22px 5px 18px 3px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .bio-layout {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .bio-photo {
+      order: -1;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .bio-text {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+  }
+  @media (max-width: 768px) {
+    .bio-photo { max-width: 300px; }
+    .bio-text { text-align: left; }
+  }
 </style>
 </head>
 <body class="page-enter">
@@ -98,9 +197,9 @@
   </div>
 </footer>
 
-<script src="js/content.js?v=20261108t"></script>
-<script src="js/effects.js?v=20261108t"></script>
-<script src="js/script.js?v=20261108t"></script>
+<script src="js/content.js?v=20261108u"></script>
+<script src="js/effects.js?v=20261108u"></script>
+<script src="js/script.js?v=20261108u"></script>
 <script>
 /* Caricamento dinamico dati bio */
 (function() {
@@ -115,10 +214,12 @@
     // Testo bio (gestisce sia array di stringhe che array di oggetti {paragrafo})
     var bioText = document.getElementById("bioText");
     if (bioText && data.bio_paragrafi && data.bio_paragrafi.length) {
-      bioText.innerHTML = data.bio_paragrafi.map(function(p) {
+      var paras = data.bio_paragrafi.map(function(p) {
         var testo = (typeof p === "string") ? p : (p.paragrafo || "");
         return "<p>" + testo + "</p>";
       }).join("");
+      bioText.innerHTML = paras +
+        '<div class="bio-separator"><span>&laquo;&nbsp;&nbsp;&raquo;</span></div>';
     }
 
     // Formazione
