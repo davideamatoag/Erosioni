@@ -929,43 +929,6 @@ function initPortfolioModal() {
   });
 }
 
-// ---------------- PAGINA VIAGGI (viaggi.html) ----------------
-// Griglia elegante di card: immagine in alto, sotto titolo,
-// descrizione, anno e link. Solo voci con categoria "viaggi".
-async function renderViaggiPage() {
-  const grid = document.getElementById('viaggiGrid');
-  if (!grid) return;
-  const items = await fetchPortfolio();
-  const viaggi = items.filter(i => i.category === 'viaggi');
-  if (!viaggi.length) {
-    grid.innerHTML = '<p class="section-empty">Nuovi viaggi in arrivo.</p>';
-    return;
-  }
-
-  const conData = viaggi.filter(i => i.date);
-  const senzaData = viaggi.filter(i => !i.date);
-  conData.sort((a, b) => (b.date > a.date ? 1 : -1));
-  const ordinati = conData.concat(senzaData);
-
-  grid.innerHTML = ordinati.map((item) => {
-    const year = item.date ? item.date.slice(0, 4) : '';
-    const desc = (item.description || '').trim();
-    const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
-    return `
-      <a class="viaggio-card" href="${href}">
-        <div class="viaggio-media" style="background-image:url('${hasImage(item.image) ? optimizeImage(item.image, 1200) : ''}');"></div>
-        <div class="viaggio-body">
-          <span class="viaggio-tag">${capitalize(item.category)}${year ? ' &middot; ' + year : ''}</span>
-          <h3 class="viaggio-title">${item.title}</h3>
-          ${desc ? `<p class="viaggio-desc">${desc}</p>` : ''}
-          <span class="viaggio-cta">Leggi il diario &rarr;</span>
-        </div>
-      </a>`;
-  }).join('');
-
-  window.initScrollReveal && window.initScrollReveal();
-}
-
 async function renderPortfolioPage() {
   const list = document.getElementById('portfolioWorks');
   if (!list) return;
@@ -985,8 +948,12 @@ async function renderPortfolioPage() {
     const tag = galleria.length
       ? [nFoto ? `${nFoto} foto` : '', nVideo ? `${nVideo} video` : ''].filter(Boolean).join(' + ')
       : (isVideo ? 'Video' : 'Foto');
+    const ctaLabel = galleria.length ? 'Sfoglia la galleria'
+      : (isVideo ? 'Guarda il video'
+      : (filterCategory === 'viaggi' ? 'Leggi il diario' : 'Guarda il progetto'));
+    const ariaAction = filterCategory === 'viaggi' ? 'Apri il diario' : 'Apri il progetto';
     return `
-    <button type="button" class="work-row${isLead ? ' work-row--lead' : (idx % 2 ? ' work-row--reverse' : '')}" data-idx="${idx}" aria-label="Apri il progetto: ${item.title}">
+    <button type="button" class="work-row${isLead ? ' work-row--lead' : (idx % 2 ? ' work-row--reverse' : '')}" data-idx="${idx}" aria-label="${ariaAction}: ${item.title}">
       <span class="work-index" aria-hidden="true">${String(idx + 1).padStart(2, '0')}</span>
       <span class="work-media">
         ${hasImage(item.image)
@@ -998,7 +965,7 @@ async function renderPortfolioPage() {
         <span class="work-tag" style="display:block;">${capitalize(item.category)} · ${tag}</span>
         <span class="work-title" style="display:block;">${item.title}</span>
         ${hasDesc ? `<span class="work-desc">${item.description.trim()}</span>` : ''}
-        <span class="work-cta" style="display:inline-block;">${galleria.length ? 'Sfoglia la galleria' : (isVideo ? 'Guarda il video' : 'Guarda il progetto')} &rarr;</span>
+        <span class="work-cta" style="display:inline-block;">${ctaLabel} &rarr;</span>
       </span>
     </button>`;
   }).join('');
@@ -1400,7 +1367,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArticoliPage();
   renderArticlePage();
   renderPortfolioPage();
-  renderViaggiPage();
   renderVocePage();
   renderScattiGrid();
   openArticleFromUrl();
