@@ -1027,6 +1027,7 @@ if (savedToken) {
 document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
 
 /* ===================== TINYMCE ===================== */
+try {
 tinymce.init({
   selector: '#inpBody',
   language: 'it',
@@ -1100,7 +1101,6 @@ tinymce.init({
     /* Pulsante Interlinea Ridotta */
     editor.ui.registry.addToggleButton('interlinea_ridotta', {
       text: 'Interl. ridotta',
-      icon: 'line-height',
       tooltip: 'Attiva/disattiva interlinea ridotta (1.35) sul paragrafo',
       onAction: function(api) {
         var node = editor.selection.getNode();
@@ -1129,7 +1129,6 @@ tinymce.init({
     /* Pulsante Rientro dx/sx */
     editor.ui.registry.addToggleButton('rientro_dx_sx', {
       text: 'Rientro',
-      icon: 'indent',
       tooltip: 'Aggiunge/toglie rientro a destra e sinistra sul paragrafo',
       onAction: function(api) {
         var node = editor.selection.getNode();
@@ -1158,7 +1157,6 @@ tinymce.init({
     /* Pulsante Importa Word */
     editor.ui.registry.addButton('wordimport', {
       text: 'Word',
-      icon: 'browse',
       tooltip: 'Importa un file Word (.docx)',
       onAction: function() {
         document.getElementById('wordFile').click();
@@ -1169,6 +1167,14 @@ tinymce.init({
     editor.on('init', updatePreview);
   }
 });
+} catch (err) {
+  console.error("TinyMCE init error:", err);
+  var ta = document.getElementById('inpBody');
+  if (ta) {
+    ta.style.border = '2px solid #C4705A';
+    ta.placeholder = 'Errore caricamento editor visuale. Ricarica la pagina o controlla la connessione. Dettagli: ' + (err.message || err);
+  }
+}
 
 updatePreview();
 </script>
