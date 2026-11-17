@@ -12,7 +12,7 @@
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
   body { margin:0; font-family:Inter,system-ui,sans-serif; background:#EAE5DD; color:#2B2723; height:100vh; overflow:hidden; }
-  .layout { display:grid; grid-template-columns:1fr 520px; height:100vh; }
+  .layout { display:grid; grid-template-columns:1fr 640px; height:100vh; }
   .preview-col { overflow-y:auto; border-right:1px solid rgba(43,39,35,0.12); background:#EAE5DD; }
   .preview-inner { max-width:860px; margin:0 auto; padding:32px 28px 60px; }
   .preview-header { position:sticky; top:0; z-index:10; background:#EAE5DD; padding:10px 0; border-bottom:1px solid rgba(43,39,35,0.08); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:#6B6157; text-transform:uppercase; letter-spacing:0.06em; }
@@ -26,11 +26,10 @@
   .field input:focus,.field select:focus,.field textarea:focus { outline:0; border-color:#A65A43; box-shadow:0 0 0 3px rgba(166,90,67,0.1); }
   .field textarea { min-height:280px; resize:vertical; font:13px/1.6 ui-monospace,Menlo,monospace; }
   .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .toolbar { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
-  .toolbar button { font:inherit; font-size:0.78rem; cursor:pointer; background:#fff; color:#2B2723; border:1px solid rgba(43,39,35,0.16); border-radius:6px; padding:5px 9px; white-space:nowrap; }
-  .toolbar button:hover { background:rgba(166,90,67,0.08); border-color:#A65A43; }
-  .toolbar-sep { width:1px; background:rgba(43,39,35,0.12); margin:0 2px; }
-  .toolbar small { color:#6B6157; font-size:0.72rem; align-self:center; margin-left:auto; }
+  /* TinyMCE editor overrides */
+  .tox-tinymce { border-color: rgba(43,39,35,0.2) !important; border-radius: 8px !important; }
+  .tox-editor-container { background: #F6F1E7 !important; }
+  .tox-edit-area__iframe { background: #F6F1E7 !important; }
   .actions-bar { padding:12px 24px; border-top:1px solid rgba(43,39,35,0.1); background:#fff; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .btn-primary { font:inherit; font-size:0.88rem; cursor:pointer; background:#A65A43; color:#fff; border:0; border-radius:8px; padding:9px 16px; font-weight:500; }
   .btn-primary:hover { background:#8f4c38; }
@@ -110,30 +109,7 @@
         <div class="field"><label for="inpFont">Font</label><select id="inpFont"><option value="predefinito">Predefinito</option><option value="elegante">Elegante</option><option value="classico">Classico</option><option value="macchina">Macchina da scrivere</option></select></div>
         <div class="field"><label for="inpColore">Colore testo</label><select id="inpColore"><option value="predefinito">Predefinito</option><option value="avorio">Avorio</option><option value="sabbia">Sabbia</option><option value="oro">Oro</option><option value="terracotta">Terracotta</option></select></div>
       </div>
-      <div class="field">
-        <label>Toolbar</label>
-        <div class="toolbar" id="toolbar">
-          <button type="button" data-action="bold" title="Grassetto"><b>B</b></button>
-          <button type="button" data-action="italic" title="Corsivo"><i>I</i></button>
-          <button type="button" data-action="strike" title="Barrato"><s>S</s></button>
-          <button type="button" data-action="h2" title="Titolo">H2</button>
-          <button type="button" data-action="h3" title="Sottotitolo">H3</button>
-          <span class="toolbar-sep"></span>
-          <button type="button" data-action="note" title="Nota a pie di pagina">Nota</button>
-          <button type="button" data-action="color" title="Colore testo">Colore</button>
-          <button type="button" data-action="font" title="Font">Font</button>
-          <button type="button" data-action="interlinea" title="Interlinea">Interlinea</button>
-          <span class="toolbar-sep"></span>
-          <button type="button" data-action="quote" title="Citazione">Citaz.</button>
-          <button type="button" data-action="empty" title="Riga vuota extra">Riga</button>
-          <button type="button" data-action="citazione" title="Citazione lunga (rientro dx/sx)">Citaz. lunga</button>
-          <button type="button" data-action="image" title="Immagine inline">Img</button>
-          <span class="toolbar-sep"></span>
-          <button type="button" id="btnImportWord" title="Importa un file Word (.docx)">Word</button>
-          <input type="file" id="wordFile" accept=".docx" hidden>
-          <small>Seleziona testo e premi un pulsante</small>
-        </div>
-      </div>
+      <input type="file" id="wordFile" accept=".docx" hidden>
       <div class="field"><label for="inpBody">Testo dell'articolo</label><textarea id="inpBody" placeholder="Scrivi qui il testo..."></textarea><p style="font-size:0.78rem;color:#6B6157;margin:4px 0 0;">Editor visuale: seleziona il testo e formatta con la barra in alto. Gli articoli creati qui vengono salvati in formato HTML.</p></div>
       <div class="field">
         <label>Carica articolo esistente</label>
@@ -1055,8 +1031,8 @@ tinymce.init({
   selector: '#inpBody',
   language: 'it',
   plugins: 'link lists image code table fullscreen wordcount',
-  toolbar: 'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image | table | removeformat | code | fullscreen',
-  height: 420,
+  toolbar: 'undo redo | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | lineheight | link image | table | removeformat | code | fullscreen | wordimport',
+  height: 520,
   menubar: false,
   branding: false,
   promotion: false,
@@ -1065,18 +1041,130 @@ tinymce.init({
   paste_remove_styles: true,
   paste_remove_spans: true,
   paste_strip_class_attributes: 'all',
+
+  /* ---- Font del sito ---- */
+  font_family_formats:
+    'Playfair Display=Playfair Display,Georgia,serif;' +
+    'Inter=Inter,Helvetica,Arial,sans-serif;' +
+    'Space Mono=Space Mono,Courier New,monospace;',
+
+  font_size_formats: '0.85rem 0.92rem 1rem 1.05rem 1.12rem 1.25rem 1.4rem 1.6rem 1.85rem 2.2rem',
+
+  line_height_formats: '1.2 1.4 1.6 1.8 2.0',
+
+  /* ---- Colori del sito ---- */
+  color_map: [
+    'EAE3D9', 'Avorio',
+    'B4AB9F', 'Sabbia',
+    'D4A574', 'Oro',
+    'C4705A', 'Terracotta',
+    '2B2723', 'Carbone',
+    '1A1816', 'Nero caldo',
+    '6B6157', 'Marrone',
+    'FFFFFF', 'Bianco'
+  ],
+  color_cols: 4,
+  color_default_foreground: '#2B2723',
+  color_default_background: '#F6F1E7',
+
   content_style: `
-    body { font-family: 'Playfair Display', Georgia, serif; font-size: 1.05rem; line-height: 1.7; color: #EAE3D9; background: #1A1816; padding: 12px; }
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+    body {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #2B2723;
+      background: #F6F1E7;
+      padding: 14px 18px;
+    }
     p { margin: 0 0 14px; }
-    blockquote { margin: 18px 0; padding: 4px 0 4px 18px; border-left: 2px solid #C4705A; font-style: italic; color: #B4AB9F; }
+    blockquote {
+      margin: 18px 0;
+      padding: 4px 0 4px 18px;
+      border-left: 3px solid #C4705A;
+      font-style: italic;
+      color: #5A5249;
+      font-family: 'Playfair Display', Georgia, serif;
+    }
     a { color: #C4705A; text-decoration: underline; }
     img { max-width: 100%; height: auto; border-radius: 4px; }
-    h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 28px 0 12px; }
-    h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; font-weight: 500; margin: 20px 0 10px; }
+    h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 28px 0 12px; color: #2B2723; }
+    h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; font-weight: 500; margin: 20px 0 10px; color: #2B2723; }
     ul, ol { margin: 0 0 14px 18px; padding: 0; }
     li { margin-bottom: 6px; }
+    .interlinea-ridotta { line-height: 1.35 !important; }
+    .rientro-dx-sx { padding-left: 2em !important; padding-right: 2em !important; }
   `,
+
   setup: function(editor) {
+    /* Pulsante Interlinea Ridotta */
+    editor.ui.registry.addToggleButton('interlinea_ridotta', {
+      text: 'Interl. ridotta',
+      icon: 'line-height',
+      tooltip: 'Attiva/disattiva interlinea ridotta (1.35) sul paragrafo',
+      onAction: function(api) {
+        var node = editor.selection.getNode();
+        var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
+        if (!p) return;
+        if (editor.dom.hasClass(p, 'interlinea-ridotta')) {
+          editor.dom.removeClass(p, 'interlinea-ridotta');
+          api.setActive(false);
+        } else {
+          editor.dom.addClass(p, 'interlinea-ridotta');
+          api.setActive(true);
+        }
+      },
+      onSetup: function(api) {
+        api.setActive(false);
+        var toggle = function() {
+          var node = editor.selection.getNode();
+          var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
+          api.setActive(p && editor.dom.hasClass(p, 'interlinea-ridotta'));
+        };
+        editor.on('NodeChange', toggle);
+        return function() { editor.off('NodeChange', toggle); };
+      }
+    });
+
+    /* Pulsante Rientro dx/sx */
+    editor.ui.registry.addToggleButton('rientro_dx_sx', {
+      text: 'Rientro',
+      icon: 'indent',
+      tooltip: 'Aggiunge/toglie rientro a destra e sinistra sul paragrafo',
+      onAction: function(api) {
+        var node = editor.selection.getNode();
+        var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
+        if (!p) return;
+        if (editor.dom.hasClass(p, 'rientro-dx-sx')) {
+          editor.dom.removeClass(p, 'rientro-dx-sx');
+          api.setActive(false);
+        } else {
+          editor.dom.addClass(p, 'rientro-dx-sx');
+          api.setActive(true);
+        }
+      },
+      onSetup: function(api) {
+        api.setActive(false);
+        var toggle = function() {
+          var node = editor.selection.getNode();
+          var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
+          api.setActive(p && editor.dom.hasClass(p, 'rientro-dx-sx'));
+        };
+        editor.on('NodeChange', toggle);
+        return function() { editor.off('NodeChange', toggle); };
+      }
+    });
+
+    /* Pulsante Importa Word */
+    editor.ui.registry.addButton('wordimport', {
+      text: 'Word',
+      icon: 'browse',
+      tooltip: 'Importa un file Word (.docx)',
+      onAction: function() {
+        document.getElementById('wordFile').click();
+      }
+    });
+
     editor.on('change input NodeChange', updatePreview);
     editor.on('init', updatePreview);
   }

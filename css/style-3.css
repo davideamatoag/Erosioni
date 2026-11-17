@@ -726,6 +726,23 @@
   text-underline-offset: 0.2em;
 }
 
+/* ==========================================================
+   CLASSI CUSTOM DALL'EDITOR TINYMCE
+   ========================================================== */
+
+/* Interlinea ridotta */
+.article-body .interlinea-ridotta,
+.interlinea-ridotta {
+  line-height: 1.35 !important;
+}
+
+/* Rientro a destra e sinistra */
+.article-body .rientro-dx-sx,
+.rientro-dx-sx {
+  padding-left: 2.5em !important;
+  padding-right: 2.5em !important;
+}
+
 /* All'interno della griglia articolo+sidebar: togli max-width
    per usare tutta la colonna; il padding destro crea respiro */
 .article-body-grid .article-body {
