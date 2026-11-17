@@ -1342,6 +1342,146 @@
 }
 
 /* ==========================================================
+   PAGINA VOCE — header, layout, transizioni morbide
+   ========================================================== */
+
+/* Header voce: elegante, centrato, con più aria */
+.voce-header {
+  background: var(--tuff);
+  padding: 110px 0 56px;
+  text-align: center;
+  border-bottom: 1px solid rgba(232, 226, 217, 0.07);
+}
+.voce-header-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--oro);
+  margin: 0 0 18px;
+}
+.voce-header-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: var(--calce);
+  margin: 0;
+}
+
+/* Layout a due colonne: info a sinistra, galleria a destra */
+.voce-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+/* Info: contenuto verticale ordinato */
+.voce-info {
+  padding-top: 8px;
+}
+.voce-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--terracotta);
+  margin: 0 0 18px;
+  padding: 4px 10px;
+  border: 1px solid rgba(196, 112, 90, 0.25);
+  border-radius: 4px;
+}
+.voce-desc {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.12rem;
+  line-height: 1.65;
+  color: var(--sabbia);
+  margin: 0 0 32px;
+  text-align: left;
+}
+
+/* Meta: griglia compatta a 2 colonne */
+.voce-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(232, 226, 217, 0.1);
+}
+.voce-meta .meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.voce-meta .meta-label {
+  margin-bottom: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: var(--terracotta);
+}
+.voce-meta .meta-value {
+  font-size: 0.88rem;
+  color: var(--calce);
+  line-height: 1.3;
+}
+
+/* Galleria: scroll reveal con delay */
+.voce-gallery {
+  min-width: 0;
+}
+
+/* Transizioni morbide — delay sfalsato */
+.voce-header.article-reveal,
+.voce-info.article-reveal,
+.voce-gallery.article-reveal {
+  transform: translateY(16px);
+}
+.voce-header.article-reveal.is-loaded,
+.voce-info.article-reveal.is-loaded,
+.voce-gallery.article-reveal.is-loaded {
+  transform: translateY(0);
+}
+.voce-header.article-reveal {
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.voce-info.article-reveal {
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+}
+.voce-gallery.article-reveal {
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.24s,
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.24s;
+}
+
+/* Responsive pagina voce */
+@media (max-width: 960px) {
+  .voce-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .voce-info {
+    max-width: 640px;
+  }
+  .voce-meta {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .voce-header { padding: 80px 0 36px; }
+  .voce-header-title { font-size: 2rem; }
+  .voce-desc { font-size: 1.05rem; }
+  .voce-meta {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 12px;
+  }
+}
+
+/* ==========================================================
    PORTFOLIO / VIAGGI — layout zig-zag ordinato
    ========================================================== */
 
