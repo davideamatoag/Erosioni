@@ -365,35 +365,6 @@ function insertImage() {
   insertAtCursor("\n\n![" + alt + "](" + url + ")\n\n");
 }
 
-document.getElementById("toolbar").addEventListener("mousedown", function(e) {
-  var ta = document.getElementById("inpBody");
-  savedSel = { start: ta.selectionStart, end: ta.selectionEnd };
-});
-
-document.getElementById("toolbar").addEventListener("click", function(e) {
-  var btn = e.target.closest("button[data-action]");
-  if (!btn) return;
-  var action = btn.getAttribute("data-action");
-  switch (action) {
-    case "bold": wrap("**","**"); break;
-    case "italic": wrap("*","*"); break;
-    case "strike": wrap("~~","~~"); break;
-    case "h2": wrap("## "); break;
-    case "h3": wrap("### "); break;
-    case "quote": wrap("> "); break;
-    case "note": insertNote(); break;
-    case "color": insertColor(); break;
-    case "font": insertFont(); break;
-    case "interlinea": insertInterlinea(); break;
-    case "empty": insertEmptyLine(); break;
-    case "citazione": insertCitazione(); break;
-    case "image": insertImage(); break;
-  }
-});
-
-document.getElementById("btnImportWord").addEventListener("click", function() {
-  document.getElementById("wordFile").click();
-});
 document.getElementById("wordFile").addEventListener("change", function() {
   if (this.files && this.files[0]) importaWord(this.files[0]);
 });
@@ -1027,153 +998,130 @@ if (savedToken) {
 document.getElementById("inpDate").value = new Date().toISOString().slice(0, 10);
 
 /* ===================== TINYMCE ===================== */
-try {
-tinymce.init({
-  selector: '#inpBody',
-  language: 'it',
-  plugins: 'link lists image code table fullscreen wordcount',
-  toolbar: 'undo redo | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | lineheight | link image | table | removeformat | code | fullscreen | wordimport',
-  height: 520,
-  menubar: false,
-  branding: false,
-  promotion: false,
-  entity_encoding: 'raw',
-  paste_as_text: false,
-  paste_remove_styles: true,
-  paste_remove_spans: true,
-  paste_strip_class_attributes: 'all',
+if (typeof tinymce === 'undefined') {
+  console.error('TinyMCE non caricato dal CDN');
+  var _ta = document.getElementById('inpBody');
+  if (_ta) {
+    _ta.style.border = '2px solid #C4705A';
+    _ta.placeholder = 'Errore: editor TinyMCE non caricato. Controlla la connessione internet e ricarica.';
+  }
+} else {
+  console.log('TinyMCE trovato, versione:', tinymce.majorVersion + '.' + tinymce.minorVersion);
 
-  /* ---- Font del sito ---- */
-  font_family_formats:
-    'Playfair Display=Playfair Display,Georgia,serif;' +
-    'Inter=Inter,Helvetica,Arial,sans-serif;' +
-    'Space Mono=Space Mono,Courier New,monospace;',
+  tinymce.init({
+    selector: '#inpBody',
+    license_key: 'gpl',
+    language: 'it',
+    plugins: 'link lists image code table fullscreen',
+    toolbar: 'undo redo | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | link image | table | removeformat | code | fullscreen | interlinea_ridotta rientro_dx_sx wordimport',
+    height: 520,
+    menubar: false,
+    branding: false,
+    promotion: false,
+    entity_encoding: 'raw',
+    paste_remove_styles: true,
+    paste_remove_spans: true,
+    paste_strip_class_attributes: 'all',
 
-  font_size_formats: '0.85rem 0.92rem 1rem 1.05rem 1.12rem 1.25rem 1.4rem 1.6rem 1.85rem 2.2rem',
+    font_family_formats:
+      'Playfair Display=Playfair Display,Georgia,serif;' +
+      'Inter=Inter,Helvetica,Arial,sans-serif;' +
+      'Space Mono=Space Mono,Courier New,monospace;',
 
-  line_height_formats: '1.2 1.4 1.6 1.8 2.0',
+    font_size_formats: '0.85rem 0.92rem 1rem 1.05rem 1.12rem 1.25rem 1.4rem 1.6rem 1.85rem 2.2rem',
 
-  /* ---- Colori del sito ---- */
-  color_map: [
-    'EAE3D9', 'Avorio',
-    'B4AB9F', 'Sabbia',
-    'D4A574', 'Oro',
-    'C4705A', 'Terracotta',
-    '2B2723', 'Carbone',
-    '1A1816', 'Nero caldo',
-    '6B6157', 'Marrone',
-    'FFFFFF', 'Bianco'
-  ],
-  color_cols: 4,
-  color_default_foreground: '#2B2723',
-  color_default_background: '#F6F1E7',
+    color_map: [
+      'EAE3D9', 'Avorio',
+      'B4AB9F', 'Sabbia',
+      'D4A574', 'Oro',
+      'C4705A', 'Terracotta',
+      '2B2723', 'Carbone',
+      '1A1816', 'Nero caldo',
+      '6B6157', 'Marrone',
+      'FFFFFF', 'Bianco'
+    ],
+    color_cols: 4,
 
-  content_style: `
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-    body {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 1.05rem;
-      line-height: 1.7;
-      color: #2B2723;
-      background: #F6F1E7;
-      padding: 14px 18px;
-    }
-    p { margin: 0 0 14px; }
-    blockquote {
-      margin: 18px 0;
-      padding: 4px 0 4px 18px;
-      border-left: 3px solid #C4705A;
-      font-style: italic;
-      color: #5A5249;
-      font-family: 'Playfair Display', Georgia, serif;
-    }
-    a { color: #C4705A; text-decoration: underline; }
-    img { max-width: 100%; height: auto; border-radius: 4px; }
-    h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; font-weight: 500; margin: 28px 0 12px; color: #2B2723; }
-    h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; font-weight: 500; margin: 20px 0 10px; color: #2B2723; }
-    ul, ol { margin: 0 0 14px 18px; padding: 0; }
-    li { margin-bottom: 6px; }
-    .interlinea-ridotta { line-height: 1.35 !important; }
-    .rientro-dx-sx { padding-left: 2em !important; padding-right: 2em !important; }
-  `,
+    content_style: `
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+      body {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: #2B2723;
+        background: #F6F1E7;
+        padding: 14px 18px;
+      }
+      p { margin: 0 0 14px; }
+      blockquote {
+        margin: 18px 0;
+        padding: 4px 0 4px 18px;
+        border-left: 3px solid #C4705A;
+        font-style: italic;
+        color: #5A5249;
+      }
+      a { color: #C4705A; text-decoration: underline; }
+      img { max-width: 100%; height: auto; border-radius: 4px; }
+      h2 { font-size: 1.6rem; font-weight: 500; margin: 28px 0 12px; color: #2B2723; }
+      h3 { font-size: 1.3rem; font-weight: 500; margin: 20px 0 10px; color: #2B2723; }
+      ul, ol { margin: 0 0 14px 18px; padding: 0; }
+      li { margin-bottom: 6px; }
+      .interlinea-ridotta { line-height: 1.35 !important; }
+      .rientro-dx-sx { padding-left: 2em !important; padding-right: 2em !important; }
+    `,
 
-  setup: function(editor) {
-    /* Pulsante Interlinea Ridotta */
-    editor.ui.registry.addToggleButton('interlinea_ridotta', {
-      text: 'Interl. ridotta',
-      tooltip: 'Attiva/disattiva interlinea ridotta (1.35) sul paragrafo',
-      onAction: function(api) {
-        var node = editor.selection.getNode();
-        var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
-        if (!p) return;
-        if (editor.dom.hasClass(p, 'interlinea-ridotta')) {
-          editor.dom.removeClass(p, 'interlinea-ridotta');
-          api.setActive(false);
-        } else {
-          editor.dom.addClass(p, 'interlinea-ridotta');
-          api.setActive(true);
-        }
-      },
-      onSetup: function(api) {
-        api.setActive(false);
-        var toggle = function() {
+    setup: function(editor) {
+      /* Pulsante Interlinea Ridotta */
+      editor.ui.registry.addButton('interlinea_ridotta', {
+        text: 'Interl.',
+        tooltip: 'Interlinea ridotta (1.35) sul paragrafo',
+        onAction: function() {
           var node = editor.selection.getNode();
           var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
-          api.setActive(p && editor.dom.hasClass(p, 'interlinea-ridotta'));
-        };
-        editor.on('NodeChange', toggle);
-        return function() { editor.off('NodeChange', toggle); };
-      }
-    });
-
-    /* Pulsante Rientro dx/sx */
-    editor.ui.registry.addToggleButton('rientro_dx_sx', {
-      text: 'Rientro',
-      tooltip: 'Aggiunge/toglie rientro a destra e sinistra sul paragrafo',
-      onAction: function(api) {
-        var node = editor.selection.getNode();
-        var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
-        if (!p) return;
-        if (editor.dom.hasClass(p, 'rientro-dx-sx')) {
-          editor.dom.removeClass(p, 'rientro-dx-sx');
-          api.setActive(false);
-        } else {
-          editor.dom.addClass(p, 'rientro-dx-sx');
-          api.setActive(true);
+          if (!p) return;
+          if (editor.dom.hasClass(p, 'interlinea-ridotta')) {
+            editor.dom.removeClass(p, 'interlinea-ridotta');
+          } else {
+            editor.dom.addClass(p, 'interlinea-ridotta');
+          }
         }
-      },
-      onSetup: function(api) {
-        api.setActive(false);
-        var toggle = function() {
+      });
+
+      /* Pulsante Rientro dx/sx */
+      editor.ui.registry.addButton('rientro_dx_sx', {
+        text: 'Rientro',
+        tooltip: 'Rientro a destra e sinistra sul paragrafo',
+        onAction: function() {
           var node = editor.selection.getNode();
           var p = (node.tagName === 'P') ? node : editor.dom.getParent(node, 'p');
-          api.setActive(p && editor.dom.hasClass(p, 'rientro-dx-sx'));
-        };
-        editor.on('NodeChange', toggle);
-        return function() { editor.off('NodeChange', toggle); };
-      }
-    });
+          if (!p) return;
+          if (editor.dom.hasClass(p, 'rientro-dx-sx')) {
+            editor.dom.removeClass(p, 'rientro-dx-sx');
+          } else {
+            editor.dom.addClass(p, 'rientro-dx-sx');
+          }
+        }
+      });
 
-    /* Pulsante Importa Word */
-    editor.ui.registry.addButton('wordimport', {
-      text: 'Word',
-      tooltip: 'Importa un file Word (.docx)',
-      onAction: function() {
-        document.getElementById('wordFile').click();
-      }
-    });
+      /* Pulsante Importa Word */
+      editor.ui.registry.addButton('wordimport', {
+        text: 'Word',
+        tooltip: 'Importa file Word (.docx)',
+        onAction: function() {
+          document.getElementById('wordFile').click();
+        }
+      });
 
-    editor.on('change input NodeChange', updatePreview);
-    editor.on('init', updatePreview);
-  }
-});
-} catch (err) {
-  console.error("TinyMCE init error:", err);
-  var ta = document.getElementById('inpBody');
-  if (ta) {
-    ta.style.border = '2px solid #C4705A';
-    ta.placeholder = 'Errore caricamento editor visuale. Ricarica la pagina o controlla la connessione. Dettagli: ' + (err.message || err);
-  }
+      editor.on('init', function() { updatePreview(); });
+      editor.on('change input NodeChange', updatePreview);
+    }
+  }).then(function(editors) {
+    console.log('TinyMCE pronto');
+  }).catch(function(err) {
+    console.error('TinyMCE fallito:', err);
+    var _ta2 = document.getElementById('inpBody');
+    if (_ta2) { _ta2.style.border = '2px solid #C4705A'; _ta2.placeholder = 'Errore editor: ' + (err.message || err); }
+  });
 }
 
 updatePreview();
