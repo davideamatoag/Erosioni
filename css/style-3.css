@@ -1345,29 +1345,34 @@
    PAGINA VOCE — header, layout, transizioni morbide
    ========================================================== */
 
-/* Header voce: elegante, centrato, con più aria */
+/* Header voce: compatto, titolo in evidenza */
 .voce-header {
   background: var(--tuff);
-  padding: 110px 0 56px;
+  padding: 84px 0 28px;
   text-align: center;
-  border-bottom: 1px solid rgba(232, 226, 217, 0.07);
 }
 .voce-header-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--oro);
-  margin: 0 0 18px;
+  margin: 0 0 14px;
 }
 .voce-header-title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
   line-height: 1.05;
   letter-spacing: 0.01em;
   color: var(--calce);
   margin: 0;
+}
+
+/* Section voce: meno spazio sopra */
+.section--voce {
+  padding-top: 28px;
+  padding-bottom: 80px;
 }
 
 /* Layout a colonna singola: info sopra, galleria sotto */

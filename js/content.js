@@ -1019,6 +1019,7 @@ async function renderVocePage() {
   if (foto) parti.push(`${foto} foto`);
   if (video) parti.push(`${video} video`);
 
+  document.getElementById('voceEyebrow').textContent = capitalize(item.category);
   document.getElementById('voceTag').textContent = capitalize(item.category);
   document.getElementById('voceTitle').textContent = item.title;
 
