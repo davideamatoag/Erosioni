@@ -1389,19 +1389,6 @@
   margin: 0 auto;
   text-align: center;
 }
-.voce-tag {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--terracotta);
-  margin: 0 0 22px;
-  padding: 5px 14px;
-  border: 1px solid rgba(196, 112, 90, 0.25);
-  border-radius: 4px;
-}
-
 /* Meta: riga orizzontale compatta sopra il testo */
 .voce-meta {
   display: flex;
@@ -2089,8 +2076,6 @@
 .portfolio-modal [hidden] { display: none !important; }
 
 /* ---------------- Pagina voce portfolio (voce.html) ---------------- */
-.voce-tag { display: inline-block; margin-bottom: 6px; }
-
 .voce-desc {
   font-family: var(--font-display);
   font-style: italic;

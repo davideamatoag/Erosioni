@@ -995,7 +995,6 @@ async function renderVocePage() {
 
   if (!item) {
     document.getElementById('voceTitle').textContent = 'Voce non trovata';
-    document.getElementById('voceTag').textContent = '';
     document.getElementById('voceDesc').hidden = true;
     document.getElementById('voceMeta').hidden = true;
     document.getElementById('voceGallery').innerHTML =
@@ -1020,7 +1019,6 @@ async function renderVocePage() {
   if (video) parti.push(`${video} video`);
 
   document.getElementById('voceEyebrow').textContent = capitalize(item.category);
-  document.getElementById('voceTag').textContent = capitalize(item.category);
   document.getElementById('voceTitle').textContent = item.title;
 
   const descEl = document.getElementById('voceDesc');
