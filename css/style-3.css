@@ -2381,12 +2381,56 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
 }
 .section-header-row .section-title { margin-bottom: 0; }
 
-/* ---------- Diari di viaggio — card grid ---------- */
-.home-travels-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 32px;
+/* ---------- Diari di viaggio — carousel orizzontale ---------- */
+.carousel {
+  position: relative;
+  padding: 0 52px;
 }
+.carousel-viewport {
+  overflow: hidden;
+  scroll-behavior: smooth;
+}
+.carousel-track {
+  display: flex;
+  gap: 24px;
+}
+.carousel-track .home-travel-card {
+  flex: 0 0 calc(50% - 12px);
+  min-width: 0;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 226, 217, 0.15);
+  background: rgba(30, 28, 26, 0.85);
+  color: var(--calce);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+  backdrop-filter: blur(6px);
+}
+.carousel-btn:hover {
+  background: rgba(30, 28, 26, 1);
+  border-color: rgba(196, 112, 90, 0.4);
+  color: var(--oro);
+}
+.carousel-btn.is-disabled,
+.carousel-btn:disabled {
+  opacity: 0.2;
+  cursor: default;
+  pointer-events: none;
+}
+.carousel-btn--prev { left: 0; }
+.carousel-btn--next { right: 0; }
+
 .home-travel-card {
   display: block;
   text-decoration: none;
@@ -2406,35 +2450,39 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
   display: block;
 }
 .home-travel-body {
-  padding: 28px 32px 32px;
+  padding: 22px 26px 26px;
 }
 .home-travel-year {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--oro);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .home-travel-body h3 {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   line-height: 1.2;
   margin: 0 0 10px;
   color: var(--calce);
 }
 .home-travel-body p {
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--sabbia);
-  margin: 0 0 18px;
+  margin: 0 0 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .home-travel-cta {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--terracotta);
@@ -2510,7 +2558,7 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
 
 /* Responsive home sections */
 @media (max-width: 900px) {
-  .home-travels-grid { grid-template-columns: 1fr; }
+  .carousel-track .home-travel-card { flex: 0 0 calc(50% - 12px); }
   .home-work-row,
   .home-work-row--reverse {
     grid-template-columns: 1fr;
@@ -2523,6 +2571,9 @@ a.travel-node { display: block; text-decoration: none; color: inherit; }
 
 @media (max-width: 600px) {
   .section-header-row { flex-direction: column; align-items: flex-start; }
+  .carousel { padding: 0 40px; }
+  .carousel-btn { width: 36px; height: 36px; }
+  .carousel-track .home-travel-card { flex: 0 0 100%; }
   .home-travel-body { padding: 20px 22px 24px; }
   .home-travel-body h3 { font-size: 1.35rem; }
   .home-work-copy h3 { font-size: 1.5rem; }

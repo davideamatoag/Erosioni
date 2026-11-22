@@ -1376,6 +1376,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------------- HOMEPAGE: "Diari di viaggio" (Sezione 3) ----------------
 // Card a due colonne: immagine sopra, sotto sfondo scuro con anno, titolo,
 // descrizione e link. Solo voci con categoria "viaggi".
+function previewText(text, maxLen) {
+  if (!text) return '';
+  const t = text.trim();
+  if (t.length <= maxLen) return t;
+  const cut = t.lastIndexOf(' ', maxLen);
+  return t.slice(0, cut > 0 ? cut : maxLen) + '…';
+}
+
 async function renderHomeViaggi() {
   const grid = document.getElementById('homeViaggi');
   if (!grid) return;
@@ -1393,7 +1401,7 @@ async function renderHomeViaggi() {
 
   grid.innerHTML = ordinati.map((item) => {
     const year = item.date ? item.date.slice(0, 4) : '';
-    const desc = (item.description || '').trim();
+    const desc = previewText(item.description, 140);
     const href = 'voce.html?slug=' + encodeURIComponent(portfolioSlug(item.title));
     return `
       <a class="home-travel-card" href="${href}">
@@ -1406,6 +1414,59 @@ async function renderHomeViaggi() {
         </div>
       </a>`;
   }).join('');
+
+  initViaggiCarousel();
+}
+
+function initViaggiCarousel() {
+  const carousel = document.getElementById('viaggiCarousel');
+  if (!carousel) return;
+  const viewport = carousel.querySelector('.carousel-viewport');
+  const track = document.getElementById('homeViaggi');
+  const prevBtn = carousel.querySelector('.carousel-btn--prev');
+  const nextBtn = carousel.querySelector('.carousel-btn--next');
+  if (!viewport || !track || !prevBtn || !nextBtn) return;
+
+  const gap = 24;
+  let currentIndex = 0;
+
+  function getCardWidth() {
+    const card = track.querySelector('.home-travel-card');
+    return card ? card.offsetWidth : 0;
+  }
+
+  function getMaxIndex() {
+    const cardW = getCardWidth();
+    if (!cardW) return 0;
+    const viewportW = viewport.offsetWidth;
+    const visible = Math.floor((viewportW + gap) / (cardW + gap));
+    return Math.max(0, track.children.length - visible);
+  }
+
+  function update() {
+    const cardW = getCardWidth();
+    if (!cardW) return;
+    const slide = cardW + gap;
+    viewport.scrollTo({ left: currentIndex * slide, behavior: 'smooth' });
+    prevBtn.disabled = currentIndex <= 0;
+    prevBtn.classList.toggle('is-disabled', currentIndex <= 0);
+    const maxIndex = getMaxIndex();
+    nextBtn.disabled = currentIndex >= maxIndex;
+    nextBtn.classList.toggle('is-disabled', currentIndex >= maxIndex);
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) { currentIndex -= 2; if (currentIndex < 0) currentIndex = 0; update(); }
+  });
+  nextBtn.addEventListener('click', () => {
+    const maxIndex = getMaxIndex();
+    if (currentIndex < maxIndex) { currentIndex += 2; if (currentIndex > maxIndex) currentIndex = maxIndex; update(); }
+  });
+
+  window.addEventListener('resize', () => { currentIndex = 0; update(); });
+
+  // Stato iniziale
+  update();
 }
 
 // ---------------- HOMEPAGE: "Lavori selezionati" (Sezione 4) ----------------
